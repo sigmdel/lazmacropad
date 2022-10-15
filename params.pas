@@ -72,7 +72,7 @@ begin
         if macros[i] <> '' then inc(n);
      end;
      MacrosModified := false;
-     Form1.log(llInfo,'Macros file %s with %d macro definitions saved', [filename, n]);
+     MainForm.log(llInfo,'Macros file %s with %d macro definitions saved', [filename, n]);
   finally
     free;
   end;
@@ -90,9 +90,9 @@ begin
 
   n := 0;
   if (filename = '') then
-    Form1.log(llError, 'params.LoadMacros() called with empty filename')
+    MainForm.log(llError, 'params.LoadMacros() called with empty filename')
   else if not fileexists(filename) then
-    Form1.log(llError, 'Macros file cannot be loaded, %s does not exist', [filename])
+    MainForm.log(llError, 'Macros file cannot be loaded, %s does not exist', [filename])
   else with TInifile.create(filename) do try
      for i := 0 to BUTTON_COUNT-1 do begin
         s := ReadString('macros', inttohex(i,2), macros[i]);
@@ -101,7 +101,7 @@ begin
           macros[i] := s;
         end;
      end;
-     Form1.log(llInfo,'Macros file %s contained %d macro definitions', [filename, n]);
+     MainForm.log(llInfo,'Macros file %s contained %d macro definitions', [filename, n]);
   finally
     free;
   end;
@@ -166,7 +166,7 @@ begin
    finally
      free;
    end;
-   Form1.log(llInfo, 'Configuration file %s saved', [configfile]);
+   MainForm.log(llInfo, 'Configuration file %s saved', [configfile]);
 end;
 
 procedure TConfig.Load;
@@ -174,7 +174,7 @@ begin
   if not fileexists(configfile) then begin
     // make sure a config file always exists
     Save;
-    Form1.log(llInfo, 'Default configuration file created because none was found');
+    MainForm.log(llInfo, 'Default configuration file created because none was found');
     exit;
   end;
   with TInifile.create(configfile) do try
@@ -188,7 +188,7 @@ begin
   finally
     free;
   end;
-  Form1.log(llInfo, 'Configuration file %s loaded', [configfile]);
+  MainForm.log(llInfo, 'Configuration file %s loaded', [configfile]);
 end;
 
 function Vendor: string;
@@ -202,8 +202,8 @@ begin
 end;
 
 
-// Can't do this in initialization because Form1.log is used
-// in config.Load which thus requires mainunit.Form1 to be created
+// Can't do this in initialization because MainForm.log is used
+// in config.Load which thus requires mainunit.MainForm to be created
 procedure ParamsInit;
 begin
   OnGetVendorName := @Vendor;

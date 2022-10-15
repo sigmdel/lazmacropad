@@ -111,7 +111,7 @@
       <Unit>
         <Filename Value="main.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form1"/>
+        <ComponentName Value="MainForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
@@ -124,6 +124,12 @@
         <IsPartOfProject Value="True"/>
         <ComponentName Value="AboutForm"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="keymap.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="LayoutForm"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
     </Units>

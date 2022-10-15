@@ -30,12 +30,13 @@ const
   LM_SAVE_MACROS_QUITTING = LM_NEW_MACROFILENAME + 1;
 
 type
-  { TForm1 }
+  { TMainForm }
 
-  TForm1 = class(TForm)
+  TMainForm = class(TForm)
     Bevel1: TBevel;
     Bevel3: TBevel;
     AboutButton: TButton;
+    ShowKeysCheckBox: TCheckBox;
     MacrosFileNameEdit: TFileNameEdit;
     RestoreConfigButton: TButton;
     DefaultCheckbox: TCheckBox;
@@ -83,6 +84,7 @@ type
     procedure RadioButtonChange(Sender: TObject);
     procedure SaveMacrosButtonClick(Sender: TObject);
     procedure SaveConfigButtonClick(Sender: TObject);
+    procedure ShowKeysCheckBoxChange(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     serialhandle: LongInt;
@@ -100,23 +102,23 @@ type
   end;
 
 var
-  Form1: TForm1;
+  MainForm: TMainForm;
 
 implementation
 
 {$R *.lfm}
 
 uses
-  about;
+  about, keymap;
 
-{ TForm1 }
+{ TMainForm }
 
-procedure TForm1.AboutButtonClick(Sender: TObject);
+procedure TMainForm.AboutButtonClick(Sender: TObject);
 begin
   aboutform.showmodal;
 end;
 
-procedure TForm1.BaudComboBoxEditingDone(Sender: TObject);
+procedure TMainForm.BaudComboBoxEditingDone(Sender: TObject);
 var
   newbaud: longint;
 begin
@@ -129,17 +131,17 @@ begin
   end;
 end;
 
-procedure TForm1.CloseButtonClick(Sender: TObject);
+procedure TMainForm.CloseButtonClick(Sender: TObject);
 begin
   close;
 end;
 
-procedure TForm1.ConnectButtonClick(Sender: TObject);
+procedure TMainForm.ConnectButtonClick(Sender: TObject);
 begin
   OpenSerialDevice;
 end;
 
-procedure TForm1.DefaultCheckboxChange(Sender: TObject);
+procedure TMainForm.DefaultCheckboxChange(Sender: TObject);
 begin
   if DefaultCheckbox.checked then begin
      if MacrosFileNameEdit.filename = '' then begin
@@ -152,7 +154,7 @@ begin
     DefaultCheckbox.checked := true;
 end;
 
-procedure TForm1.Callback(const src: string);
+procedure TMainForm.Callback(const src: string);
 var
   i: integer;
 begin
@@ -168,7 +170,7 @@ begin
     Log(llInfo, 'Key: %s, no macro defined', [src]);
 end;
 
-procedure TForm1.CloseSerialDevice(quiet: boolean);
+procedure TMainForm.CloseSerialDevice(quiet: boolean);
 begin
   if serialhandle > 0 then begin
     SerSync(serialhandle); // flush out any remaining before closure
@@ -181,7 +183,7 @@ begin
     Log(llInfo, 'Closing serial device');
 end;
 
-procedure TForm1.DeviceEditEditingDone(Sender: TObject);
+procedure TMainForm.DeviceEditEditingDone(Sender: TObject);
 begin
   if DeviceEdit.text <> Config.DeviceName then begin
      //CloseSerialDevice;
@@ -190,7 +192,7 @@ begin
   end;
 end;
 
-procedure TForm1.FormActivate(Sender: TObject);
+procedure TMainForm.FormActivate(Sender: TObject);
 begin
   PageControl1.ActivePage := TabSheet1;
   MacrosFileNameEdit.Filename := Config.DefaultMacrosFile;
@@ -199,13 +201,13 @@ begin
   UpdateGUI;
 end;
 
-procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   Timer1.Enabled := false;
   CloseSerialDevice(true);
 end;
 
-procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   mr: TModalResult;
   x, y: integer;
@@ -234,7 +236,7 @@ begin
   CanClose := true;
 end;
 
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TMainForm.FormCreate(Sender: TObject);
 begin
   serialhandle := 0;  // not serial device opened
   constraints.MinWidth := width;
@@ -244,7 +246,7 @@ begin
   Caption := changefileext(extractfilename(application.exename), '');
 end;
 
-procedure TForm1.Inject(const macro: string);
+procedure TMainForm.Inject(const macro: string);
 begin
   // KeyInput.Press(macro); will not work with mapped keyboards
   // For example
@@ -262,7 +264,7 @@ begin
   //clipboard.Clear;  // doest not seem to do anything at least with Diodon
 end;
 
-procedure TForm1.Log(level: TLogLevel; const msg: string);
+procedure TMainForm.Log(level: TLogLevel; const msg: string);
 begin
   if level >= Config.logLevel then begin
     LogMemo.Lines.Add(msg);
@@ -270,17 +272,17 @@ begin
   end;
 end;
 
-procedure TForm1.Log(level: TLogLevel; const msg: string; args: array of const);
+procedure TMainForm.Log(level: TLogLevel; const msg: string; args: array of const);
 begin
   Log(level, Format(msg, args));
 end;
 
-procedure TForm1.LogMemoKeyPress(Sender: TObject; var Key: char);
+procedure TMainForm.LogMemoKeyPress(Sender: TObject; var Key: char);
 begin
   if Key = #22 then Key := #0;  // stop Ctrl+V from working in log
 end;
 
-procedure TForm1.MacrosFileNameEditAcceptFileName(Sender: TObject;
+procedure TMainForm.MacrosFileNameEditAcceptFileName(Sender: TObject;
   var Value: String);
 begin
   PostMessage(self.handle, LM_NEW_MACROFILENAME, 0, 0);
@@ -289,7 +291,7 @@ begin
   // called by the message handler NewMacroFileName(var Msg: TLMessage)
 end;
 
-procedure TForm1.MacrosFileNameEditEditingDone(Sender: TObject);
+procedure TMainForm.MacrosFileNameEditEditingDone(Sender: TObject);
 begin
   if MacrosFileNameEdit.filename <> currentMacrosFile then begin
     LoadMacros(MacrosFileNameEdit.filename);
@@ -298,27 +300,28 @@ begin
   end;
 end;
 
-procedure TForm1.MacrosFileNameEditEnter(Sender: TObject);
+procedure TMainForm.MacrosFileNameEditEnter(Sender: TObject);
 begin
   currentmacrosfile := MacrosFileNameEdit.filename;
 end;
 
-procedure TForm1.MacrosEditorEditingDone(Sender: TObject);
+procedure TMainForm.MacrosEditorEditingDone(Sender: TObject);
 begin
   if (MacrosEditor.Row >= 1) and (MacrosEditor.Row <= BUTTON_COUNT) and
   (macros[MacrosEditor.Row-1] <> MacrosEditor.Cells[1, MacrosEditor.Row]) then begin
      macros[MacrosEditor.Row-1] := MacrosEditor.Cells[1, MacrosEditor.Row];
      macrosmodified := true;
      SaveMacrosButton.Enabled := true;
+     LayoutForm.keys[MacrosEditor.Row-1].Hint := macros[MacrosEditor.Row-1];
   end;
 end;
 
-procedure TForm1.NewMacroFileName(var Msg: TLMessage);
+procedure TMainForm.NewMacroFileName(var Msg: TLMessage);
 begin
   MacrosFileNameEditEditingDone(nil);
 end;
 
-function TForm1.OpenSerialDevice: boolean;
+function TMainForm.OpenSerialDevice: boolean;
 var
   Flags: TSerialFlags; { set of (RtsCtsFlowControl); }
 begin
@@ -340,7 +343,7 @@ begin
   result := serialhandle > 0;
 end;
 
-procedure TForm1.RadioButtonChange(Sender: TObject);
+procedure TMainForm.RadioButtonChange(Sender: TObject);
 begin
   if Sender is TRadioButton then with Sender as TRadioButton do begin
     if (checked and (Config.loglevel <> TLogLevel(tag)) ) then begin
@@ -350,18 +353,23 @@ begin
   end;
 end;
 
-procedure TForm1.RestoreConfigButtonClick(Sender: TObject);
+procedure TMainForm.RestoreConfigButtonClick(Sender: TObject);
 begin
   Config.Load;
   UpdateGui;
 end;
 
-procedure TForm1.SaveConfigButtonClick(Sender: TObject);
+procedure TMainForm.SaveConfigButtonClick(Sender: TObject);
 begin
   Config.Save;
 end;
 
-procedure TForm1.SaveMacrosButtonClick(Sender: TObject);
+procedure TMainForm.ShowKeysCheckBoxChange(Sender: TObject);
+begin
+  LayoutForm.visible := ShowKeysCheckBox.checked;
+end;
+
+procedure TMainForm.SaveMacrosButtonClick(Sender: TObject);
 begin
   with SaveDialog1 do begin
     filename := MacrosFileNameEdit.filename;
@@ -375,7 +383,7 @@ begin
   end;
 end;
 
-procedure TForm1.SaveMacrosQuitting(var Msg: TLMessage);
+procedure TMainForm.SaveMacrosQuitting(var Msg: TLMessage);
 var
   mr: TModalResult;
   x, y: integer;
@@ -393,7 +401,7 @@ begin
   close;
 end;
 
-procedure TForm1.Timer1Timer(Sender: TObject);
+procedure TMainForm.Timer1Timer(Sender: TObject);
 var
   i: integer;
   count: integer;
@@ -426,7 +434,7 @@ begin
   SerFlushInput(serialhandle);  // flush everything
 end;
 
-procedure TForm1.UpdateGUI;
+procedure TMainForm.UpdateGUI;
 var
   i : integer;
 begin
@@ -442,6 +450,8 @@ begin
   SaveMacrosButton.Enabled := macrosmodified;
   DefaultCheckbox.checked := (Config.DefaultMacrosFile <> '')
     and (MacrosFileNameEdit.Filename = Config.DefaultMacrosFile);
+  for i := 0 to  BUTTON_COUNT-1 do
+    LayoutForm.keys[i].Hint := macros[i];
 end;
 
 
