@@ -3,7 +3,7 @@
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
-Currently the desktop program runs on Linux only.
+Currently the Free Pascal/Lazarus program has been tested and found to run on Windows 10 and Linux (Mint 20.1) only.
 
 ![screenshot](images/screenshot_0_1_0.jpg)
 
@@ -14,6 +14,7 @@ Currently the desktop program runs on Linux only.
 - [2. Theory of Operation](#2-theory-of-operation)
 - [3. Source Code and Prerequisites](#3-source-code-and-prerequisites)
   - [3.1. Linux Requirements](#31-linux-requirements)
+  - [3.2. Windows Requirements](#32-windows-requirements)
 - [4. Acknowledgment](#4-acknowledgment)
 - [5. License](#5-license)
 
@@ -68,7 +69,7 @@ The source code of the object pascal program consists of the following files:
     layout.pas, layout.lfm
     params.pas
 
-The `MouseAndKeyInput` unit is used to generate the Ctrl-V keyboard event which is the usual paste keyboard shortcut. The unit is found in the `lazmouseandkeyinput` non-visual package. Add it in the `Required Packages` in the `Project Inspector` window (which is opened from the `Project` menu in the IDE).
+The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) unit is used to generate the Ctrl-V keyboard event which is the usual paste keyboard shortcut. The unit is found in the `lazmouseandkeyinput.lpk` non-visual package. The package found in the `$(LAZARUS)/components/mouseandkeyinput` directory. Load the package file into the Lazarus IDE and compile it. Add `lazmouseandkeyinput` to the `Required Packages` in the `Project Inspector` window (which is opened from the `Project` menu in the IDE).
 
 ### 3.1. Linux Requirements
 
@@ -88,6 +89,14 @@ $ sudo updatedb
 $ locate libXtst
 ```
 
+### 3.2. Windows Requirements
+
+The source was compiled in Lazarus (version 2.2.4 / Free Pascal compiler 3.2.2) on a Windows 10 desktop and tested on the same machine. 
+
+No additional libraries are required in Windows.
+
+It is not possible to test for a lost serial connection in Windows.
+
 ## 4. Acknowledgment
 
 There is no shortage of information on all sorts of more or less sophisticated macro key pads. 
@@ -96,25 +105,4 @@ The Brian Lough video, [The Simplest DIMY Macro Keypad with Arduino](https://www
 
 ## 5. License
 
-Licence
-
 The **BSD Zero Clause** ([SPDX](https://spdx.dev/): [0BSD](https://spdx.org/licenses/0BSD.html)) licence applies to the original code in this repository.
-
-
-<!-- -
-michel@hp:~$ lsusb
-Bus 002 Device 002: ID 8087:8000 Intel Corp. 
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 001 Device 002: ID 8087:8008 Intel Corp. 
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
-Bus 003 Device 005: ID 058f:6362 Alcor Micro Corp. Flash Card Reader/Writer
-Bus 003 Device 004: ID 0471:060c Philips (or NXP) Consumer Infrared Transceiver (HP)
-Bus 003 Device 003: ID 04f3:0103 Elan Microelectronics Corp. ActiveJet K-2024 Multimedia Keyboard
-Bus 003 Device 007: ID 0a5c:21f1 Broadcom Corp. HP Portable Bumble Bee
-Bus 003 Device 009: ID 1a86:7523 QinHeng Electronics HL-340 USB-Serial adapter
-Bus 003 Device 008: ID 05e3:0608 Genesys Logic, Inc. Hub
-Bus 003 Device 006: ID 05e3:0608 Genesys Logic, Inc. Hub
-Bus 003 Device 002: ID 0461:4e23 Primax Electronics, Ltd HP USB Optical Mouse
-Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-->
