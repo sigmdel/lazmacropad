@@ -10,7 +10,7 @@ uses
   athreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, main, params, about, keymap
+  Forms, lazmouseandkeyinput, main, params, about, keymap
   { you can add units after this };
 
 {$R *.res}
