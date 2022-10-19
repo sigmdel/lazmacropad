@@ -81,12 +81,12 @@ object MainForm: TMainForm
           '7='
           '8='
           '9='
-          'a ='
-          'b='
-          'c='
-          'd='
-          'e='
-          'f='
+          'A='
+          'B='
+          'C='
+          'D='
+          'E='
+          'F='
         )
         ColWidths = (
           64
