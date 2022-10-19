@@ -61,7 +61,7 @@ begin
       Width := SZ;
       Alignment := taCenter;
       AutoSize := False;
-      Caption := inttostr(i);
+      Caption := inttohex(i, 1);
       Color := clSilver;
       Font.Color := clBlack;
       Font.Height := 16;
