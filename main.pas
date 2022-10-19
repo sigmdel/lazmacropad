@@ -5,8 +5,11 @@ unit main;
 interface
 
 ///// Attention:
-/////   DEBUG and look at lost memory!!!
-/////   Use string grid instead of value editor ?
+/////   DEBUG and look at lost memory in Linux!!!
+/////   Use string grid instead of value editor
+
+{ DEFINE TEST_SHIFT_INSERT}
+
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, clipbrd,
@@ -257,10 +260,18 @@ begin
   // converted to the FR characters before being passed on
   // to the application
   clipboard.AsText := macro;
+
+{$IFDEF TEST_SHIFT_INSERT}
+  // Inject Shift-Insert (paste) keyboard shortcut
+  KeyInput.Apply([ssShift]);
+  KeyInput.Press(VK_INSERT);
+  KeyInput.Unapply([ssShift]);
+{$ELSE}
   // Inject ^V (paste) keyboard shortcut
   KeyInput.Apply([ssCtrl]);
   KeyInput.Press(VK_V);
   KeyInput.Unapply([ssCtrl]);
+{$ENDIF}
   //clipboard.Clear;  // doest not seem to do anything at least with Diodon
 end;
 
@@ -413,6 +424,13 @@ begin
   instr := '';
   count := SerRead(serialhandle, inbuf, sizeof(inbuf));
   if count = 0 then begin
+{$IFDEF WINDOWS}
+    // unable to check if connection lost in Windows
+    // could have the nano send a 'heartbeat' message
+    // (say '@') at regular intervals and use that to
+    // check for lost connections
+    exit;
+{$ELSE}
     // nothing read, check if connection still valid
     sstate := SerSaveState(serialhandle);
     if sstate.LineState = 0 then begin
@@ -422,6 +440,7 @@ begin
       Log(llError, 'Use the [Connect] button in Parameters to reconnect');
       exit;
     end;
+{$ENDIF}
   end;
   for i := 0 to count-1 do begin
      if inbuf[i] = #10 then begin
