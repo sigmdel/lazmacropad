@@ -10,6 +10,7 @@ object AboutForm: TAboutForm
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
   Position = poMainFormCenter
+  LCLVersion = '2.3.0.0'
   object Image1: TImage
     Left = 15
     Height = 115

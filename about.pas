@@ -55,9 +55,5 @@ begin
     OpenUrl(hint);
 end;
 
-
-(*
-
-*)
 end.
 
