@@ -11,7 +11,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, clipbrd,
   LCLIntf, LMessages, LCLType, ComCtrls, ExtCtrls, ValEdit, EditBtn, Buttons,
-  fileinfo, MouseAndKeyInput, serial, params;
+  MouseAndKeyInput, serial, params;
 
 { https://wiki.lazarus.freepascal.org/MouseAndKeyInput
   MouseAndKeyInput
@@ -141,19 +141,6 @@ begin
   OpenSerialDevice;
 end;
 
-procedure TMainForm.DefaultCheckboxChange(Sender: TObject);
-begin
-  if DefaultCheckbox.checked then begin
-     if MacrosFileNameEdit.filename = '' then begin
-        DefaultCheckbox.checked := false;
-        exit;
-     end;
-     Config.DefaultMacrosFile := MacrosFileNameEdit.Filename;
-  end
-  else if (MacrosFileNameEdit.Filename = Config.DefaultMacrosFile) then
-    DefaultCheckbox.checked := true;
-end;
-
 procedure TMainForm.Callback(const src: string);
 var
   i: integer;
@@ -181,6 +168,19 @@ begin
   Timer1.Enabled := false;
   if not quiet then
     Log(llInfo, 'Closing serial device');
+end;
+
+procedure TMainForm.DefaultCheckboxChange(Sender: TObject);
+begin
+  if DefaultCheckbox.checked then begin
+     if MacrosFileNameEdit.filename = '' then begin
+        DefaultCheckbox.checked := false;
+        exit;
+     end;
+     Config.DefaultMacrosFile := MacrosFileNameEdit.Filename;
+  end
+  else if (MacrosFileNameEdit.Filename = Config.DefaultMacrosFile) then
+    DefaultCheckbox.checked := true;
 end;
 
 procedure TMainForm.DeviceEditEditingDone(Sender: TObject);

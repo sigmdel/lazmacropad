@@ -63,7 +63,6 @@ var
 procedure SaveMacros(const filename: string);
 var
   i,n: integer;
-  s: string;
 begin
   n := 0;
   with TInifile.create(filename) do try

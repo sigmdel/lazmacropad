@@ -6,6 +6,7 @@ object MainForm: TMainForm
   Caption = 'lazmacropad'
   ClientHeight = 323
   ClientWidth = 591
+  KeyPreview = True
   OnActivate = FormActivate
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -16,10 +17,10 @@ object MainForm: TMainForm
     Height = 281
     Top = 0
     Width = 591
-    ActivePage = TabSheet2
+    ActivePage = TabSheet1
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 4
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     OnChange = RadioButtonChange
     object TabSheet1: TTabSheet
@@ -458,7 +459,7 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 100
     OnTimer = Timer1Timer
-    Left = 488
+    Left = 496
     Top = 232
   end
   object SaveDialog1: TSaveDialog
