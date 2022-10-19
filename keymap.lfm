@@ -1,11 +1,11 @@
 object LayoutForm: TLayoutForm
-  Left = 368
+  Left = 401
   Height = 315
-  Top = 250
+  Top = 154
   Width = 248
   AutoSize = True
-  BorderIcons = [biSystemMenu, biMaximize]
-  BorderStyle = bsToolWindow
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
   Caption = 'Macro Keyboard Layout'
   ClientHeight = 315
   ClientWidth = 248
