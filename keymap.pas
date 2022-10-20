@@ -56,7 +56,6 @@ begin
       parent := self;
       Left := x;
       Height := SZ;
-      //Hint := '<a href:="" target:="_blank">';
       Top := y;
       Width := SZ;
       Alignment := taCenter;
