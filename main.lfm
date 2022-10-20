@@ -22,7 +22,7 @@ object MainForm: TMainForm
     BorderSpacing.Bottom = 4
     TabIndex = 0
     TabOrder = 0
-    OnChange = RadioButtonChange
+    OnChange = LogLevelRadioButtonsChange
     object TabSheet1: TTabSheet
       Caption = 'Log'
       ClientHeight = 251
@@ -48,7 +48,7 @@ object MainForm: TMainForm
       Caption = 'Macro definitions'
       ClientHeight = 251
       ClientWidth = 581
-      object MacrosEditor: TValueListEditor
+      object MacrosEditor: TStringGrid
         AnchorSideLeft.Control = TabSheet2
         AnchorSideTop.Control = SaveMacrosButton
         AnchorSideTop.Side = asrBottom
@@ -57,40 +57,37 @@ object MainForm: TMainForm
         AnchorSideBottom.Control = TabSheet2
         AnchorSideBottom.Side = asrBottom
         Left = 2
-        Height = 205
+        Height = 202
         Top = 46
         Width = 577
         Anchors = [akTop, akLeft, akRight, akBottom]
+        AutoFillColumns = True
         BorderSpacing.Left = 2
         BorderSpacing.Top = 6
         BorderSpacing.Right = 2
+        BorderSpacing.Bottom = 3
+        ColCount = 2
+        Columns = <        
+          item
+            Alignment = taCenter
+            MaxSize = 40
+            ReadOnly = True
+            Title.Caption = 'Key'
+            Width = 40
+          end        
+          item
+            Title.Caption = 'Macro'
+            Width = 530
+          end>
         FixedCols = 0
-        Flat = True
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goThumbTracking]
         RowCount = 17
         TabOrder = 3
         OnEditingDone = MacrosEditorEditingDone
-        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goThumbTracking]
-        Strings.Strings = (
-          '0='
-          '1='
-          '2='
-          '3='
-          '4='
-          '5='
-          '6='
-          '7='
-          '8='
-          '9='
-          'A='
-          'B='
-          'C='
-          'D='
-          'E='
-          'F='
-        )
+        OnSelectCell = MacrosEditorSelectCell
         ColWidths = (
-          64
-          499
+          40
+          530
         )
       end
       object Label1: TLabel
@@ -344,7 +341,7 @@ object MainForm: TMainForm
         BorderSpacing.Top = 6
         Caption = 'Debug (all)'
         Checked = True
-        OnChange = RadioButtonChange
+        OnChange = LogLevelRadioButtonsChange
         TabOrder = 4
         TabStop = True
       end
@@ -360,7 +357,7 @@ object MainForm: TMainForm
         Width = 98
         BorderSpacing.Left = 6
         Caption = 'Information'
-        OnChange = RadioButtonChange
+        OnChange = LogLevelRadioButtonsChange
         TabOrder = 5
       end
       object RadioButton3: TRadioButton
@@ -375,7 +372,7 @@ object MainForm: TMainForm
         Width = 93
         BorderSpacing.Left = 6
         Caption = 'Errors only'
-        OnChange = RadioButtonChange
+        OnChange = LogLevelRadioButtonsChange
         TabOrder = 6
       end
       object RadioButton4: TRadioButton
@@ -390,7 +387,7 @@ object MainForm: TMainForm
         Width = 59
         BorderSpacing.Left = 5
         Caption = 'None'
-        OnChange = RadioButtonChange
+        OnChange = LogLevelRadioButtonsChange
         TabOrder = 7
       end
       object RestoreConfigButton: TButton

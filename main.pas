@@ -6,15 +6,17 @@ interface
 
 ///// Attention:
 /////   DEBUG and look at lost memory in Linux!!!
-/////   Use string grid instead of value editor
 
-{ DEFINE TEST_SHIFT_INSERT}
-
+{ IFDEF TEST_SHIFT_INSERT}
+{ If define Shift+Insert will be used as the clipboard paste shortcut.
+  FOR TESTING ONLY!
+  Do not do this, in all likelyhood it will not give the desired result
+}
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, clipbrd,
   LCLIntf, LMessages, LCLType, ComCtrls, ExtCtrls, ValEdit, EditBtn, Buttons,
-  MouseAndKeyInput, serial, params;
+  Grids, MouseAndKeyInput, serial, params;
 
 { https://wiki.lazarus.freepascal.org/MouseAndKeyInput
   MouseAndKeyInput
@@ -66,10 +68,12 @@ type
     TabSheet2: TTabSheet;
     TabSheet3: TTabSheet;
     Timer1: TTimer;
-    MacrosEditor: TValueListEditor;
+    MacrosEditor: TStringGrid;
     procedure AboutButtonClick(Sender: TObject);
     procedure BaudComboBoxEditingDone(Sender: TObject);
     procedure LogMemoKeyPress(Sender: TObject; var Key: char);
+    procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
+      var CanSelect: Boolean);
     procedure MacrosFileNameEditAcceptFileName(Sender: TObject;
       var Value: String);
     procedure MacrosFileNameEditEditingDone(Sender: TObject);
@@ -84,7 +88,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
     procedure MacrosEditorEditingDone(Sender: TObject);
-    procedure RadioButtonChange(Sender: TObject);
+    procedure LogLevelRadioButtonsChange(Sender: TObject);
     procedure SaveMacrosButtonClick(Sender: TObject);
     procedure SaveConfigButtonClick(Sender: TObject);
     procedure ShowKeysCheckBoxChange(Sender: TObject);
@@ -134,16 +138,6 @@ begin
   end;
 end;
 
-procedure TMainForm.CloseButtonClick(Sender: TObject);
-begin
-  close;
-end;
-
-procedure TMainForm.ConnectButtonClick(Sender: TObject);
-begin
-  OpenSerialDevice;
-end;
-
 procedure TMainForm.Callback(const src: string);
 var
   i: integer;
@@ -160,6 +154,11 @@ begin
     Log(llInfo, 'Key: %s, no macro defined', [src]);
 end;
 
+procedure TMainForm.CloseButtonClick(Sender: TObject);
+begin
+  close;
+end;
+
 procedure TMainForm.CloseSerialDevice(quiet: boolean);
 begin
   if serialhandle > 0 then begin
@@ -171,6 +170,11 @@ begin
   Timer1.Enabled := false;
   if not quiet then
     Log(llInfo, 'Closing serial device');
+end;
+
+procedure TMainForm.ConnectButtonClick(Sender: TObject);
+begin
+  OpenSerialDevice;
 end;
 
 procedure TMainForm.DefaultCheckboxChange(Sender: TObject);
@@ -240,6 +244,8 @@ begin
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
+var
+  i: integer;
 begin
   serialhandle := 0;  // not serial device opened
   constraints.MinWidth := width;
@@ -247,6 +253,9 @@ begin
   ParamsInit;
   log(llError, 'Form minimum height x width: %d x %d px', [height, width]);
   Caption := changefileext(extractfilename(application.exename), '');
+  MacrosEditor.RowCount := BUTTON_COUNT+1;
+  for i := 0 to BUTTON_COUNT-1 do
+    MacrosEditor.Cells[0,i+1] := inttohex(i, 1);
 end;
 
 procedure TMainForm.Inject(const macro: string);
@@ -288,9 +297,47 @@ begin
   Log(level, Format(msg, args));
 end;
 
+procedure TMainForm.LogLevelRadioButtonsChange(Sender: TObject);
+begin
+  if Sender is TRadioButton then with Sender as TRadioButton do begin
+    if (checked and (Config.loglevel <> TLogLevel(tag)) ) then begin
+      Config.loglevel := TLogLevel(tag);
+      TabSheet1.TabVisible := Config.loglevel <> llNone;
+    end;
+  end;
+end;
+
+(*
+procedure TMainForm.LogMemoKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+   if (Key = VK_INSERT) and (Shift = [ssShift]) then
+      Key := 0
+    else if (Key = VK_V) and (Shift = [ssCtrl]) then
+      Key := 0;
+end;
+*)
+
 procedure TMainForm.LogMemoKeyPress(Sender: TObject; var Key: char);
 begin
   if Key = #22 then Key := #0;  // stop Ctrl+V from working in log
+end;
+
+procedure TMainForm.MacrosEditorEditingDone(Sender: TObject);
+begin
+  if (MacrosEditor.Row >= 1) and (MacrosEditor.Row <= BUTTON_COUNT) and
+  (macros[MacrosEditor.Row-1] <> MacrosEditor.Cells[1, MacrosEditor.Row]) then begin
+     macros[MacrosEditor.Row-1] := MacrosEditor.Cells[1, MacrosEditor.Row];
+     macrosmodified := true;
+     SaveMacrosButton.Enabled := true;
+     LayoutForm.keys[MacrosEditor.Row-1].Hint := macros[MacrosEditor.Row-1];
+  end;
+end;
+
+procedure TMainForm.MacrosEditorSelectCell(Sender: TObject; aCol,
+  aRow: Integer; var CanSelect: Boolean);
+begin
+  CanSelect := (aCol > 0) and (aRow > 0);
 end;
 
 procedure TMainForm.MacrosFileNameEditAcceptFileName(Sender: TObject;
@@ -314,17 +361,6 @@ end;
 procedure TMainForm.MacrosFileNameEditEnter(Sender: TObject);
 begin
   currentmacrosfile := MacrosFileNameEdit.filename;
-end;
-
-procedure TMainForm.MacrosEditorEditingDone(Sender: TObject);
-begin
-  if (MacrosEditor.Row >= 1) and (MacrosEditor.Row <= BUTTON_COUNT) and
-  (macros[MacrosEditor.Row-1] <> MacrosEditor.Cells[1, MacrosEditor.Row]) then begin
-     macros[MacrosEditor.Row-1] := MacrosEditor.Cells[1, MacrosEditor.Row];
-     macrosmodified := true;
-     SaveMacrosButton.Enabled := true;
-     LayoutForm.keys[MacrosEditor.Row-1].Hint := macros[MacrosEditor.Row-1];
-  end;
 end;
 
 procedure TMainForm.NewMacroFileName(var Msg: TLMessage);
@@ -354,16 +390,6 @@ begin
   result := serialhandle > 0;
 end;
 
-procedure TMainForm.RadioButtonChange(Sender: TObject);
-begin
-  if Sender is TRadioButton then with Sender as TRadioButton do begin
-    if (checked and (Config.loglevel <> TLogLevel(tag)) ) then begin
-      Config.loglevel := TLogLevel(tag);
-      TabSheet1.TabVisible := Config.loglevel <> llNone;
-    end;
-  end;
-end;
-
 procedure TMainForm.RestoreConfigButtonClick(Sender: TObject);
 begin
   Config.Load;
@@ -373,11 +399,6 @@ end;
 procedure TMainForm.SaveConfigButtonClick(Sender: TObject);
 begin
   Config.Save;
-end;
-
-procedure TMainForm.ShowKeysCheckBoxChange(Sender: TObject);
-begin
-  LayoutForm.visible := ShowKeysCheckBox.checked;
 end;
 
 procedure TMainForm.SaveMacrosButtonClick(Sender: TObject);
@@ -412,25 +433,27 @@ begin
   close;
 end;
 
+procedure TMainForm.ShowKeysCheckBoxChange(Sender: TObject);
+begin
+  LayoutForm.visible := ShowKeysCheckBox.checked;
+end;
+
 procedure TMainForm.Timer1Timer(Sender: TObject);
 var
-  i: integer;
+  k: integer;
   count: integer;
   sstate: TSerialState;
   inbuf: array[0..BUFSIZE-1] of char;
-  instr: String;
 begin
   if serialhandle <= 0 then exit;
-  instr := '';
   count := SerRead(serialhandle, inbuf, sizeof(inbuf));
   if count = 0 then begin
-{$IFDEF WINDOWS}
+    // nothing read, check if connection still valid
+    {$IFNDEF WINDOWS}
     // unable to check if connection lost in Windows
     // could have the nano send a 'heartbeat' message
     // (say '@') at regular intervals and use that to
     // check for lost connections
-    exit;
-{$ELSE}
     // nothing read, check if connection still valid
     sstate := SerSaveState(serialhandle);
     if sstate.LineState = 0 then begin
@@ -438,18 +461,11 @@ begin
       CloseSerialDevice(true);
       Log(llError, 'Serial connection with %s lost (LineState = %d)', [ Config.DeviceName, sstate.LineState]);
       Log(llError, 'Use the [Connect] button in Parameters to reconnect');
-      exit;
     end;
-{$ENDIF}
+    {$ENDIF}
+    exit;
   end;
-  for i := 0 to count-1 do begin
-     if inbuf[i] = #10 then begin
-        Callback(instr);
-        instr := '';
-     end
-     else if inbuf[i] > ' ' then
-        instr := instr + inbuf[i];
-  end;
+  Callback(inbuf[0]);
   SerFlushInput(serialhandle);  // flush everything
 end;
 
