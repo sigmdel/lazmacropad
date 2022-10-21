@@ -7,7 +7,7 @@ interface
 ///// Attention:
 /////   DEBUG and look at lost memory in Linux!!!
 
-{ IFDEF TEST_SHIFT_INSERT}
+{ DEFINE TEST_SHIFT_INSERT}
 { If define Shift+Insert will be used as the clipboard paste shortcut.
   FOR TESTING ONLY!
   Do not do this, in all likelyhood it will not give the desired result
@@ -308,6 +308,10 @@ begin
 end;
 
 (*
+If Shift+Insert and Ctrl+V are to be used as keyboard shortcuts to paste
+the content of the clipboard, then KeyDown event should be used to
+prevent pasting to the LogMemo instead of just KeyPress.
+
 procedure TMainForm.LogMemoKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
