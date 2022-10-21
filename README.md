@@ -1,5 +1,5 @@
 # lazmacropad
-**Version 0.2.2**
+**Version 0.3.0**
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
