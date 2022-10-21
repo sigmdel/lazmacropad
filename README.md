@@ -1,9 +1,9 @@
 # lazmacropad
-**Version 0.2.0**
+**Version 0.2.2**
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
-Currently the Free Pascal/Lazarus program has been tested and found to run on Windows 10 and Linux (Mint 20.1) only.
+Currently the Free Pascal/Lazarus program has been tested and found to run on Windows 10 and Linux (Mint 20.1).
 
 ![screenshot](images/screenshot_0_1_0.jpg)
 
@@ -95,7 +95,14 @@ The source was compiled in Lazarus (version 2.2.4 / Free Pascal compiler 3.2.2) 
 
 No additional libraries are required in Windows.
 
-It is not possible to test for a lost serial connection in Windows.
+It is not possible to test for a lost serial connection in Windows so no indication of such an occurence will be made in the log when running under Windows.
+
+## Ctrl+V vs Shift+Insert
+
+There are two keyboard shortcuts that can be used to paste the content of the clipboard. The `TEST_SHIFT_INSERT` directive could be defined at the start of the `main.pas` to use Shift+Insert instead of  Ctrl+V. Do not do this. Limited testing in Windows seems to indicate that this will only toggle the keyboard insert/overwrite mode as if only the Insert key was being pressed. In Linux, the Shift+Insert shortcut pastes the content of the *primary selection* not the content of the clipboard. The primary selection is made by clicking and dragging the mouse cursor while the content of the clipboard is set with the Ctrl+C short cut. For many applications, such as Geany, VSCodium (and probably VS Code), GNote, LibreOffice Writer and the Lazarus IDE editor, Ctrl+V or Shift+Insert will paste the content of the clipboard so nothing would be gained by choosing Shift+Insert. Other applications, notably the Mate Terminal, will only work with Shift+Insert. For these **lazmacropad** cannot be currently used. The *obvious* solution is to copy the content of the clipboard to the primary solution just before injecting the Shift+Insert shortcut. Unfortunately just how to do this has so far been very elusive. 
+
+> For those wanting to experiment with the primary selection in Linux, make sure that the type definition of the `is_press` argument in the `XTestFakeKeyEvent` function is correct. It should be `Boolean32` but it appears to still be set to `Boolean`. Because of that `TKeyInput.Up(VK_INSERT)` would not function while `TKeyInput.Down(VK_INSERT)` did function. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852).
+
 
 ## 4. Acknowledgment
 

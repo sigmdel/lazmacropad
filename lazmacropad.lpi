@@ -11,11 +11,11 @@
       <XPManifest>
         <DpiAware Value="True"/>
       </XPManifest>
-      <Icon Value="0"/>
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MinorVersionNr Value="2"/>
+      <RevisionNr Value="2"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Default" Default="True"/>
