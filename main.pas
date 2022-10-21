@@ -7,15 +7,10 @@ interface
 ///// Attention:
 /////   DEBUG and look at lost memory in Linux!!!
 
-{ DEFINE TEST_SHIFT_INSERT}
-{ If define Shift+Insert will be used as the clipboard paste shortcut.
-  FOR TESTING ONLY!
-  Do not do this, in all likelyhood it will not give the desired result
-}
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, clipbrd,
-  LCLIntf, LMessages, LCLType, ComCtrls, ExtCtrls, ValEdit, EditBtn, Buttons,
+  LCLIntf, LMessages, LCLType, ComCtrls, ExtCtrls, EditBtn, Buttons,
   Grids, MouseAndKeyInput, serial, params;
 
 { https://wiki.lazarus.freepascal.org/MouseAndKeyInput
@@ -41,6 +36,9 @@ type
     Bevel1: TBevel;
     Bevel3: TBevel;
     AboutButton: TButton;
+    Label3: TLabel;
+    RadioButton5: TRadioButton;
+    RadioButton6: TRadioButton;
     ShowKeysCheckBox: TCheckBox;
     MacrosFileNameEdit: TFileNameEdit;
     RestoreConfigButton: TButton;
@@ -71,6 +69,8 @@ type
     MacrosEditor: TStringGrid;
     procedure AboutButtonClick(Sender: TObject);
     procedure BaudComboBoxEditingDone(Sender: TObject);
+    procedure LogMemoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
+      );
     procedure LogMemoKeyPress(Sender: TObject; var Key: char);
     procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
@@ -78,6 +78,7 @@ type
       var Value: String);
     procedure MacrosFileNameEditEditingDone(Sender: TObject);
     procedure MacrosFileNameEditEnter(Sender: TObject);
+    procedure PasteCommandRadioButtonsChange(Sender: TObject);
     procedure RestoreConfigButtonClick(Sender: TObject);
     procedure CloseButtonClick(Sender: TObject);
     procedure ConnectButtonClick(Sender: TObject);
@@ -116,7 +117,21 @@ implementation
 {$R *.lfm}
 
 uses
-  about, keymap;
+  // Need to use widgetset function to copy the clipboard to the
+  // primary selection when using Shift+Insert shortcut to
+  // paste the macro. This is a Linux thing only
+  //
+  // For Widgetset defines see
+  //   LCL Defines @ https://wiki.freepascal.org/LCL_Defines#Widget_Set
+  //
+  {$ifdef LCLGTK2}
+  gtk2, gdk2,
+  {$endif}
+  //
+  // What about GTK3 and QT?
+  // See  Qt5 Interface @ https://wiki.freepascal.org/Qt5_Interface
+
+  about, keymap, strutils;
 
 { TMainForm }
 
@@ -258,30 +273,35 @@ begin
     MacrosEditor.Cells[0,i+1] := inttohex(i, 1);
 end;
 
-procedure TMainForm.Inject(const macro: string);
+function convertEscSequences(const ins: string): string;
 begin
-  // KeyInput.Press(macro); will not work with mapped keyboards
-  // For example
-  //    macro = 1234567890
-  // will send  &é"'(-è_çà  to the focused application
-  // if an FR (AZERTY) keyboard is used because KeyInput
-  // emulates scan codes from the keyboard which are then
-  // converted to the FR characters before being passed on
-  // to the application
-  clipboard.AsText := macro;
+  result := replaceStr(ins, '\n', #13);
+  result := replaceStr(result, '\t', #9);
+  result := replacestr(result, '\\', '\');
+end;
 
-{$IFDEF TEST_SHIFT_INSERT}
-  // Inject Shift-Insert (paste) keyboard shortcut
-  KeyInput.Apply([ssShift]);
-  KeyInput.Press(VK_INSERT);
-  KeyInput.Unapply([ssShift]);
-{$ELSE}
-  // Inject ^V (paste) keyboard shortcut
-  KeyInput.Apply([ssCtrl]);
-  KeyInput.Press(VK_V);
-  KeyInput.Unapply([ssCtrl]);
-{$ENDIF}
-  //clipboard.Clear;  // doest not seem to do anything at least with Diodon
+procedure TMainForm.Inject(const macro: string);
+var
+  convertedMacro: string;
+begin
+  convertedMacro := convertEscSequences(macro);
+  clipboard.AsText := convertedMacro;
+  
+  if PasteCommand = pcShiftInsert then begin
+    // Inject Shift-Insert (paste) keyboard shortcut
+    {$ifdef LCLGTK2}
+    gtk_clipboard_set_text(gtk_clipboard_get(GDK_SELECTION_PRIMARY), @convertedMacro[1], -1);
+    {$endif}
+    KeyInput.Apply([ssShift]);
+    KeyInput.Press(VK_INSERT);
+    KeyInput.Unapply([ssShift]);
+  end
+  else begin
+    // Inject ^V (paste) keyboard shortcut
+    KeyInput.Apply([ssCtrl]);
+    KeyInput.Press(VK_V);
+    KeyInput.Unapply([ssCtrl]);
+  end;
 end;
 
 procedure TMainForm.Log(level: TLogLevel; const msg: string);
@@ -307,11 +327,6 @@ begin
   end;
 end;
 
-(*
-If Shift+Insert and Ctrl+V are to be used as keyboard shortcuts to paste
-the content of the clipboard, then KeyDown event should be used to
-prevent pasting to the LogMemo instead of just KeyPress.
-
 procedure TMainForm.LogMemoKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -320,11 +335,10 @@ begin
     else if (Key = VK_V) and (Shift = [ssCtrl]) then
       Key := 0;
 end;
-*)
 
 procedure TMainForm.LogMemoKeyPress(Sender: TObject; var Key: char);
 begin
-  if Key = #22 then Key := #0;  // stop Ctrl+V from working in log
+//  if Key = #22 then Key := #0;  // stop Ctrl+V from working in log
 end;
 
 procedure TMainForm.MacrosEditorEditingDone(Sender: TObject);
@@ -392,6 +406,20 @@ begin
   else
     Log(llError, 'Unable to open serial device %s', [Config.DeviceName]);
   result := serialhandle > 0;
+end;
+
+procedure TMainForm.PasteCommandRadioButtonsChange(Sender: TObject);
+var
+  newpaste: TPasteCommand;
+begin
+  if RadioButton5.checked then
+    newpaste := pcCtrlV
+  else
+    newpaste := pcShiftInsert;
+  if PasteCommand <> newpaste then begin
+    PasteCommand := newpaste;
+    macrosModified := true;
+  end;
 end;
 
 procedure TMainForm.RestoreConfigButtonClick(Sender: TObject);
@@ -479,6 +507,8 @@ var
 begin
   for i := 0 to  BUTTON_COUNT-1 do
     MacrosEditor.Cells[1, i+1] := macros[i];
+  RadioButton5.checked := PasteCommand = pcCtrlV;
+  RadioButton6.checked := PasteCommand = pcShiftInsert;
   DeviceEdit.Text := Config.DeviceName;
   BaudComboBox.Text := inttostr(Config.Baud);
   RadioButton1.checked := Config.logLevel = llDebug;

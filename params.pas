@@ -14,10 +14,12 @@ CONST
 
 type
   TLogLevel = (llDebug, llInfo, llError, llNone);
+  TPasteCommand = (pcCtrlV, pcShiftInsert);
 
 var
   Macros: array[0..BUTTON_COUNT-1] of string;
   MacrosModified: boolean;
+  PasteCommand: TPasteCommand;
 
 procedure SaveMacros(const filename: string);
 procedure LoadMacros(const filename: string);
@@ -66,6 +68,7 @@ var
 begin
   n := 0;
   with TInifile.create(filename) do try
+     WriteInteger('paste', 'command', ord(PasteCommand));
      for i := 0 to BUTTON_COUNT-1 do begin
         WriteString('macros', inttohex(i,2), macros[i]);
         if macros[i] <> '' then inc(n);
@@ -84,6 +87,7 @@ var
   s: string;
 begin
   MacrosModified := false;
+  PasteCommand := pcCtrlV;
   for i := 0 to BUTTON_COUNT-1 do
      macros[i] := '';
 
@@ -93,6 +97,7 @@ begin
   else if not fileexists(filename) then
     MainForm.log(llError, 'Macros file cannot be loaded, %s does not exist', [filename])
   else with TInifile.create(filename) do try
+     PasteCommand := TPasteCommand(ReadInteger('paste', 'command', ord(PasteCommand)));
      for i := 0 to BUTTON_COUNT-1 do begin
         s := ReadString('macros', inttohex(i,2), macros[i]);
         if s <> '' then begin
@@ -147,7 +152,7 @@ begin
   FDeviceName := '/dev/ttyUSB0';
   {$endif}
   {$ifdef WINDOWS}
-  FDeviceName := 'COM1';
+  FDeviceName := 'COM4';
   {$endif}
   FBaud := 9600;
   FLogLevel := llInfo;
