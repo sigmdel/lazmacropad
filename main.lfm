@@ -18,10 +18,10 @@ object MainForm: TMainForm
     Height = 281
     Top = 0
     Width = 591
-    ActivePage = TabSheet2
+    ActivePage = TabSheet1
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 4
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     OnChange = LogLevelRadioButtonsChange
     object TabSheet1: TTabSheet

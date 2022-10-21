@@ -15,8 +15,10 @@ Currently the Free Pascal/Lazarus program has been tested and found to run on Wi
 - [3. Source Code and Prerequisites](#3-source-code-and-prerequisites)
   - [3.1. Linux Requirements](#31-linux-requirements)
   - [3.2. Windows Requirements](#32-windows-requirements)
-- [4. Acknowledgment](#4-acknowledgment)
-- [5. License](#5-license)
+- [4. Macros](#4-macros)
+- [5. Ctrl+V vs Shift+Insert](#5-ctrlv-vs-shiftinsert)
+- [6. Acknowledgment](#6-acknowledgment)
+- [7. License](#7-license)
 
 <!-- /TOC -->
 ## 1. Hardware
@@ -89,6 +91,11 @@ $ sudo updatedb
 $ locate libXtst
 ```
 
+If `/usr/lib/x86_64-linux-gnu/libXtst.so` is listed by the last command, then the library will be found.
+
+Make sure that the type definition of the `is_press` argument in the `XTestFakeKeyEvent` function is correct. It should be `Boolean32` but it appears to still be set to `Boolean`. Because of that `TKeyInput.Up(VK_INSERT)` would not function while `TKeyInput.Down(VK_INSERT)` did function. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852). See issues [27819](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/27819) and [39964](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39964) in the Lazarus Gitlab repository.
+
+
 ### 3.2. Windows Requirements
 
 The source was compiled in Lazarus (version 2.2.4 / Free Pascal compiler 3.2.2) on a Windows 10 desktop and tested on the same machine. 
@@ -97,19 +104,32 @@ No additional libraries are required in Windows.
 
 It is not possible to test for a lost serial connection in Windows so no indication of such an occurence will be made in the log when running under Windows.
 
-## Ctrl+V vs Shift+Insert
+## 4. Macros
 
-There are two keyboard shortcuts that can be used to paste the content of the clipboard. The `TEST_SHIFT_INSERT` directive could be defined at the start of the `main.pas` to use Shift+Insert instead of  Ctrl+V. Do not do this. Limited testing in Windows seems to indicate that this will only toggle the keyboard insert/overwrite mode as if only the Insert key was being pressed. In Linux, the Shift+Insert shortcut pastes the content of the *primary selection* not the content of the clipboard. The primary selection is made by clicking and dragging the mouse cursor while the content of the clipboard is set with the Ctrl+C short cut. For many applications, such as Geany, VSCodium (and probably VS Code), GNote, LibreOffice Writer and the Lazarus IDE editor, Ctrl+V or Shift+Insert will paste the content of the clipboard so nothing would be gained by choosing Shift+Insert. Other applications, notably the Mate Terminal, will only work with Shift+Insert. For these **lazmacropad** cannot be currently used. The *obvious* solution is to copy the content of the clipboard to the primary solution just before injecting the Shift+Insert shortcut. Unfortunately just how to do this has so far been very elusive. 
+Macros are just (UTF8) strings, but 3 escape sequences are defined:
 
-> For those wanting to experiment with the primary selection in Linux, make sure that the type definition of the `is_press` argument in the `XTestFakeKeyEvent` function is correct. It should be `Boolean32` but it appears to still be set to `Boolean`. Because of that `TKeyInput.Up(VK_INSERT)` would not function while `TKeyInput.Down(VK_INSERT)` did function. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852).
+  -  '\n' will be converted to #13 (RETURN)
+  -  '\t' will be converted to #9  (TAB)
+  -  '\\\\' will be converted to '\\' 
 
+Appending a \n sequence to a macro to be used in the terminal will mean that it will be executed as soon as the corresponding key is pressed. This could be used to start a program.
 
-## 4. Acknowledgment
+## 5. Ctrl+V vs Shift+Insert
+
+Two cut-and-paste mechanisms are used in X clients (and in Wayland also?): 
+
+  1. the *clipboard* where the Ctlr+C keyboard short cut explicitly copies selected text (images, etc.) to a buffer and Ctlr+V pastes the content of the buffer at the cursor
+  2. the *primary selection* where there is no buffer, the current selection is pasted with a click of the middle mouse button. The Shift+Insert shortcut can be used instead of a middle mouse button click to paste the selection.
+
+While these two mechanisms are nominally independent, many applications, such as Geany, VSCodium (and probably VS Code), GNote, LibreOffice Writer and the Lazarus IDE editor, synchronize the two selections and paste selected text with either Ctrl+C or Shift+Insert. Other applications, notably the Mate Terminal, will only work with the primary selection, which makes sense since Ctrl+C is used to cancel a running program. In Linux applications using the GTK2 widgetset, lazmacropad will copy the clipboard content to the primary selection if Shift+Insert is the selected paste shortcut. In that case, it will be possible to write macros for the terminal. 
+
+Currently copying the clipboard to the primary selection is only done in the GTK2 widgetset. Support for GTK3 and QT widgetsets may be available in the future.
+
+## 6. Acknowledgment
 
 There is no shortage of information on all sorts of more or less sophisticated macro key pads. 
 The Brian Lough video, [The Simplest DIMY Macro Keypad with Arduino](https://www.youtube.com/watch?v=ORujXGDqG_I&ab_channel=BrianLough) was the initial inspiration, but that project is based on an Arduino Pro Micro. The Cristian Bastidas (crixodia) [arduino-nano-macro-keypad](https://github.com/crixodia/arduino-nano-macro-keypad) GitHub repository showed how to create a similarly simple project using a Python script on the desktop.
 
-
-## 5. License
+## 7. License
 
 The **BSD Zero Clause** ([SPDX](https://spdx.dev/): [0BSD](https://spdx.org/licenses/0BSD.html)) licence applies to the original code in this repository.
