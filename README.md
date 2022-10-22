@@ -17,8 +17,9 @@ Currently the Free Pascal/Lazarus program has been tested and found to run on Wi
   - [3.2. Windows Requirements](#32-windows-requirements)
 - [4. Macros](#4-macros)
 - [5. Ctrl+V vs Shift+Insert](#5-ctrlv-vs-shiftinsert)
-- [6. Acknowledgment](#6-acknowledgment)
-- [7. License](#7-license)
+- [6. Upcoming Improvements](#6-upcoming-improvements)
+- [7. Acknowledgment](#7-acknowledgment)
+- [8. License](#8-license)
 
 <!-- /TOC -->
 ## 1. Hardware
@@ -64,11 +65,10 @@ The source code of the object pascal program consists of the following files:
 
     lazmacropad.lpi
     lazmacropad.lpr
-    lazmacropad.res
     lazmacropad.ico
     main.pas, main.lfm 
     about.pas, about.lfm 
-    layout.pas, layout.lfm
+    keymap.pas, keymap.lfm
     params.pas
 
 The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) unit is used to generate the Ctrl-V keyboard event which is the usual paste keyboard shortcut. The unit is found in the `lazmouseandkeyinput.lpk` non-visual package. The package found in the `$(LAZARUS)/components/mouseandkeyinput` directory. Load the package file into the Lazarus IDE and compile it. Add `lazmouseandkeyinput` to the `Required Packages` in the `Project Inspector` window (which is opened from the `Project` menu in the IDE).
@@ -77,23 +77,29 @@ The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) u
 
 The source was compiled in Lazarus (version 2.3.0 / Free Pascal compiler 3.3.1) on a Linux Mint 20.1 desktop and tested on the same machine. 
 
-The `libxtst` library is required. In recent versions of **Debian** the package containing this library is called `libxtst6`. In Linux Mint 20.1, the package was installed but the library could not be found until a symbolic link was added. 
+The `Xtst` library is required. In recent versions of **Debian** the package containing this library is called `libxtst6`. It was already installed in Linux Mint 20.1, although the library could not be found because of a missing symbolic link. If necessary, install the library in the usual fashion
+
+```bash
+$ apt install libxtst6
+```
+
+Check if the needed `libXtst.so` symbolic link is in place.
+
+```bash
+$ locate libXtst
+```
+
+If `/usr/lib/x86_64-linux-gnu/libXtst.so` is not listed by the last command add the symbolic link and update the library database.
 
 ```bash
 $ cd /usr/lib/x86_64-linux-gnu
 $ sudo ln -s libXtst.so.6.1.0 libXtst.so
-```
-
-Check if that is necessary with the following commands.
-
-```bash
 $ sudo updatedb
-$ locate libXtst
 ```
 
-If `/usr/lib/x86_64-linux-gnu/libXtst.so` is listed by the last command, then the library will be found.
+> Note: it appears some have been installing the development package `libxtst-dev` in a bid to add the missing symbolic link, but there is no need for that.
 
-Make sure that the type definition of the `is_press` argument in the `XTestFakeKeyEvent` function is correct. It should be `Boolean32` but it appears to still be set to `Boolean`. Because of that `TKeyInput.Up(VK_INSERT)` would not function while `TKeyInput.Down(VK_INSERT)` did function. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852). See issues [27819](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/27819) and [39964](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39964) in the Lazarus Gitlab repository.
+Chances are the program will work, but with some older distributions when a macro is pasted an unending sequence of key down events could be generated. Those virtual events will continue until a key on the physical keyboard is pressed. As it happens, Mint 20.1 released in January 2021 is on those *older* distributions. The solution to that problem is to change the type of the `is_press` argument in the `XTestFakeKeyEvent` function to `Boolean32` instead of `Boolean`. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852). See issues [27819](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/27819) and [39964](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39964) in the Lazarus Gitlab repository.
 
 
 ### 3.2. Windows Requirements
@@ -102,7 +108,7 @@ The source was compiled in Lazarus (version 2.2.4 / Free Pascal compiler 3.2.2) 
 
 No additional libraries are required in Windows.
 
-It is not possible to test for a lost serial connection in Windows so no indication of such an occurence will be made in the log when running under Windows.
+Note: The Windows version of the `Serial` unit does have a serial connection status variable. Consequently, there will be a log message about a lost connection when running in Windows.
 
 ## 4. Macros
 
@@ -125,11 +131,15 @@ While these two mechanisms are nominally independent, many applications, such as
 
 Currently copying the clipboard to the primary selection is only done in the GTK2 widgetset. Support for GTK3 and QT widgetsets may be available in the future.
 
-## 6. Acknowledgment
+## 6. Upcoming Improvements
+
+It would be convenient to make this program a tray application. Unfortunately, it appears that this may be [problematic in some Linux distros](https://wiki.lazarus.freepascal.org/How_to_use_a_TrayIcon).
+
+## 7. Acknowledgment
 
 There is no shortage of information on all sorts of more or less sophisticated macro key pads. 
 The Brian Lough video, [The Simplest DIMY Macro Keypad with Arduino](https://www.youtube.com/watch?v=ORujXGDqG_I&ab_channel=BrianLough) was the initial inspiration, but that project is based on an Arduino Pro Micro. The Cristian Bastidas (crixodia) [arduino-nano-macro-keypad](https://github.com/crixodia/arduino-nano-macro-keypad) GitHub repository showed how to create a similarly simple project using a Python script on the desktop.
 
-## 7. License
+## 8. License
 
 The **BSD Zero Clause** ([SPDX](https://spdx.dev/): [0BSD](https://spdx.org/licenses/0BSD.html)) licence applies to the original code in this repository.
