@@ -131,6 +131,8 @@ While these two mechanisms are nominally independent, many applications, such as
 
 Currently copying the clipboard to the primary selection is only done in the GTK2 widgetset. Support for GTK3 and QT widgetsets may be available in the future.
 
+While Shift+Insert is equivalent to Ctrl+C in Windows when using a keyboard, the use of this shortcut to paste macro with this program will not work.
+
 ## 6. Upcoming Improvements
 
 It would be convenient to make this program a tray application. Unfortunately, it appears that this may be [problematic in some Linux distros](https://wiki.lazarus.freepascal.org/How_to_use_a_TrayIcon).
@@ -138,7 +140,7 @@ It would be convenient to make this program a tray application. Unfortunately, i
 ## 7. Acknowledgment
 
 There is no shortage of information on all sorts of more or less sophisticated macro key pads. 
-The Brian Lough video, [The Simplest DIMY Macro Keypad with Arduino](https://www.youtube.com/watch?v=ORujXGDqG_I&ab_channel=BrianLough) was the initial inspiration, but that project is based on an Arduino Pro Micro. The Cristian Bastidas (crixodia) [arduino-nano-macro-keypad](https://github.com/crixodia/arduino-nano-macro-keypad) GitHub repository showed how to create a similarly simple project using a Python script on the desktop.
+The Brian Lough video, [The Simplest DIY Macro Keypad with Arduino](https://www.youtube.com/watch?v=ORujXGDqG_I&ab_channel=BrianLough) was the initial inspiration, but that project is based on an Arduino Pro Micro. The Cristian Bastidas (crixodia) [arduino-nano-macro-keypad](https://github.com/crixodia/arduino-nano-macro-keypad) GitHub repository showed how to create a similarly simple project using a Python script on the desktop.
 
 ## 8. License
 
