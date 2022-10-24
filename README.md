@@ -17,7 +17,7 @@ Currently the Free Pascal/Lazarus program has been tested and found to run on Wi
   - [3.2. Windows Requirements](#32-windows-requirements)
 - [4. Macros](#4-macros)
 - [5. Ctrl+V vs Shift+Insert](#5-ctrlv-vs-shiftinsert)
-- [6. Upcoming Improvements](#6-upcoming-improvements)
+- [6. Tray Application](#6-tray-application)
 - [7. Acknowledgment](#7-acknowledgment)
 - [8. License](#8-license)
 
@@ -99,7 +99,7 @@ $ sudo updatedb
 
 > Note: it appears some have been installing the development package `libxtst-dev` in a bid to add the missing symbolic link, but there is no need for that.
 
-Chances are the program will work, but with some older distributions when a macro is pasted an unending sequence of key down events could be generated. Those virtual events will continue until a key on the physical keyboard is pressed. As it happens, Mint 20.1 released in January 2021 is on those *older* distributions. The solution to that problem is to change the type of the `is_press` argument in the `XTestFakeKeyEvent` function to `Boolean32` instead of `Boolean`. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852). See issues [27819](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/27819) and [39964](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39964) in the Lazarus Gitlab repository.
+Chances are the program will work, but when a macro is pasted an unending sequence of key down events could be generated in some older distributions. Those virtual events will continue until a key on the physical keyboard is pressed. As it happens, Mint 20.1 released in January 2021 (an LTS version valid until 2025) is on those *older* distributions. The solution to that problem is to change the type of the `is_press` argument in the `XTestFakeKeyEvent` function to `Boolean32` instead of `Boolean`. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852). See issues [27819](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/27819) and [39964](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39964) in the Lazarus Gitlab repository.
 
 
 ### 3.2. Windows Requirements
@@ -133,9 +133,9 @@ When the Shift+Insert is used as the paste command, macros will be copied to the
 
 In Windows, only the Ctrl+V paste command is used, no matter which value is assigned to the paste command parameter. 
 
-## 6. Upcoming Improvements
+## 6. Tray Application
 
-It would be convenient to make this program a tray application. Unfortunately, it appears that this may be [problematic in some Linux distros](https://wiki.lazarus.freepascal.org/How_to_use_a_TrayIcon). Indeed preliminary tests showed that everything worked in a tray application in Linux 20.1 Mate (which implements try icons with AppIndicator libraries) with one major exception. Pasting to the clipboard (or secondary selection) was not possible. If there is no way around this, then `MouseAndKeyInput.KeyInput` would have to be used to inject the macro in the desktop application keyboard event queue. This would involve a considerable amount of work especially if international keyboards have to be supported.
+It would be convenient to make this program a tray application. Unfortunately, it appears that this may be [problematic in some Linux distros](https://wiki.lazarus.freepascal.org/How_to_use_a_TrayIcon). Indeed, preliminary tests showed that everything worked in a tray application in Linux 20.1 Mate (which implements try icons with AppIndicator libraries) with one major exception. Pasting to the clipboard (or secondary selection) was not possible. If there is no way around this, then `MouseAndKeyInput.KeyInput` would have to be used to inject the macro in the desktop application keyboard event queue. This would involve a considerable amount of work especially if international keyboards have to be supported.
 
 ## 7. Acknowledgment
 
