@@ -84,7 +84,6 @@ type
     procedure ConnectButtonClick(Sender: TObject);
     procedure DefaultCheckboxChange(Sender: TObject);
     procedure DeviceEditEditingDone(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
@@ -117,20 +116,6 @@ implementation
 {$R *.lfm}
 
 uses
-  // Need to use widgetset function to copy the clipboard to the
-  // primary selection when using Shift+Insert shortcut to
-  // paste the macro. This is a Linux thing only
-  //
-  // For Widgetset defines see
-  //   LCL Defines @ https://wiki.freepascal.org/LCL_Defines#Widget_Set
-  //
-  {$ifdef LCLGTK2}
-  gtk2, gdk2,
-  {$endif}
-  //
-  // What about GTK3 and QT?
-  // See  Qt5 Interface @ https://wiki.freepascal.org/Qt5_Interface
-
   about, keymap, strutils;
 
 { TMainForm }
@@ -214,15 +199,6 @@ begin
   end;
 end;
 
-procedure TMainForm.FormActivate(Sender: TObject);
-begin
-  PageControl1.ActivePage := TabSheet1;
-  MacrosFileNameEdit.Filename := Config.DefaultMacrosFile;
-  OpenSerialDevice;
-  SaveDialog1.InitialDir := configdir;
-  UpdateGUI;
-end;
-
 procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   Timer1.Enabled := false;
@@ -271,6 +247,12 @@ begin
   MacrosEditor.RowCount := BUTTON_COUNT+1;
   for i := 0 to BUTTON_COUNT-1 do
     MacrosEditor.Cells[0,i+1] := inttohex(i, 1);
+
+  PageControl1.ActivePage := TabSheet1;
+  MacrosFileNameEdit.Filename := Config.DefaultMacrosFile;
+  OpenSerialDevice;
+  SaveDialog1.InitialDir := configdir;
+  UpdateGUI;
 end;
 
 function convertEscSequences(const ins: string): string;
@@ -283,25 +265,30 @@ end;
 procedure TMainForm.Inject(const macro: string);
 var
   convertedMacro: string;
+  {$ifndef WINDOWS} primclip: TClipboard; {$endif}
 begin
   convertedMacro := convertEscSequences(macro);
   clipboard.AsText := convertedMacro;
-  
+  {$ifndef WINDOWS}
   if PasteCommand = pcShiftInsert then begin
-    // Inject Shift-Insert (paste) keyboard shortcut
-    {$ifdef LCLGTK2}
-    gtk_clipboard_set_text(gtk_clipboard_get(GDK_SELECTION_PRIMARY), @convertedMacro[1], -1);
-    {$endif}
-    KeyInput.Apply([ssShift]);
-    KeyInput.Press(VK_INSERT);
-    KeyInput.Unapply([ssShift]);
+    primclip := TClipboard.Create(ctPrimarySelection);
+    primclip.AsText := convertedMacro;
+    try
+      KeyInput.Apply([ssShift]);
+      KeyInput.Press(VK_INSERT);
+      KeyInput.Unapply([ssShift]);
+    finally
+      primclip.free;
+    end;
   end
   else begin
-    // Inject ^V (paste) keyboard shortcut
+  {$endif}
     KeyInput.Apply([ssCtrl]);
     KeyInput.Press(VK_V);
     KeyInput.Unapply([ssCtrl]);
+  {$ifndef WINDOWS}
   end;
+  {$endif}
 end;
 
 procedure TMainForm.Log(level: TLogLevel; const msg: string);
@@ -472,9 +459,11 @@ end;
 
 procedure TMainForm.Timer1Timer(Sender: TObject);
 var
+  {$IFNDEF WINDOWS}
   k: integer;
-  count: integer;
   sstate: TSerialState;
+  {$ENDIF}
+  count: integer;
   inbuf: array[0..BUFSIZE-1] of char;
 begin
   if serialhandle <= 0 then exit;
@@ -519,8 +508,9 @@ begin
   SaveMacrosButton.Enabled := macrosmodified;
   DefaultCheckbox.checked := (Config.DefaultMacrosFile <> '')
     and (MacrosFileNameEdit.Filename = Config.DefaultMacrosFile);
-  for i := 0 to  BUTTON_COUNT-1 do
-    LayoutForm.keys[i].Hint := macros[i];
+  if assigned(LayoutForm) then
+    for i := 0 to  BUTTON_COUNT-1 do
+      LayoutForm.keys[i].Hint := macros[i];
 end;
 
 

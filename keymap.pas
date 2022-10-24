@@ -76,11 +76,15 @@ begin
 end;
 
 procedure TLayoutForm.FormShow(Sender: TObject);
+var
+  i: integer;
 begin
    if MainForm.visible then begin
      Top := MainForm.Top;
      Left := MainForm.Left + MainForm.Width;
    end;
+   for i := 0 to  BUTTON_COUNT-1 do
+     LayoutForm.keys[i].Hint := macros[i];
 end;
 
 procedure TLayoutForm.FormWindowStateChange(Sender: TObject);

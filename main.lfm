@@ -7,7 +7,6 @@ object MainForm: TMainForm
   ClientHeight = 323
   ClientWidth = 591
   KeyPreview = True
-  OnActivate = FormActivate
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
