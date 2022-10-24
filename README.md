@@ -1,5 +1,5 @@
 # lazmacropad
-**Version 0.3.0**
+**Version 0.3.2**
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
@@ -77,7 +77,7 @@ The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) u
 
 The source was compiled in Lazarus (version 2.3.0 / Free Pascal compiler 3.3.1) on a Linux Mint 20.1 desktop and tested on the same machine. 
 
-The `Xtst` library is required. In recent versions of **Debian** the package containing this library is called `libxtst6`. It was already installed in Linux Mint 20.1, although the library could not be found because of a missing symbolic link. If necessary, install the library in the usual fashion
+The `Xtst` library is required. In recent versions of **Debian** the package containing this library is called `libxtst6`. It was already installed in Linux Mint 20.1, although the library could not be found because of a missing symbolic link. If necessary, install the library in the usual fashion.
 
 ```bash
 $ apt install libxtst6
@@ -127,15 +127,15 @@ Two cut-and-paste mechanisms are used in X clients (and in Wayland also?):
   1. the *clipboard* where the Ctlr+C keyboard short cut explicitly copies selected text (images, etc.) to a buffer and Ctlr+V pastes the content of the buffer at the cursor
   2. the *primary selection* where there is no buffer, the current selection is pasted with a click of the middle mouse button. The Shift+Insert shortcut can be used instead of a middle mouse button click to paste the selection.
 
-While these two mechanisms are nominally independent, many applications, such as Geany, VSCodium (and probably VS Code), GNote, LibreOffice Writer and the Lazarus IDE editor, synchronize the two selections and paste selected text with either Ctrl+C or Shift+Insert. Other applications, notably the Mate Terminal, will only work with the primary selection, which makes sense since Ctrl+C is used to cancel a running program. In Linux applications using the GTK2 widgetset, lazmacropad will copy the clipboard content to the primary selection if Shift+Insert is the selected paste shortcut. In that case, it will be possible to write macros for the terminal. 
+While these two mechanisms are nominally independent, many applications, such as Geany, VSCodium (and probably VS Code), GNote, LibreOffice Writer and the Lazarus IDE editor, synchronize the two selections and paste selected text with either Ctrl+C or Shift+Insert. Other applications, notably the Mate Terminal, will only work with the primary selection, which makes sense since Ctrl+C is used to cancel a running program. 
 
-Currently copying the clipboard to the primary selection is only done in the GTK2 widgetset. Support for GTK3 and QT widgetsets may be available in the future.
+When the Shift+Insert is used as the paste command, macros will be copied to the clipboard and the primary selection so that lazmacropad will behave much as Geany, VSCodium etc. Starting with version 0.3.2 this is done with TClipboard methods so presumably it should work with all Linux widgesets that support the two cut-and-paste mechanism. Warning: this has only been tested with the GTK2 widgetset.
 
-While Shift+Insert is equivalent to Ctrl+C in Windows when using a keyboard, the use of this shortcut to paste macro with this program will not work.
+In Windows, only the Ctrl+V paste command is used, no matter which value is assigned to the paste command parameter. 
 
 ## 6. Upcoming Improvements
 
-It would be convenient to make this program a tray application. Unfortunately, it appears that this may be [problematic in some Linux distros](https://wiki.lazarus.freepascal.org/How_to_use_a_TrayIcon).
+It would be convenient to make this program a tray application. Unfortunately, it appears that this may be [problematic in some Linux distros](https://wiki.lazarus.freepascal.org/How_to_use_a_TrayIcon). Indeed preliminary tests showed that everything worked in a tray application in Linux 20.1 Mate (which implements try icons with AppIndicator libraries) with one major exception. Pasting to the clipboard (or secondary selection) was not possible. If there is no way around this, then `MouseAndKeyInput.KeyInput` would have to be used to inject the macro in the desktop application keyboard event queue. This would involve a considerable amount of work especially if international keyboards have to be supported.
 
 ## 7. Acknowledgment
 
