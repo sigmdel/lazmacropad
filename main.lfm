@@ -38,7 +38,6 @@ object MainForm: TMainForm
         BorderStyle = bsNone
         Font.Pitch = fpFixed
         OnKeyDown = LogMemoKeyDown
-        OnKeyPress = LogMemoKeyPress
         ParentFont = False
         ScrollBars = ssAutoBoth
         TabOrder = 0

@@ -71,7 +71,6 @@ type
     procedure BaudComboBoxEditingDone(Sender: TObject);
     procedure LogMemoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
       );
-    procedure LogMemoKeyPress(Sender: TObject; var Key: char);
     procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
     procedure MacrosFileNameEditAcceptFileName(Sender: TObject;
@@ -321,11 +320,6 @@ begin
       Key := 0
     else if (Key = VK_V) and (Shift = [ssCtrl]) then
       Key := 0;
-end;
-
-procedure TMainForm.LogMemoKeyPress(Sender: TObject; var Key: char);
-begin
-//  if Key = #22 then Key := #0;  // stop Ctrl+V from working in log
 end;
 
 procedure TMainForm.MacrosEditorEditingDone(Sender: TObject);
