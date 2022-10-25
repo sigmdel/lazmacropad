@@ -241,7 +241,7 @@ begin
   constraints.MinWidth := width;
   constraints.MinHeight := height;
   ParamsInit;
-  log(llError, 'Form minimum height x width: %d x %d px', [height, width]);
+  log(llInfo, 'Form minimum height x width: %d x %d px', [height, width]);
   Caption := changefileext(extractfilename(application.exename), '');
   MacrosEditor.RowCount := BUTTON_COUNT+1;
   for i := 0 to BUTTON_COUNT-1 do
@@ -252,6 +252,8 @@ begin
   OpenSerialDevice;
   SaveDialog1.InitialDir := configdir;
   UpdateGUI;
+  if Config.loglevel >= llError then
+    LogMemo.lines.Add('Change the log level in parameters to see more information.');
 end;
 
 function convertEscSequences(const ins: string): string;
