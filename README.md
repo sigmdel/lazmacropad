@@ -118,7 +118,7 @@ Macros are just (UTF8) strings, but 3 escape sequences are defined:
   -  '\t' will be converted to #9  (TAB)
   -  '\\\\' will be converted to '\\' 
 
-Appending a \n sequence to a macro to be used in the terminal will mean that it will be executed as soon as the corresponding key is pressed. This could be used to start a program.
+Appending a \n sequence to a macro to be used in the terminal will mean that it will be executed as soon as the corresponding key is pressed. This could be used to start a program. Be careful though, some programs such as the Arduino IDE can grab the serial port and as a result lazmacropad is freezes.
 
 ## 5. Ctrl+V vs Shift+Insert
 
