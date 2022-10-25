@@ -16,10 +16,10 @@ object MainForm: TMainForm
     Height = 281
     Top = 0
     Width = 591
-    ActivePage = TabSheet2
+    ActivePage = TabSheet1
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 4
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     OnChange = LogLevelRadioButtonsChange
     object TabSheet1: TTabSheet
@@ -75,7 +75,7 @@ object MainForm: TMainForm
           end        
           item
             Title.Caption = 'Macro'
-            Width = 522
+            Width = 530
           end>
         FixedCols = 0
         Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goAlwaysShowEditor, goThumbTracking]
@@ -85,7 +85,7 @@ object MainForm: TMainForm
         OnSelectCell = MacrosEditorSelectCell
         ColWidths = (
           40
-          522
+          530
         )
       end
       object Label1: TLabel
@@ -498,7 +498,7 @@ object MainForm: TMainForm
     Top = 232
   end
   object SaveDialog1: TSaveDialog
-    Title = 'Load macro definitions as'
+    Title = 'Save macro definitions as'
     Filter = 'macros file|*macros'
     Options = [ofOverwritePrompt, ofPathMustExist, ofEnableSizing, ofViewDetail]
     Left = 408
