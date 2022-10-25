@@ -10,22 +10,21 @@ object MainForm: TMainForm
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  LCLVersion = '2.3.0.0'
   object PageControl1: TPageControl
     AnchorSideBottom.Control = CloseButton
     Left = 0
     Height = 281
     Top = 0
     Width = 591
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Bottom = 4
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
     OnChange = LogLevelRadioButtonsChange
     object TabSheet1: TTabSheet
       Caption = 'Log'
-      ClientHeight = 248
+      ClientHeight = 251
       ClientWidth = 581
       object LogMemo: TMemo
         Left = 0
@@ -46,7 +45,7 @@ object MainForm: TMainForm
     end
     object TabSheet2: TTabSheet
       Caption = 'Macro definitions'
-      ClientHeight = 248
+      ClientHeight = 251
       ClientWidth = 581
       object MacrosEditor: TStringGrid
         AnchorSideLeft.Control = TabSheet2
@@ -76,7 +75,7 @@ object MainForm: TMainForm
           end        
           item
             Title.Caption = 'Macro'
-            Width = 537
+            Width = 522
           end>
         FixedCols = 0
         Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goAlwaysShowEditor, goThumbTracking]
@@ -86,7 +85,7 @@ object MainForm: TMainForm
         OnSelectCell = MacrosEditorSelectCell
         ColWidths = (
           40
-          537
+          522
         )
       end
       object Label1: TLabel
@@ -141,7 +140,7 @@ object MainForm: TMainForm
         Top = 10
         Width = 327
         OnAcceptFileName = MacrosFileNameEditAcceptFileName
-        DialogTitle = 'Save macro definitions'
+        DialogTitle = 'Load macro definitions'
         DialogOptions = [ofFileMustExist, ofEnableSizing, ofViewDetail]
         Filter = 'Macros file|*.macros'
         FilterIndex = 0
@@ -201,7 +200,7 @@ object MainForm: TMainForm
     end
     object TabSheet3: TTabSheet
       Caption = 'Parameters'
-      ClientHeight = 248
+      ClientHeight = 251
       ClientWidth = 581
       object Bevel1: TBevel
         AnchorSideLeft.Control = TabSheet3
@@ -499,6 +498,7 @@ object MainForm: TMainForm
     Top = 232
   end
   object SaveDialog1: TSaveDialog
+    Title = 'Load macro definitions as'
     Filter = 'macros file|*macros'
     Options = [ofOverwritePrompt, ofPathMustExist, ofEnableSizing, ofViewDetail]
     Left = 408
