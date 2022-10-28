@@ -13,13 +13,15 @@ type
 
   TLayoutForm = class(TForm)
     Image1: TImage;
-    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure FormPaint(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormWindowStateChange(Sender: TObject);
   private
   public
     keys: array[0..BUTTON_COUNT-1] of TLabel;
+    procedure UpdateGUI;
   end;
 
 var
@@ -75,16 +77,21 @@ begin
   end;
 end;
 
-procedure TLayoutForm.FormShow(Sender: TObject);
-var
-  i: integer;
+procedure TLayoutForm.FormHide(Sender: TObject);
 begin
-   if MainForm.visible then begin
-     Top := MainForm.Top;
-     Left := MainForm.Left + MainForm.Width;
-   end;
-   for i := 0 to  BUTTON_COUNT-1 do
-     LayoutForm.keys[i].Hint := macros[i];
+  MainForm.KeyLayoutItem.Checked := false;
+end;
+
+procedure TLayoutForm.FormPaint(Sender: TObject);
+begin
+// do nothing
+end;
+
+procedure TLayoutForm.FormShow(Sender: TObject);
+begin
+  top := screen.Height - height;
+  left := screen.Width - width;
+  UpdateGUI;
 end;
 
 procedure TLayoutForm.FormWindowStateChange(Sender: TObject);
@@ -93,11 +100,13 @@ begin
     WindowState := wsNormal;
 end;
 
-procedure TLayoutForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+procedure TLayoutForm.UpdateGUI;
+var
+  i: integer;
 begin
-  MainForm.ShowKeysCheckBox.checked := false;;
+  for i := 0 to  BUTTON_COUNT-1 do
+    LayoutForm.keys[i].Hint := macros[i];
 end;
-
 
 end.
 

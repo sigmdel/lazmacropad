@@ -1,11 +1,13 @@
 # lazmacropad
-**Version 0.3.4**
+**Version 0.6.0**
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
-Currently the Free Pascal/Lazarus program has been tested and found to run on Windows 10 and Linux (Mint 20.1).
+Currently this Free Pascal/Lazarus tray icon program has been tested and found to run on Linux (Mint 20.1). 
 
-![screenshot](images/screenshot_0_1_0.jpg)
+> There are cosmetic problems with the macro definition screen when running on Windows 10. While there is a work around, it will not be published until tests determine if the problem is resolved in a newer edition of Free Pascal/Lazarus. 
+
+![screenshot](images/screenshot_0_6_0.jpg)
 
 **Table of Content**
 <!-- TOC -->
@@ -37,7 +39,7 @@ each other.
 
 ![hardware](images/macrokeypad.jpg)
 
-Note that the Nano is upside down (microcontroller is on the hidden side of the board) so that the USB cable will go off to the right.
+Note that the Nano is upside down (microcontroller is on the hidden side of the board) so that the USB cable will go off to the right. If it is more convenient to orient the cable or key pad in another direction, then the serial output character of each key and the mapping of the Nano I/O pins can be modified in the Arduino sketch running on the Nano. 
 
 ## 2. Theory of Operation
 
@@ -61,15 +63,7 @@ The program also allows for editing, saving and loading macro definitions to sui
 
 [nanoMacroPad.ino](nanoMacroPad/nanoMacroPad.ino) contains the Arduino sketch that runs on the Nano. It requires the [Keypad library](https://playground.arduino.cc/Code/Keypad/) ([GitHub repository](https://github.com/Chris--A/Keypad)) by Mark Stanley and Alexander Brevig. It can be installed with the Arduino IDE library manager.
 
-The source code of the object pascal program consists of the following files:
-
-    lazmacropad.lpi
-    lazmacropad.lpr
-    lazmacropad.ico
-    main.pas, main.lfm 
-    about.pas, about.lfm 
-    keymap.pas, keymap.lfm
-    params.pas
+The source code of the `lazmacropad` object pascal program is in the root directory of the repository. The [images](images/) directory contains the two images shown on this page and the image used as a background of the keyboard layout window.
 
 The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) unit is used to generate the Ctrl-V keyboard event which is the usual paste keyboard shortcut. The unit is found in the `lazmouseandkeyinput.lpk` non-visual package. The package found in the `$(LAZARUS)/components/mouseandkeyinput` directory. Load the package file into the Lazarus IDE and compile it. Add `lazmouseandkeyinput` to the `Required Packages` in the `Project Inspector` window (which is opened from the `Project` menu in the IDE).
 
@@ -97,7 +91,7 @@ $ sudo ln -s libXtst.so.6.1.0 libXtst.so
 $ sudo updatedb
 ```
 
-> Note: it appears some have been installing the development package `libxtst-dev` in a bid to add the missing symbolic link, but there is no need for that.
+> Note: it appears some have been installing the development package `libxtst-dev` in a bid to add the missing symbolic link, but there is no need for that. Also, it was not necessary to install the symbolic link in Mint 21.
 
 Chances are the program will work, but when a macro is pasted an unending sequence of key down events could be generated in some older distributions. Those virtual events will continue until a key on the physical keyboard is pressed. As it happens, Mint 20.1 released in January 2021 (an LTS version valid until 2025) is on those *older* distributions. The solution to that problem is to change the type of the `is_press` argument in the `XTestFakeKeyEvent` function to `Boolean32` instead of `Boolean`. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852). See issues [27819](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/27819) and [39964](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39964) in the Lazarus Gitlab repository.
 
@@ -135,7 +129,7 @@ In Windows, only the Ctrl+V paste command is used, no matter which value is assi
 
 ## 6. Tray Application
 
-Version 0.3.4 will be the last version that is presented as a normal program. Future versions will be tray applications. 
+As of version 0.6.0, `lazmacropad` is a tray application. This required a major reorganization of the source code. The three different tabs of the original program where moved to windows that can be displayed independently as illustrated in the screenshot shown above.
 
 ## 7. Acknowledgment
 

@@ -4,13 +4,12 @@ object AboutForm: TAboutForm
   Top = 250
   Width = 349
   BorderStyle = bsDialog
-  Caption = 'About'
+  Caption = 'About - Macro Keypad'
   ClientHeight = 246
   ClientWidth = 349
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
   Position = poMainFormCenter
-  LCLVersion = '2.3.0.0'
   object Image1: TImage
     Left = 15
     Height = 115

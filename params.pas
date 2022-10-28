@@ -15,7 +15,7 @@ CONST
 
 type
   TLogLevel = (llDebug, llInfo, llError, llNone);
-  TPasteCommand = (pcCtrlV, pcShiftInsert);
+  TPasteCommand = (pcCtrlV, pcShiftInsert);  // actually saved with macro definitions
 
 var
   Macros: array[0..BUTTON_COUNT-1] of string;
@@ -57,7 +57,7 @@ procedure ParamsInit;
 implementation
 
 uses
-  inifiles, main;
+  inifiles, macrolog;
 
 var
   configfile: string;
@@ -75,12 +75,11 @@ begin
         if macros[i] <> '' then inc(n);
      end;
      MacrosModified := false;
-     MainForm.log(llInfo,'Macros file %s with %d macro definitions saved', [filename, n]);
+     LogForm.log(llInfo,'Macros file %s with %d macro definitions saved', [filename, n]);
   finally
     free;
   end;
 end;
-
 
 procedure LoadMacros(const filename: string);
 var
@@ -94,9 +93,9 @@ begin
 
   n := 0;
   if (filename = '') then
-    MainForm.log(llError, 'params.LoadMacros() called with empty filename')
+    LogForm.log(llError, 'params.LoadMacros() called with empty filename')
   else if not fileexists(filename) then
-    MainForm.log(llError, 'Macros file cannot be loaded, %s does not exist', [filename])
+    LogForm.log(llError, 'Macros file cannot be loaded, %s does not exist', [filename])
   else with TInifile.create(filename) do try
      PasteCommand := TPasteCommand(ReadInteger('paste', 'command', ord(PasteCommand)));
      for i := 0 to BUTTON_COUNT-1 do begin
@@ -106,14 +105,40 @@ begin
           macros[i] := s;
         end;
      end;
-     MainForm.log(llInfo,'Macros file %s contained %d macro definitions', [filename, n]);
+     LogForm.log(llInfo,'Macros file %s contained %d macro definitions', [filename, n]);
   finally
     free;
   end;
 end;
 
-
 { TConfig }
+
+constructor TConfig.Create;
+begin
+  {$ifdef LINUX}
+  FDeviceName := '/dev/ttyUSB0';
+  {$endif}
+  {$ifdef WINDOWS}
+  FDeviceName := 'COM4';
+  {$endif}
+  FBaud := 9600;
+  FLogLevel := llDebug; //llInfo;
+  FDefaultMacrosFile := '';
+end;
+
+procedure TConfig.Save;
+begin
+  with TInifile.create(configfile) do try
+     WriteString('serial', 'device', FDeviceName);
+     WriteInteger('serial', 'baud', FBaud);
+     WriteInteger('log', 'level', ord(FLoglevel));
+     writeString('macros', 'filename', FDefaultMacrosFile);
+     FModified := false;
+   finally
+     free;
+   end;
+   LogForm.log(llInfo, 'Configuration file %s saved', [configfile]);
+end;
 
 procedure TConfig.SetBaud(AValue: longint);
 begin
@@ -147,39 +172,12 @@ begin
   FModified := true;
 end;
 
-constructor TConfig.Create;
-begin
-  {$ifdef LINUX}
-  FDeviceName := '/dev/ttyUSB0';
-  {$endif}
-  {$ifdef WINDOWS}
-  FDeviceName := 'COM4';
-  {$endif}
-  FBaud := 9600;
-  FLogLevel := llInfo;
-  FDefaultMacrosFile := '';
-end;
-
-procedure TConfig.Save;
-begin
-  with TInifile.create(configfile) do try
-     WriteString('serial', 'device', FDeviceName);
-     WriteInteger('serial', 'baud', FBaud);
-     WriteInteger('log', 'level', ord(FLoglevel));
-     writeString('macros', 'filename', FDefaultMacrosFile);
-     FModified := false;
-   finally
-     free;
-   end;
-   MainForm.log(llInfo, 'Configuration file %s saved', [configfile]);
-end;
-
 procedure TConfig.Load;
 begin
   if not fileexists(configfile) then begin
     // make sure a config file always exists
     Save;
-    MainForm.log(llInfo, 'Default configuration file created because none was found');
+    LogForm.log(llInfo, 'Default configuration file created because none was found');
     exit;
   end;
   with TInifile.create(configfile) do try
@@ -193,7 +191,7 @@ begin
   finally
     free;
   end;
-  MainForm.log(llInfo, 'Configuration file %s loaded', [configfile]);
+  LogForm.log(llInfo, 'Configuration file %s loaded', [configfile]);
 end;
 
 function Vendor: string;
@@ -207,8 +205,8 @@ begin
 end;
 
 
-// Can't do this in initialization because MainForm.log is used
-// in config.Load which thus requires mainunit.MainForm to be created
+// Can't do this in initialization because LogForm.log is used
+// in config.Load which thus requires LogForm to be created
 procedure ParamsInit;
 begin
   OnGetVendorName := @Vendor;
@@ -223,6 +221,7 @@ begin
      Config.DefaultMacrosFile := configdir + DEFAULT_MACROS;
   LoadMacros(Config.DefaultMacrosfile);
 end;
+
 
 finalization
   config.free;

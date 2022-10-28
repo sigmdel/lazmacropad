@@ -1,0 +1,29 @@
+object LogForm: TLogForm
+  Left = 406
+  Height = 240
+  Top = 250
+  Width = 373
+  BorderIcons = [biSystemMenu]
+  Caption = 'Log - Macro Keypad'
+  ClientHeight = 240
+  ClientWidth = 373
+  OnCreate = FormCreate
+  OnHide = FormHide
+  Position = poScreenCenter
+  object LogMemo: TMemo
+    Left = 0
+    Height = 236
+    Top = 2
+    Width = 373
+    Align = alClient
+    BorderSpacing.Top = 2
+    BorderSpacing.Bottom = 2
+    BorderStyle = bsNone
+    Font.Pitch = fpFixed
+    OnKeyDown = LogMemoKeyDown
+    ParentFont = False
+    ScrollBars = ssAutoBoth
+    TabOrder = 0
+    WordWrap = False
+  end
+end

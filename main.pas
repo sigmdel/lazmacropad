@@ -4,107 +4,43 @@ unit main;
 
 interface
 
-///// Attention:
-/////   DEBUG and look at lost memory in Linux!!!
-
-
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, clipbrd,
-  LCLIntf, LMessages, LCLType, ComCtrls, ExtCtrls, EditBtn, Buttons,
-  Grids, MouseAndKeyInput, serial, params;
-
-{ https://wiki.lazarus.freepascal.org/MouseAndKeyInput
-  MouseAndKeyInput
-
-  See Usage in above or the following Forum entry
-
-    https://forum.lazarus.freepascal.org/index.php/topic,56015.msg416307.html#msg416307
-    You must add the lazmouseandkeyinput package to the requirements of your project
-    ("Project" > "Project inspector" >"Add" > "New Requirement") in order to get
-    access to the MouseAndKeyInput unit.
-}
-
-const
-  BUFSIZE = 5;
-  LM_NEW_MACROFILENAME = LM_USER + 1;          // LM_USER = WM_USER
-  LM_SAVE_MACROS_QUITTING = LM_NEW_MACROFILENAME + 1;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Menus,
+  MouseAndKeyInput, Clipbrd, StrUtils, LCLType;
 
 type
+
   { TMainForm }
 
   TMainForm = class(TForm)
-    Bevel1: TBevel;
-    Bevel3: TBevel;
-    AboutButton: TButton;
-    Label3: TLabel;
-    RadioButton5: TRadioButton;
-    RadioButton6: TRadioButton;
-    ShowKeysCheckBox: TCheckBox;
-    MacrosFileNameEdit: TFileNameEdit;
-    RestoreConfigButton: TButton;
-    DefaultCheckbox: TCheckBox;
-    CloseButton: TButton;
-    Label6: TLabel;
-    Label2: TLabel;
-    RadioButton1: TRadioButton;
-    RadioButton2: TRadioButton;
-    RadioButton3: TRadioButton;
-    RadioButton4: TRadioButton;
-    SaveConfigButton: TButton;
-    ConnectButton: TButton;
-    DisconnectButton: TButton;
-    SaveDialog1: TSaveDialog;
-    SaveMacrosButton: TButton;
-    BaudComboBox: TComboBox;
-    DeviceEdit: TEdit;
-    Label1: TLabel;
-    Label4: TLabel;
-    Label5: TLabel;
-    LogMemo: TMemo;
-    PageControl1: TPageControl;
-    TabSheet1: TTabSheet;
-    TabSheet2: TTabSheet;
-    TabSheet3: TTabSheet;
+    CloseItem: TMenuItem;
+    LogItem: TMenuItem;
+    KeyLayoutItem: TMenuItem;
+    MacroDefItem: TMenuItem;
+    OptionsItem: TMenuItem;
+    AboutItem: TMenuItem;
+    Separator2: TMenuItem;
     Timer1: TTimer;
-    MacrosEditor: TStringGrid;
-    procedure AboutButtonClick(Sender: TObject);
-    procedure BaudComboBoxEditingDone(Sender: TObject);
-    procedure LogMemoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
-      );
-    procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
-      var CanSelect: Boolean);
-    procedure MacrosFileNameEditAcceptFileName(Sender: TObject;
-      var Value: String);
-    procedure MacrosFileNameEditEditingDone(Sender: TObject);
-    procedure MacrosFileNameEditEnter(Sender: TObject);
-    procedure PasteCommandRadioButtonsChange(Sender: TObject);
-    procedure RestoreConfigButtonClick(Sender: TObject);
-    procedure CloseButtonClick(Sender: TObject);
-    procedure ConnectButtonClick(Sender: TObject);
-    procedure DefaultCheckboxChange(Sender: TObject);
-    procedure DeviceEditEditingDone(Sender: TObject);
-    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    TrayIconMenu: TPopupMenu;
+    TrayIcon: TTrayIcon;
+    procedure FormActivate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
-    procedure MacrosEditorEditingDone(Sender: TObject);
-    procedure LogLevelRadioButtonsChange(Sender: TObject);
-    procedure SaveMacrosButtonClick(Sender: TObject);
-    procedure SaveConfigButtonClick(Sender: TObject);
-    procedure ShowKeysCheckBoxChange(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure CloseItemClick(Sender: TObject);
+    procedure LogItemClick(Sender: TObject);
+    procedure KeyLayoutItemClick(Sender: TObject);
+    procedure AboutItemClick(Sender: TObject);
+    procedure MacroDefItemClick(Sender: TObject);
+    procedure OptionsItemClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
-    serialhandle: LongInt;
-    currentmacrosfile: string;
+    FIconON: TIcon;
+    FIconOFF: TIcon;
     procedure Callback(const src: string);
-    function OpenSerialDevice: boolean;
-    procedure CloseSerialDevice(quiet: boolean = false);
     procedure Inject(const macro: string);
-    procedure UpdateGUI;
   public
-    procedure NewMacroFileName(var Msg: TLMessage); message LM_NEW_MACROFILENAME;
-    procedure SaveMacrosQuitting(var Msg: TLMessage); message LM_SAVE_MACROS_QUITTING;
-    procedure Log(level: TLogLevel; const msg: string);  overload;
-    procedure Log(level: TLogLevel; const msg: string; args: array of const);  overload;
+    procedure SetTrayIcon(On: boolean);
   end;
 
 var
@@ -115,95 +51,100 @@ implementation
 {$R *.lfm}
 
 uses
-  about, keymap, strutils;
+  about, macrolog, macrodef, options, keymap, serialreader, params;
+
+function convertEscSequences(const ins: string): string;
+begin
+  result := replaceStr(ins, '\n', #13);
+  result := replaceStr(result, '\t', #9);
+  result := replacestr(result, '\\', '\');
+end;
 
 { TMainForm }
-
-procedure TMainForm.AboutButtonClick(Sender: TObject);
-begin
-  aboutform.showmodal;
-end;
-
-procedure TMainForm.BaudComboBoxEditingDone(Sender: TObject);
-var
-  newbaud: longint;
-begin
-  newbaud := strtointdef(BaudComboBox.Text, Config.Baud);
-  if newbaud <> Config.Baud then begin
-     //CloseSerialDevice;
-     Config.Baud := newbaud;
-     //Log(llInfo, 'New baud, %d. Connection to %s closed. Press [Connect] button to establish connection.', [Baud, DeviceName]);
-     Log(llInfo, 'New baud, %d. Press [Connect] button to establish connection with this new value.', [Config.Baud]);
-  end;
-end;
 
 procedure TMainForm.Callback(const src: string);
 var
   i: integer;
 begin
-  Log(llDebug, 'callback(%s)', [src]);
+  LogForm.Log(llDebug, 'callback(%s)', [src]);
   i := strtointdef('$'+src, -1);
   if (i < 0) or (i >= BUTTON_COUNT) then
     exit;
   if (macros[i] <> '') then begin
     inject(macros[i]);
-    Log(llInfo, 'Key: %s, Macro: %s', [src, macros[i]]);
+    LogForm.Log(llInfo, 'Key: %s, Macro: %s', [src, macros[i]]);
   end
   else
-    Log(llInfo, 'Key: %s, no macro defined', [src]);
+    LogForm.Log(llInfo, 'Key: %s, no macro defined', [src]);
 end;
 
-procedure TMainForm.CloseButtonClick(Sender: TObject);
-begin
-  close;
-end;
 
-procedure TMainForm.CloseSerialDevice(quiet: boolean);
+(* // last
+procedure TMainForm.Inject(const macro: string);
+var
+  convertedMacro: string;
+  clipclip: TClipboard;
+  primclip: TClipboard;
 begin
-  if serialhandle > 0 then begin
-    SerSync(serialhandle); // flush out any remaining before closure
-    SerFlushOutput(serialhandle); // discard any remaining output
-    SerClose(serialhandle);
+  convertedMacro := convertEscSequences(macro);
+  clipclip := TClipboard.create(ctClipboard);
+  try
+    clipclip.AsText := convertedMacro;
+    if PasteCommand = pcShiftInsert then begin
+      primclip := TClipboard.Create(ctPrimarySelection);
+      primclip.AsText := convertedMacro;
+      try
+        KeyInput.Apply([ssShift]);
+        KeyInput.Press(VK_INSERT);
+        KeyInput.Unapply([ssShift]);
+      finally
+        primclip.free;
+      end;
+    end
+    else begin
+      KeyInput.Apply([ssCtrl]);
+      KeyInput.Press(VK_V);
+      KeyInput.Unapply([ssCtrl]);
+    end;
+  finally
+    clipclip.free;
   end;
-  serialhandle := -1;
-  Timer1.Enabled := false;
-  if not quiet then
-    Log(llInfo, 'Closing serial device');
 end;
+*)
 
-procedure TMainForm.ConnectButtonClick(Sender: TObject);
+procedure TMainForm.Inject(const macro: string);
+var
+  convertedMacro: string;
+  {$ifndef WINDOWS} primclip: TClipboard; {$endif}
 begin
-  OpenSerialDevice;
-end;
-
-procedure TMainForm.DefaultCheckboxChange(Sender: TObject);
-begin
-  if DefaultCheckbox.checked then begin
-     if MacrosFileNameEdit.filename = '' then begin
-        DefaultCheckbox.checked := false;
-        exit;
-     end;
-     Config.DefaultMacrosFile := MacrosFileNameEdit.Filename;
+  convertedMacro := convertEscSequences(macro);
+  clipboard.AsText := convertedMacro;
+  {$ifndef WINDOWS}
+  if PasteCommand = pcShiftInsert then begin
+    primclip := TClipboard.Create(ctPrimarySelection);
+    primclip.AsText := convertedMacro;
+    try
+      KeyInput.Apply([ssShift]);
+      KeyInput.Press(VK_INSERT);
+      KeyInput.Unapply([ssShift]);
+      LogForm.Log(llDebug,'Paste with Shift+Insert');
+    finally
+      primclip.free;
+    end;
   end
-  else if (MacrosFileNameEdit.Filename = Config.DefaultMacrosFile) then
-    DefaultCheckbox.checked := true;
-end;
-
-procedure TMainForm.DeviceEditEditingDone(Sender: TObject);
-begin
-  if DeviceEdit.text <> Config.DeviceName then begin
-     //CloseSerialDevice;
-     Config.DeviceName := DeviceEdit.text;
-     LogMemo.lines.add('New serial device, %s, not opened. Press [Connect] button to establish connection', [Config.DeviceName]);
+  else begin
+  {$endif}
+    KeyInput.Apply([ssCtrl]);
+    KeyInput.Press(VK_V);
+    KeyInput.Unapply([ssCtrl]);
+    LogForm.Log(llDebug,'Paste with Ctrl+V');
+  {$ifndef WINDOWS}
   end;
+  {$endif}
 end;
 
-procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
-begin
-  Timer1.Enabled := false;
-  CloseSerialDevice(true);
-end;
 
+///// FIX these screen locations!
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   mr: TModalResult;
@@ -216,7 +157,7 @@ begin
     mr := MessageDlgPos('Save the modified macro definitions before closing.',
       mtConfirmation, [mbYes, mbNo, mbCancel], 0, x, y);
     if (mr = mrYes) then begin
-      PostMessage(self.handle, LM_SAVE_MACROS_QUITTING, 0, 0);
+      MacroForm.SaveMacrosBeforeQuitting;
       exit;
     end;
     if (mr = mrCancel) then
@@ -234,281 +175,96 @@ begin
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
-var
-  i: integer;
 begin
-  serialhandle := 0;  // not serial device opened
-  constraints.MinWidth := width;
-  constraints.MinHeight := height;
-  ParamsInit;
-  log(llInfo, 'Form minimum height x width: %d x %d px', [height, width]);
-  Caption := changefileext(extractfilename(application.exename), '');
-  MacrosEditor.RowCount := BUTTON_COUNT+1;
-  for i := 0 to BUTTON_COUNT-1 do
-    MacrosEditor.Cells[0,i+1] := inttohex(i, 1);
+  FIconON := TIcon.Create;
+  FIconON.LoadFromResourceName(Hinstance,  'LAZMACROPAD_ON');
+  FIconOFF := TIcon.Create;
+  FIconOFF.LoadFromResourceName(Hinstance,  'LAZMACROPAD_OFF');
+  TrayIcon.Icon.Assign(FIconON);
+end;
 
-  PageControl1.ActivePage := TabSheet1;
-  MacrosFileNameEdit.Filename := Config.DefaultMacrosFile;
-  OpenSerialDevice;
-  SaveDialog1.InitialDir := configdir;
-  UpdateGUI;
+procedure TMainForm.FormActivate(Sender: TObject);
+begin
+  hide;  // must do that here and not in FormShow or else
+         // the clipboard will not work
+  // https://forum.lazarus.freepascal.org/index.php/topic,61044.0.html
+  // [SOLVED] Non functioning clipboard in Linux TrayIcon  (Read 27 times)
+  paramsInit;
+
+  Timer1.Enabled := OpenSerial;
+
   if Config.loglevel >= llError then
-    LogMemo.lines.Add('Change the log level in parameters to see more information.');
+    LogForm.log(Config.loglevel, 'Change the log level in parameters to see more information.');
+  MacroForm.MacrosFileNameEdit.Filename := Config.DefaultMacrosFile;
+  MacroForm.SaveDialog1.InitialDir := configdir;
 end;
 
-function convertEscSequences(const ins: string): string;
+procedure TMainForm.FormDestroy(Sender: TObject);
 begin
-  result := replaceStr(ins, '\n', #13);
-  result := replaceStr(result, '\t', #9);
-  result := replacestr(result, '\\', '\');
+  FIconOFF.free;
+  FIconON.free;
 end;
 
-procedure TMainForm.Inject(const macro: string);
-var
-  convertedMacro: string;
-  {$ifndef WINDOWS} primclip: TClipboard; {$endif}
+procedure TMainForm.SetTrayIcon(On: boolean);
 begin
-  convertedMacro := convertEscSequences(macro);
-  clipboard.AsText := convertedMacro;
-  {$ifndef WINDOWS}
-  if PasteCommand = pcShiftInsert then begin
-    primclip := TClipboard.Create(ctPrimarySelection);
-    primclip.AsText := convertedMacro;
-    try
-      KeyInput.Apply([ssShift]);
-      KeyInput.Press(VK_INSERT);
-      KeyInput.Unapply([ssShift]);
-    finally
-      primclip.free;
-    end;
-  end
-  else begin
-  {$endif}
-    KeyInput.Apply([ssCtrl]);
-    KeyInput.Press(VK_V);
-    KeyInput.Unapply([ssCtrl]);
-  {$ifndef WINDOWS}
-  end;
-  {$endif}
-end;
-
-procedure TMainForm.Log(level: TLogLevel; const msg: string);
-begin
-  if level >= Config.logLevel then begin
-    LogMemo.Lines.Add(msg);
-    LogMemo.SelStart := length(LogMemo.Text);
-  end;
-end;
-
-procedure TMainForm.Log(level: TLogLevel; const msg: string; args: array of const);
-begin
-  Log(level, Format(msg, args));
-end;
-
-procedure TMainForm.LogLevelRadioButtonsChange(Sender: TObject);
-begin
-  if Sender is TRadioButton then with Sender as TRadioButton do begin
-    if (checked and (Config.loglevel <> TLogLevel(tag)) ) then begin
-      Config.loglevel := TLogLevel(tag);
-      TabSheet1.TabVisible := Config.loglevel <> llNone;
-    end;
-  end;
-end;
-
-procedure TMainForm.LogMemoKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-   if (Key = VK_INSERT) and (Shift = [ssShift]) then
-      Key := 0
-    else if (Key = VK_V) and (Shift = [ssCtrl]) then
-      Key := 0;
-end;
-
-procedure TMainForm.MacrosEditorEditingDone(Sender: TObject);
-begin
-  if (MacrosEditor.Row >= 1) and (MacrosEditor.Row <= BUTTON_COUNT) and
-  (macros[MacrosEditor.Row-1] <> MacrosEditor.Cells[1, MacrosEditor.Row]) then begin
-     macros[MacrosEditor.Row-1] := MacrosEditor.Cells[1, MacrosEditor.Row];
-     macrosmodified := true;
-     SaveMacrosButton.Enabled := true;
-     LayoutForm.keys[MacrosEditor.Row-1].Hint := macros[MacrosEditor.Row-1];
-  end;
-end;
-
-procedure TMainForm.MacrosEditorSelectCell(Sender: TObject; aCol,
-  aRow: Integer; var CanSelect: Boolean);
-begin
-  CanSelect := (aCol > 0) and (aRow > 0);
-end;
-
-procedure TMainForm.MacrosFileNameEditAcceptFileName(Sender: TObject;
-  var Value: String);
-begin
-  PostMessage(self.handle, LM_NEW_MACROFILENAME, 0, 0);
-  // use post to return immediately so that MacrosFilenameEdit.Filename
-  // get set to Value before MacrosFileNameEditEditingDone is
-  // called by the message handler NewMacroFileName(var Msg: TLMessage)
-end;
-
-procedure TMainForm.MacrosFileNameEditEditingDone(Sender: TObject);
-begin
-  if MacrosFileNameEdit.filename <> currentMacrosFile then begin
-    LoadMacros(MacrosFileNameEdit.filename);
-    currentMacrosFile := MacrosFileNameEdit.filename;
-    UpdateGUI;
-  end;
-end;
-
-procedure TMainForm.MacrosFileNameEditEnter(Sender: TObject);
-begin
-  currentmacrosfile := MacrosFileNameEdit.filename;
-end;
-
-procedure TMainForm.NewMacroFileName(var Msg: TLMessage);
-begin
-  MacrosFileNameEditEditingDone(nil);
-end;
-
-function TMainForm.OpenSerialDevice: boolean;
-var
-  Flags: TSerialFlags; { set of (RtsCtsFlowControl); }
-begin
-  Timer1.Enabled := false; // assume this will not work
-  if serialhandle > 0 then
-    CloseSerialDevice;     // close the serial device if already opened
-
-  serialhandle := SerOpen(Config.DeviceName);
-  if serialhandle > 0 then begin
-    Flags := []; // none
-    SerSetParams(serialhandle, Config.Baud, 8, NoneParity, 1, Flags);
-    Log(llInfo, 'Using device: %s at %d bps', [Config.DeviceName, Config.Baud]);
-    Timer1.Enabled := true;  // start reading from the serial device
-  end
-  else if serialhandle = -1 then
-    Log(llError, 'Serial device %s not found', [Config.DeviceName])
+  (*
+  TrayIcon.Icon.LoadFromResourceName(Hinstance,  'LAZMACROPAD_' + IfThen(On, 'ON', 'OFF'));
+  repeat
+    application.processmessages;
+  until TrayIcon.Show;
+  *)
+  if On then
+    TrayIcon.Icon.Assign(FIconON)
   else
-    Log(llError, 'Unable to open serial device %s', [Config.DeviceName]);
-  result := serialhandle > 0;
-end;
-
-procedure TMainForm.PasteCommandRadioButtonsChange(Sender: TObject);
-var
-  newpaste: TPasteCommand;
-begin
-  if RadioButton5.checked then
-    newpaste := pcCtrlV
-  else
-    newpaste := pcShiftInsert;
-  if PasteCommand <> newpaste then begin
-    PasteCommand := newpaste;
-    macrosModified := true;
-  end;
-end;
-
-procedure TMainForm.RestoreConfigButtonClick(Sender: TObject);
-begin
-  Config.Load;
-  UpdateGui;
-end;
-
-procedure TMainForm.SaveConfigButtonClick(Sender: TObject);
-begin
-  Config.Save;
-end;
-
-procedure TMainForm.SaveMacrosButtonClick(Sender: TObject);
-begin
-  with SaveDialog1 do begin
-    filename := MacrosFileNameEdit.filename;
-    if execute then begin
-      filename := ChangeFileext(filename, '.macros');
-      SaveMacros(filename);
-      MacrosFileNameEdit.filename := filename;
-      macrosmodified := false;
-      UpdateGUI;
-    end;
-  end;
-end;
-
-procedure TMainForm.SaveMacrosQuitting(var Msg: TLMessage);
-var
-  mr: TModalResult;
-  x, y: integer;
-begin
-  SaveMacrosButtonClick(nil);
-  if macrosmodified then begin
-    x := left + 100;
-    y := top + 100;
-    mr := MessageDlgPos('Close the application even if the modified macro definitions will be lost?',
-      mtWarning, [mbYes, mbNo], 0, x, y);
-    if (mr = mrNo) then
-      exit;
-    macrosmodified := false;
-  end;
-  close;
-end;
-
-procedure TMainForm.ShowKeysCheckBoxChange(Sender: TObject);
-begin
-  LayoutForm.visible := ShowKeysCheckBox.checked;
+    TrayIcon.Icon.Assign(FIconOFF);
+  repeat
+    application.processmessages;
+  until TrayIcon.Show;
 end;
 
 procedure TMainForm.Timer1Timer(Sender: TObject);
 var
-  {$IFNDEF WINDOWS}
-  k: integer;
-  sstate: TSerialState;
-  {$ENDIF}
-  count: integer;
-  inbuf: array[0..BUFSIZE-1] of char;
+  rx: integer;
 begin
-  if serialhandle <= 0 then exit;
-  count := SerRead(serialhandle, inbuf, sizeof(inbuf));
-  if count = 0 then begin
-    // nothing read, check if connection still valid
-    {$IFNDEF WINDOWS}
-    // unable to check if connection lost in Windows
-    // could have the nano send a 'heartbeat' message
-    // (say '@') at regular intervals and use that to
-    // check for lost connections
-    // nothing read, check if connection still valid
-    sstate := SerSaveState(serialhandle);
-    if sstate.LineState = 0 then begin
-      // serial connection lost
-      CloseSerialDevice(true);
-      Log(llError, 'Serial connection with %s lost (LineState = %d)', [ Config.DeviceName, sstate.LineState]);
-      Log(llError, 'Use the [Connect] button in Parameters to reconnect');
-    end;
-    {$ENDIF}
-    exit;
-  end;
-  Callback(inbuf[0]);
-  SerFlushInput(serialhandle);  // flush everything
+  rx := ReadSerial;
+  if rx >= 0 then
+    Callback(char(rx));
 end;
 
-procedure TMainForm.UpdateGUI;
-var
-  i : integer;
+// <tray menu>
+
+
+procedure TMainForm.AboutItemClick(Sender: TObject);
 begin
-  for i := 0 to  BUTTON_COUNT-1 do
-    MacrosEditor.Cells[1, i+1] := macros[i];
-  RadioButton5.checked := PasteCommand = pcCtrlV;
-  RadioButton6.checked := PasteCommand = pcShiftInsert;
-  DeviceEdit.Text := Config.DeviceName;
-  BaudComboBox.Text := inttostr(Config.Baud);
-  RadioButton1.checked := Config.logLevel = llDebug;
-  RadioButton2.checked := Config.logLevel = llInfo;
-  RadioButton3.checked := Config.logLevel = llError;
-  RadioButton4.checked := Config.logLevel = llNone;
-  TabSheet1.TabVisible := not RadioButton4.checked;
-  SaveMacrosButton.Enabled := macrosmodified;
-  DefaultCheckbox.checked := (Config.DefaultMacrosFile <> '')
-    and (MacrosFileNameEdit.Filename = Config.DefaultMacrosFile);
-  if assigned(LayoutForm) then
-    for i := 0 to  BUTTON_COUNT-1 do
-      LayoutForm.keys[i].Hint := macros[i];
+  AboutForm.ShowModal
 end;
 
+procedure TMainForm.CloseItemClick(Sender: TObject);
+begin
+  close;
+end;
+
+procedure TMainForm.KeyLayoutItemClick(Sender: TObject);
+begin
+  LayoutForm.visible := not LayoutForm.visible;
+end;
+
+procedure TMainForm.LogItemClick(Sender: TObject);
+begin
+  LogForm.visible := not LogForm.visible;
+end;
+
+procedure TMainForm.MacroDefItemClick(Sender: TObject);
+begin
+  MacroForm.visible := not MacroForm.visible;
+end;
+
+procedure TMainForm.OptionsItemClick(Sender: TObject);
+begin
+  OptionsForm.visible := not OptionsForm.visible;
+end;
+
+// </tray menu>
 
 end.
 

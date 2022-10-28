@@ -10,8 +10,8 @@ uses
   athreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, lazmouseandkeyinput, main, params, about, keymap
-  { you can add units after this };
+  Forms, main, about, keymap, macrolog, params, macrodef,
+  options;
 
 {$R *.res}
 
@@ -22,6 +22,9 @@ begin
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(TLayoutForm, LayoutForm);
+  Application.CreateForm(TLogForm, LogForm);
+  Application.CreateForm(TMacroForm, MacroForm);
+  Application.CreateForm(TOptionsForm, OptionsForm);
   Application.Run;
 end.
 
