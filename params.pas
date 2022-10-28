@@ -10,6 +10,7 @@ uses
 CONST
   BUTTON_COUNT = 16;
   OPTIONS_FILENAME = 'options.ini';
+  DEFAULT_MACROS = 'default.macros';
 
 
 type
@@ -218,6 +219,8 @@ begin
   configfile := configdir + OPTIONS_FILENAME;
   config := TConfig.create;
   config.Load;
+  if Config.DefaultMacrosfile = '' then
+     Config.DefaultMacrosFile := configdir + DEFAULT_MACROS;
   LoadMacros(Config.DefaultMacrosfile);
 end;
 
