@@ -36,7 +36,7 @@ implementation
 
 {$R *.lfm}
 
-uses LCLIntf, main, fileinfo;
+uses LCLIntf, fileinfo;
 
 { TAboutForm }
 
