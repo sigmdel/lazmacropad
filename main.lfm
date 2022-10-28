@@ -10,6 +10,8 @@ object MainForm: TMainForm
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
   object PageControl1: TPageControl
     AnchorSideBottom.Control = CloseButton
     Left = 0
@@ -24,7 +26,7 @@ object MainForm: TMainForm
     OnChange = LogLevelRadioButtonsChange
     object TabSheet1: TTabSheet
       Caption = 'Log'
-      ClientHeight = 251
+      ClientHeight = 248
       ClientWidth = 581
       object LogMemo: TMemo
         Left = 0
@@ -45,7 +47,7 @@ object MainForm: TMainForm
     end
     object TabSheet2: TTabSheet
       Caption = 'Macro definitions'
-      ClientHeight = 251
+      ClientHeight = 248
       ClientWidth = 581
       object MacrosEditor: TStringGrid
         AnchorSideLeft.Control = TabSheet2
@@ -75,7 +77,7 @@ object MainForm: TMainForm
           end        
           item
             Title.Caption = 'Macro'
-            Width = 530
+            Width = 537
           end>
         FixedCols = 0
         Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goAlwaysShowEditor, goThumbTracking]
@@ -85,7 +87,7 @@ object MainForm: TMainForm
         OnSelectCell = MacrosEditorSelectCell
         ColWidths = (
           40
-          530
+          537
         )
       end
       object Label1: TLabel
@@ -200,7 +202,7 @@ object MainForm: TMainForm
     end
     object TabSheet3: TTabSheet
       Caption = 'Parameters'
-      ClientHeight = 251
+      ClientHeight = 248
       ClientWidth = 581
       object Bevel1: TBevel
         AnchorSideLeft.Control = TabSheet3
