@@ -1,5 +1,5 @@
 # lazmacropad
-**Version 0.3.2**
+**Version 0.3.4**
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
@@ -135,7 +135,7 @@ In Windows, only the Ctrl+V paste command is used, no matter which value is assi
 
 ## 6. Tray Application
 
-It would be convenient to make this program a tray application. Unfortunately, it appears that this may be [problematic in some Linux distros](https://wiki.lazarus.freepascal.org/How_to_use_a_TrayIcon). Indeed, preliminary tests showed that everything worked in a tray application in Linux 20.1 Mate (which implements try icons with AppIndicator libraries) with one major exception. Pasting to the clipboard (or secondary selection) was not possible. If there is no way around this, then `MouseAndKeyInput.KeyInput` would have to be used to inject the macro in the desktop application keyboard event queue. This would involve a considerable amount of work especially if international keyboards have to be supported.
+Version 0.3.4 will be the last version that is presented as a normal program. Future versions will be tray applications. 
 
 ## 7. Acknowledgment
 
