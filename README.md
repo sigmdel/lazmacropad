@@ -3,11 +3,12 @@
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
-Currently this Free Pascal/Lazarus tray icon program has been tested and found to run on Linux (Mint 20.1). 
+Currently the macro keypad program has been tested and found to run on Linux Mint 20.1 Mate, Mint 21 Mate and Windows 10 although there are some limitations as described below. 
 
-> There are cosmetic problems with the macro definition screen when running on Windows 10. While there is a work around, it will not be published until tests determine if the problem is resolved in a newer edition of Free Pascal/Lazarus. 
 
 ![screenshot](images/screenshot_0_6_0.jpg)
+
+As of version 0.6.0, *lazmacropad* is a tray application. This required a major reorganization of the source code. The three different tabs of the original program, [version 0.3.0](releases/tag/v0.3.4), where moved to windows that can be displayed independently as illustrated in the screenshot shown above.
 
 **Table of Content**
 <!-- TOC -->
@@ -16,12 +17,14 @@ Currently this Free Pascal/Lazarus tray icon program has been tested and found t
 - [2. Theory of Operation](#2-theory-of-operation)
 - [3. Source Code and Prerequisites](#3-source-code-and-prerequisites)
   - [3.1. Linux Requirements](#31-linux-requirements)
+    - [3.1.1. `Xtst` Library](#311-xtst-library)
+    - [3.1.2. `xKeyInput.pas` Bug Fix](#312-xkeyinputpas-bug-fix)
+    - [3.1.3. Compiler Versions and Linux Widgetsets](#313-compiler-versions-and-linux-widgetsets)
   - [3.2. Windows Requirements](#32-windows-requirements)
 - [4. Macros](#4-macros)
 - [5. Ctrl+V vs Shift+Insert](#5-ctrlv-vs-shiftinsert)
-- [6. Tray Application](#6-tray-application)
-- [7. Acknowledgment](#7-acknowledgment)
-- [8. License](#8-license)
+- [6. Acknowledgment](#6-acknowledgment)
+- [7. Licence](#7-licence)
 
 <!-- /TOC -->
 ## 1. Hardware
@@ -69,21 +72,23 @@ The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) u
 
 ### 3.1. Linux Requirements
 
-The source was compiled in Lazarus (version 2.3.0 / Free Pascal compiler 3.3.1) on a Linux Mint 20.1 desktop and tested on the same machine. 
+#### 3.1.1. `Xtst` Library
 
-The `Xtst` library is required. In recent versions of **Debian** the package containing this library is called `libxtst6`. It was already installed in Linux Mint 20.1, although the library could not be found because of a missing symbolic link. If necessary, install the library in the usual fashion.
+The `Xtst` library is required by the `lazmouseandkeyinput.lpk` package. In recent versions of Debian, the package containing this library is called `libxtst6` and it is probably included in most Debian-based desktop distributions. This is the case for Linux Mint 20.1 Mate and Mint 21 Mate. Should the library be missing, it can be installed in the usual fashion.
 
 ```bash
 $ apt install libxtst6
 ```
 
-Check if the needed `libXtst.so` symbolic link is in place.
+Unfortunately, the library could not be found in Mint although it was installed because of a missing symbolic link to `libXtst.so`. 
 
 ```bash
 $ locate libXtst
+/usr/lib/x86_64-linux-gnu/libXtst.so.6
+/usr/lib/x86_64-linux-gnu/libXtst.so.6.1.10
 ```
 
-If `/usr/lib/x86_64-linux-gnu/libXtst.so` is not listed by the last command add the symbolic link and update the library database.
+In that case, add the symbolic link and update the library database.
 
 ```bash
 $ cd /usr/lib/x86_64-linux-gnu
@@ -91,18 +96,33 @@ $ sudo ln -s libXtst.so.6.1.0 libXtst.so
 $ sudo updatedb
 ```
 
-> Note: it appears some have been installing the development package `libxtst-dev` in a bid to add the missing symbolic link, but there is no need for that. Also, it was not necessary to install the symbolic link in Mint 21.
+The directory in which are stored system libaries are stored is not necessary called `/usr/lib/x85_64-linux-gnu` so adust the above in accordance with the output obtained from the `locate` command.
 
-Chances are the program will work. Unfortunately, in some older distributions, an unending sequence of key down events could be generated when a macro is pasted. Those virtual events will continue until a key on the physical keyboard is pressed. As it happens, Mint 20.1 released in January 2021 (an LTS version valid until 2025) is one those *older* distributions. The solution to that problem is to change the type of the `is_press` argument in the `XTestFakeKeyEvent` function to `Boolean32` instead of `Boolean`. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852). See issues [27819](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/27819) and [39964](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39964) in the Lazarus Gitlab repository.
+It appears some have been installing the development package `libxtst-dev` in a bid to add the missing symbolic link, but there is no need for that. 
 
+
+#### 3.1.2. `xKeyInput.pas` Bug Fix
+
+Chances are the program will work. Unfortunately, in some older distributions, an unending sequence of key down events could be generated when a macro is pasted. Those virtual events will continue until a key on the physical keyboard is pressed. As it happens, Mint 20.1 released in January 2021 (an LTS version valid until 2025) and Mint 21 only recently release are among those *older* distributions. The solution to that problem is to change the type of the `is_press` argument in the `XTestFakeKeyEvent` function to `Boolean32` instead of `Boolean`. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852). See issues [27819](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/27819) and [39964](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39964) in the Lazarus Gitlab repository.
+
+
+#### 3.1.3. Compiler Versions and Linux Widgetsets
+
+The program was developed in Linux Mint 20.1 Mate using Lazarus 2.3.0 (rev main-2_3-1602-gdb285860e3) FPC 3.3.1 x86_64-linux-gtk2. The resulting binary runs without limitations in Linux Mint 20.1 and Mint 21.
+
+The source code was also compiled in Mint 21 using a slightly more recent, trunk version, of the compiler: Lazarus 2.3.0 (rev main-2_3-2735-g4628b33d4a) FPC 3.3.1 x86_64-linux-qt5. Note that the Qt5 widgetset was used instead of the "default" GTK2 widgetset. This required installing `libqt5pas1_2.10xxxx` and `libqt5pas-dev_2.10xxxx` libraries by David Bannon (Davo aka dbannon on the Lazarus forum) from his [Github repository](https://github.com/davidbannon/libqt5pas) instead of the `libqt5pas` and `libqt5pas-dev` from the Debian repository. The program compiled for that widgetset does work when using Ctrl+V as the paste shortcut, but pasting macros with the Shift+Insert shortcut fails. Consequently, until a solution is found, a Qt5 version of the program will not be released.
 
 ### 3.2. Windows Requirements
 
-The source was compiled in Lazarus (version 2.2.4 / Free Pascal compiler 3.2.2) on a Windows 10 desktop and tested on the same machine. Currently, not all issues with the Windows version have been resolved.
+The source was compiled and tested with two versions of Lazarus in Windows 10:
 
-No additional libraries are required in Windows.
+- stable: Lazarus 2.2.4 (rev lazarus_2_2_4) FPC 3.2.2 i386-win32-win32/win64
+- trunk: Lazarus 2.3.0 (rev main-2_3-2734-g2f18817fd8) FPC 3.3.1 i386-win32-win32/win64
 
-Note: The Windows version of the `Serial` unit does have a serial connection status variable. Consequently, there will be a log message about a lost connection when running in Windows.
+
+There are cosmetic problems with the macro definition screen with the binary generated with the stable version of the compiler. The maximum column width of the first column is not respected. While there is a work around, it is not included in the source code because that bug has been removed in the trunk version of the compiler. Because it is a bit more difficult to install the trunk version of the compiler, Windows binaries compiled with the trunk version of the compiler are supplied in the [current release](https://github.com/sigmdel/lazmacropad/releases/latest).
+
+Note: The Windows version of the `Serial` unit does have a serial connection status variable. Consequently, there will be a log message about a lost connection when running in Windows. Furthermore, selection of the clipboard paste command used internally by the program is ignored in the Windows version. 
 
 ## 4. Macros
 
@@ -123,19 +143,15 @@ Two cut-and-paste mechanisms are used in X clients (and in Wayland also?):
 
 While these two mechanisms are nominally independent, many applications, such as Geany, VSCodium (and probably VS Code), GNote, LibreOffice Writer and the Lazarus IDE editor, synchronize the two selections and paste selected text with either Ctrl+V or Shift+Insert. Other applications, notably the Mate Terminal, will only work with the primary selection, which makes sense since Ctrl+C is used to cancel a running program. 
 
-When the Shift+Insert is used as the paste command, macros will be copied to the clipboard and the primary selection so that *lazmacropad* will behave much as Geany, VSCodium etc. Starting with version 0.3.2 this is done with methods from the LCL TClipboard class so presumably it should work with all Linux widgesets that support the two cut-and-paste mechanism. Warning: this has only been tested with the GTK2 widgetset.
+When the Shift+Insert is used as the paste command, macros will be copied to the clipboard and the primary selection so that *lazmacropad* will behave much as Geany, VSCodium etc. Starting with version 0.3.2 this is done with methods from the LCL TClipboard class so presumably it should work with all Linux widgesets that support the two cut-and-paste mechanism. Warning: this has been tested with the GTK2 widgetset and found to work. So far tests with the Gt5 widgetset reveal that using Shift+Insert will not work.
 
 In Windows, only the Ctrl+V paste command is used, no matter which value is assigned to the paste command parameter. 
 
-## 6. Tray Application
-
-As of version 0.6.0, *lazmacropad* is a tray application. This required a major reorganization of the source code. The three different tabs of the original program where moved to windows that can be displayed independently as illustrated in the screenshot shown above.
-
-## 7. Acknowledgment
+## 6. Acknowledgment
 
 There is no shortage of information on all sorts of more or less sophisticated macro key pads. The Brian Lough video, [The Simplest DIY Macro Keypad with Arduino](https://www.youtube.com/watch?v=ORujXGDqG_I&ab_channel=BrianLough) and corresponding [GitHub repository, arduino-switcheroonie,](https://github.com/witnessmenow/arduino-switcheroonie) stands out for its simplicity, but that project is based on an Arduino Pro Micro. The Cristian Bastidas (crixodia) [arduino-nano-macro-keypad](https://github.com/crixodia/arduino-nano-macro-keypad) GitHub repository showed how to achieve something very similar  with a Nano and a Python script on the desktop. This later project is clearly the model for *lazmacropad*.
 
-## 8. Licence
+## 7. Licence
 
 Copyright 2022, Michel Deslierres, no rights reserved.
 
