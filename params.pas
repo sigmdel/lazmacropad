@@ -31,6 +31,7 @@ type
     FDeviceName: string;
     FBaud: longint;
     FLoglevel: TLogLevel;
+    FLogSize: integer;
     FDefaultMacrosFile: string;
     FModified: boolean;
     procedure SetBaud(AValue: longint);
@@ -46,6 +47,7 @@ type
     property DeviceName: string read FDeviceName write SetDeviceName;
     property LogLevel: TLogLevel read FLogLevel write SetLogLevel;
     property Modified: boolean read FModified write FModified;
+    property LogSize: integer read FLogSize;
   end;
 
 var
@@ -122,7 +124,8 @@ begin
   FDeviceName := 'COM4';
   {$endif}
   FBaud := 9600;
-  FLogLevel := llDebug; //llInfo;
+  FLogLevel := llInfo;
+  FLogSize := 256;
   FDefaultMacrosFile := '';
 end;
 
@@ -132,6 +135,7 @@ begin
      WriteString('serial', 'device', FDeviceName);
      WriteInteger('serial', 'baud', FBaud);
      WriteInteger('log', 'level', ord(FLoglevel));
+     WriteInteger('log', 'size', FLogSize);
      writeString('macros', 'filename', FDefaultMacrosFile);
      FModified := false;
    finally
@@ -184,6 +188,7 @@ begin
     FDeviceName := ReadString('serial', 'device', FDeviceName);
     FBaud := ReadInteger('serial', 'baud', FBaud);
     Floglevel := TLogLevel(ReadInteger('log', 'level', ord(Floglevel)));
+    FLogSize := ReadInteger('log', 'size', FLogSize);
     FDefaultMacrosFile := ReadString('macros', 'filename', FDefaultMacrosFile);
     if not fileexists(FDefaultMacrosfile) and fileexists(configdir+FDefaultMacrosfile) then
        FDefaultMacrosfile := configdir+FDefaultMacrosfile;

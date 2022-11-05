@@ -51,6 +51,8 @@ end;
 procedure TLogForm.Log(level: TLogLevel; const msg: string);
 begin
   if level >= Config.logLevel then begin
+    while LogMemo.Lines.Count >= Config.LogSize do
+      LogMemo.Lines.Delete(0);
     LogMemo.Lines.Add(msg);
     LogMemo.SelStart := length(LogMemo.Text);
   end;
