@@ -180,13 +180,13 @@ begin
   FIconON.LoadFromResourceName(Hinstance,  'LAZMACROPAD_ON');
   FIconOFF := TIcon.Create;
   FIconOFF.LoadFromResourceName(Hinstance,  'LAZMACROPAD_OFF');
-  TrayIcon.Icon.Assign(FIconON);
+  SetTrayIcon(false);
 end;
 
 procedure TMainForm.FormActivate(Sender: TObject);
 begin
   hide;  // must do that here and not in FormShow or else
-         // the clipboard will not work
+         // the clipboard will not work in GTK2
   // https://forum.lazarus.freepascal.org/index.php/topic,61044.0.html
   // [SOLVED] Non functioning clipboard in Linux TrayIcon  (Read 27 times)
   paramsInit;
@@ -207,12 +207,6 @@ end;
 
 procedure TMainForm.SetTrayIcon(On: boolean);
 begin
-  (*
-  TrayIcon.Icon.LoadFromResourceName(Hinstance,  'LAZMACROPAD_' + IfThen(On, 'ON', 'OFF'));
-  repeat
-    application.processmessages;
-  until TrayIcon.Show;
-  *)
   if On then
     TrayIcon.Icon.Assign(FIconON)
   else
@@ -232,7 +226,6 @@ begin
 end;
 
 // <tray menu>
-
 
 procedure TMainForm.AboutItemClick(Sender: TObject);
 begin
