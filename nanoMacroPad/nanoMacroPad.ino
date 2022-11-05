@@ -1,3 +1,19 @@
+/*
+ * Arduino Nano v3 sketch for scanning key pad (a 4x4 matrix of push buttons)
+ * and sending out a single letter ('0' to 'F') on the serial port
+ * reporting which key has been pressed.
+ * 
+ * This is a variation of
+ *   MacroKeyPad.ino 
+ *     @ https://github.com/crixodia/arduino-nano-macro-keypad/tree/master/MacroKeyPad
+ * sketch from the arduino-nano-macro-keypad repository by Cristian 
+ * Bastidas (crixodia) on GitHub which is itself a variation of
+ * CustomKeypad.ino, one of the example sketches from the Keypad library 
+ * by Mark Stanley and Alexander Brevig. Christopher Andrews (Chriss--A) 
+ * maintains the library repository on GitHub
+ *   @ https://github.com/Chris--A/Keypad/blob/master/examples/CustomKeypad/CustomKeypad.ino
+ */
+
 #include <Keypad.h>
 
 const byte ROWS = 4;
@@ -17,7 +33,7 @@ const byte COLS = 4;
 //                   R1 R2 R3 R4
 byte rowPins[ROWS] = {6, 7, 8, 9}; 
 //
-//                   C1 C2 C3 C1  
+//                   C1 C2 C3 C4
 byte colPins[COLS] = {5, 4, 3, 2};
 
 #else
@@ -44,7 +60,6 @@ const char hexaKeys[ROWS][COLS] = {
    {'8', '9', 'a', 'b'},
    {'c', 'd', 'e', 'f'}
 };
-
 
 
 //Creates keypad object
