@@ -10,7 +10,7 @@ object LogForm: TLogForm
   OnCreate = FormCreate
   OnHide = FormHide
   Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
+  ShowInTaskBar = stNever
   object LogMemo: TMemo
     Left = 0
     Height = 236

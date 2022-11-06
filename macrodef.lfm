@@ -11,6 +11,8 @@ object MacroForm: TMacroForm
   OnCreate = FormCreate
   OnHide = FormHide
   Position = poScreenCenter
+  ShowInTaskBar = stNever
+  LCLVersion = '2.3.0.0'
   object Label1: TLabel
     AnchorSideLeft.Control = MacrosEditor
     AnchorSideTop.Control = MacrosFileNameEdit
@@ -109,7 +111,7 @@ object MacroForm: TMacroForm
       end    
       item
         Title.Caption = 'Macro'
-        Width = 413
+        Width = 428
       end>
     FixedCols = 0
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goAlwaysShowEditor, goThumbTracking]
@@ -119,7 +121,7 @@ object MacroForm: TMacroForm
     OnSelectCell = MacrosEditorSelectCell
     ColWidths = (
       40
-      413
+      428
     )
   end
   object Label3: TLabel

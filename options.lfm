@@ -11,6 +11,7 @@ object OptionsForm: TOptionsForm
   OnCreate = FormCreate
   OnHide = FormHide
   Position = poScreenCenter
+  ShowInTaskBar = stNever
   LCLVersion = '2.3.0.0'
   object Bevel1: TBevel
     AnchorSideTop.Control = Owner
