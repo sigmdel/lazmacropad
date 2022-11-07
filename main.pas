@@ -78,59 +78,19 @@ begin
     LogForm.Log(llInfo, 'Key: %s, no macro defined', [src]);
 end;
 
-
-(* // last
 procedure TMainForm.Inject(const macro: string);
 var
   convertedMacro: string;
-  clipclip: TClipboard;
-  primclip: TClipboard;
-begin
-  convertedMacro := convertEscSequences(macro);
-  clipclip := TClipboard.create(ctClipboard);
-  try
-    clipclip.AsText := convertedMacro;
-    if PasteCommand = pcShiftInsert then begin
-      primclip := TClipboard.Create(ctPrimarySelection);
-      primclip.AsText := convertedMacro;
-      try
-        KeyInput.Apply([ssShift]);
-        KeyInput.Press(VK_INSERT);
-        KeyInput.Unapply([ssShift]);
-      finally
-        primclip.free;
-      end;
-    end
-    else begin
-      KeyInput.Apply([ssCtrl]);
-      KeyInput.Press(VK_V);
-      KeyInput.Unapply([ssCtrl]);
-    end;
-  finally
-    clipclip.free;
-  end;
-end;
-*)
-
-procedure TMainForm.Inject(const macro: string);
-var
-  convertedMacro: string;
-  {$ifndef WINDOWS} primclip: TClipboard; {$endif}
 begin
   convertedMacro := convertEscSequences(macro);
   clipboard.AsText := convertedMacro;
   {$ifndef WINDOWS}
   if PasteCommand = pcShiftInsert then begin
-    primclip := TClipboard.Create(ctPrimarySelection);
-    primclip.AsText := convertedMacro;
-    try
-      KeyInput.Apply([ssShift]);
-      KeyInput.Press(VK_INSERT);
-      KeyInput.Unapply([ssShift]);
-      LogForm.Log(llDebug,'Paste with Shift+Insert');
-    finally
-      primclip.free;
-    end;
+    PrimarySelection.Astext := convertedMacro;
+    KeyInput.Apply([ssShift]);
+    KeyInput.Press(VK_INSERT);
+    KeyInput.Unapply([ssShift]);
+    LogForm.Log(llDebug,'Paste with Shift+Insert');
   end
   else begin
   {$endif}
@@ -143,8 +103,8 @@ begin
   {$endif}
 end;
 
+{ #todo 3 -oMichel -cAppearance : Fix position of dialogues in current screen }
 
-///// FIX these screen locations!
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   mr: TModalResult;
