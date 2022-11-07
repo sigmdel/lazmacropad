@@ -38,9 +38,9 @@ type
     FIconON: TIcon;
     FIconOFF: TIcon;
     procedure Callback(const src: string);
-    procedure Inject(const macro: string);
   public
     procedure SetTrayIcon(On: boolean);
+    procedure Inject(const macro: string);
   end;
 
 var

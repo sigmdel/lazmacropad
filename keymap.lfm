@@ -12,11 +12,9 @@ object LayoutForm: TLayoutForm
   FormStyle = fsSystemStayOnTop
   OnCreate = FormCreate
   OnHide = FormHide
-  OnPaint = FormPaint
   OnShow = FormShow
   OnWindowStateChange = FormWindowStateChange
   ShowInTaskBar = stNever
-  LCLVersion = '2.3.0.0'
   object Image1: TImage
     Left = 0
     Height = 315
