@@ -5,7 +5,8 @@ unit keymap;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls, Params;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
+  Params;
 
 type
 
@@ -31,7 +32,9 @@ implementation
 
 {$R *.lfm}
 
-uses main;
+uses
+  {$ifdef Windows}Windows,{$endif}
+  main;
 
 { TLayoutForm }
 
@@ -74,7 +77,9 @@ begin
       ShowHint := True;
       Transparent := False;
       Tag := i;
+      {$ifndef Windows}
       OnClick := @ButtonClick;
+      {$endif}
     end;
     x := x + DX;
   end;
@@ -85,6 +90,7 @@ begin
   MainForm.KeyLayoutItem.Checked := false;
 end;
 
+{ #todo 2 -oMichel -cAppearance : This assumes taskbar is at top or bottom. What if is is at right or left  }
 procedure TLayoutForm.FormShow(Sender: TObject);
 var
   aPt: TPoint;
@@ -92,9 +98,14 @@ begin
   //top := screen.Height - height;
   //left := screen.Width - width;
   // above won't work with Windows taskbar
-  aPt := screen.PrimaryMonitor.WorkareaRect.bottomRight;
-  top := aPt.y-height;
-  left := aPt.x-width;
+
+  //aPt := screen.PrimaryMonitor.WorkareaRect.bottomRight;
+  aPt := screen.WorkareaRect.bottomRight;
+  top := aPt.y - height
+  {$ifdef Windows}
+    - GetSystemMetrics(SM_CYSIZE) - GetSystemMetrics(SM_CYSIZEFRAME);
+  {$endif};
+  left := aPt.x - width;
   UpdateGUI;
 end;
 
@@ -104,16 +115,20 @@ begin
     WindowState := wsNormal;
 end;
 
+{ #todo 5 -oMichel -cAppearance : This flashes LayoutForm; anyway of avoiding this? }
+{ #todo 2 -oMichel -cFunctionality : This does not work in Windows }
 procedure TLayoutForm.ButtonClick(Sender: TObject);
 begin
+  {$ifndef Windows}
   if Sender is TLabel then with Sender as TLabel do begin
     if Macros[Tag] <> '' then begin
       self.Hide;  // return to previous focused window
       MainForm.Inject(macros[tag]);
-      self.Show;  // this will flash the layout form
-                  // is there a way to avoid this ?
+      self.Show;  // show this form again
+      MainForm.KeyLayoutItem.Checked := false;
     end;
   end;
+  {$endif}
 end;
 
 procedure TLayoutForm.UpdateGUI;
