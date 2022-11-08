@@ -19,11 +19,8 @@ type
   TMacroForm = class(TForm)
     DefaultCheckbox: TCheckBox;
     Label1: TLabel;
-    Label3: TLabel;
     MacrosEditor: TStringGrid;
     MacrosFileNameEdit: TFileNameEdit;
-    RadioButton5: TRadioButton;
-    RadioButton6: TRadioButton;
     SaveDialog1: TSaveDialog;
     SaveMacrosButton: TButton;
     procedure DefaultCheckboxChange(Sender: TObject);
@@ -52,12 +49,20 @@ type
 var
   MacroForm: TMacroForm;
 
+
 implementation
 
 {$R *.lfm}
 
 uses
   main, params, keymap;
+
+resourcestring
+  SpcCtrlV = 'Ctrl+V';
+  SpcShiftInsert = 'Shift+Insert';
+
+var
+  sPasteCommands : array[TPasteCommand] of string = (SpcCtrlV, SPcShiftInsert, '');
 
 { TMacroForm }
 
@@ -97,12 +102,40 @@ begin
 end;
 
 procedure TMacroForm.MacrosEditorEditingDone(Sender: TObject);
+var
+  r, c: integer;
+  s: string;
+  pc: TPasteCommand;
 begin
+  (*
   if (MacrosEditor.Row >= 1) and (MacrosEditor.Row <= BUTTON_COUNT) and
   (macros[MacrosEditor.Row-1] <> MacrosEditor.Cells[1, MacrosEditor.Row]) then begin
      macros[MacrosEditor.Row-1] := MacrosEditor.Cells[1, MacrosEditor.Row];
      SetMacrosModified(true);
      LayoutForm.keys[MacrosEditor.Row-1].Hint := macros[MacrosEditor.Row-1];
+  end;
+  *)
+  r := MacrosEditor.Row;
+  c := MacrosEditor.Col;
+  s := MacrosEditor.Cells[c, r];
+  if (r < 1) or (r > BUTTON_COUNT) then exit;
+  dec(r);
+  if MacrosEditor.Col = 1 then begin
+    if s = macros[r] then exit;
+    macros[r] := s;
+    LayoutForm.keys[r].Hint := macros[r];
+    SetMacrosModified(true);
+  end
+  else if MacrosEditor.Col = 2 then begin
+    if s = sPasteCommands[pcCtrlV] then
+      pc := pcCtrlV
+    else if s = sPasteCommands[pcShiftInsert] then
+      pc := pcShiftInsert
+    else
+      exit;  ///
+    if pastes[r] = pc then exit;
+    pastes[r] := pc;
+    SetMacrosModified(true);
   end;
 end;
 
@@ -144,6 +177,7 @@ procedure TMacroForm.PasteCommandButtonsChange(Sender: TObject);
 var
   newpaste: TPasteCommand;
 begin
+  (*
   if RadioButton5.checked then
     newpaste := pcCtrlV
   else
@@ -152,6 +186,7 @@ begin
     PasteCommand := newpaste;
     SetMacrosModified(true);
   end;
+  *)
 end;
 
 procedure TMacroForm.SaveMacrosBeforeQuitting;
@@ -201,13 +236,13 @@ procedure TMacroForm.UpdateGUI;
 var
   i : integer;
 begin
-  for i := 0 to  BUTTON_COUNT-1 do
+  for i := 0 to  BUTTON_COUNT-1 do begin
     MacrosEditor.Cells[1, i+1] := macros[i];
+    MacrosEditor.Cells[2, i+1] := sPasteCommands[pastes[i]];
+  end;
   SaveMacrosButton.Enabled := macrosmodified;
   DefaultCheckbox.checked := (Config.DefaultMacrosFile <> '')
     and (MacrosFileNameEdit.Filename = Config.DefaultMacrosFile);
-  RadioButton5.checked := PasteCommand = pcCtrlV;
-  RadioButton6.checked := PasteCommand = pcShiftInsert;
   LayoutForm.UpdateGUI;
 end;
 

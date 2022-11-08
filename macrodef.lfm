@@ -12,7 +12,6 @@ object MacroForm: TMacroForm
   OnHide = FormHide
   Position = poScreenCenter
   ShowInTaskBar = stNever
-  LCLVersion = '2.3.0.0'
   object Label1: TLabel
     AnchorSideLeft.Control = MacrosEditor
     AnchorSideTop.Control = MacrosFileNameEdit
@@ -88,9 +87,10 @@ object MacroForm: TMacroForm
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = RadioButton6
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 2
-    Height = 194
+    Height = 217
     Top = 46
     Width = 468
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -98,8 +98,8 @@ object MacroForm: TMacroForm
     BorderSpacing.Left = 2
     BorderSpacing.Top = 6
     BorderSpacing.Right = 2
-    BorderSpacing.Bottom = 3
-    ColCount = 2
+    BorderSpacing.Bottom = 6
+    ColCount = 3
     Columns = <    
       item
         Alignment = taCenter
@@ -111,7 +111,17 @@ object MacroForm: TMacroForm
       end    
       item
         Title.Caption = 'Macro'
-        Width = 428
+        Width = 333
+      end    
+      item
+        ButtonStyle = cbsPickList
+        MaxSize = 80
+        PickList.Strings = (
+          'Ctlr+V'
+          'Shift+Insert'
+        )
+        Title.Caption = 'Paste'
+        Width = 80
       end>
     FixedCols = 0
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goAlwaysShowEditor, goThumbTracking]
@@ -121,52 +131,12 @@ object MacroForm: TMacroForm
     OnSelectCell = MacrosEditorSelectCell
     ColWidths = (
       40
-      428
+      333
+      80
     )
   end
-  object Label3: TLabel
-    AnchorSideLeft.Control = MacrosEditor
-    AnchorSideTop.Control = RadioButton5
-    AnchorSideTop.Side = asrCenter
-    Left = 2
-    Height = 16
-    Top = 246
-    Width = 217
-    Caption = 'Clipboard Paste Keyboard Shortcut: '
-  end
-  object RadioButton5: TRadioButton
-    AnchorSideLeft.Control = Label3
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = RadioButton6
-    AnchorSideTop.Side = asrCenter
-    Left = 225
-    Height = 23
-    Top = 243
-    Width = 65
-    BorderSpacing.Left = 6
-    Caption = 'Crtl+V'
-    Checked = True
-    OnChange = PasteCommandButtonsChange
-    TabOrder = 4
-    TabStop = True
-  end
-  object RadioButton6: TRadioButton
-    AnchorSideLeft.Control = RadioButton5
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
-    Left = 296
-    Height = 23
-    Top = 243
-    Width = 97
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 6
-    BorderSpacing.Bottom = 3
-    Caption = 'Shift+Insert'
-    TabOrder = 5
-  end
   object SaveDialog1: TSaveDialog
-    Left = 197
-    Top = 115
+    Left = 176
+    Top = 120
   end
 end

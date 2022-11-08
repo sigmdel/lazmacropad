@@ -11,7 +11,6 @@ uses
 type
 
   { TMainForm }
-
   TMainForm = class(TForm)
     CloseItem: TMenuItem;
     LogItem: TMenuItem;
@@ -40,7 +39,7 @@ type
     procedure Callback(const src: string);
   public
     procedure SetTrayIcon(On: boolean);
-    procedure Inject(const macro: string);
+    procedure Inject(index: integer);
   end;
 
 var
@@ -71,19 +70,23 @@ begin
   if (i < 0) or (i >= BUTTON_COUNT) then
     exit;
   if (macros[i] <> '') then begin
-    inject(macros[i]);
+    inject(i);
     LogForm.Log(llInfo, 'Key: %s, Macro: %s', [src, macros[i]]);
   end
   else
     LogForm.Log(llInfo, 'Key: %s, no macro defined', [src]);
 end;
 
-procedure TMainForm.Inject(const macro: string);
+procedure TMainForm.Inject(index: integer);
 var
   convertedMacro: string;
+  PasteCommand: TPasteCommand;
 begin
-  convertedMacro := convertEscSequences(macro);
+  convertedMacro := convertEscSequences(macros[index]);
+  if convertedMacro = '' then exit;
+
   clipboard.AsText := convertedMacro;
+  PasteCommand := pastes[index];
   {$ifndef WINDOWS}
   if PasteCommand = pcShiftInsert then begin
     PrimarySelection.Astext := convertedMacro;

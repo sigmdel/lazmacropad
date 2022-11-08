@@ -99,8 +99,8 @@ begin
   //left := screen.Width - width;
   // above won't work with Windows taskbar
 
-  //aPt := screen.PrimaryMonitor.WorkareaRect.bottomRight;
-  aPt := screen.WorkareaRect.bottomRight;
+  //aPt := screen.WorkareaRect.bottomRight;
+  aPt := screen.PrimaryMonitor.WorkareaRect.bottomRight;
   top := aPt.y - height
   {$ifdef Windows}
     - GetSystemMetrics(SM_CYSIZE) - GetSystemMetrics(SM_CYSIZEFRAME);
@@ -123,7 +123,7 @@ begin
   if Sender is TLabel then with Sender as TLabel do begin
     if Macros[Tag] <> '' then begin
       self.Hide;  // return to previous focused window
-      MainForm.Inject(macros[tag]);
+      MainForm.Inject(tag);
       self.Show;  // show this form again
       MainForm.KeyLayoutItem.Checked := false;
     end;

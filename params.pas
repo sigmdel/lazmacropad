@@ -15,12 +15,12 @@ CONST
 
 type
   TLogLevel = (llDebug, llInfo, llError, llNone);
-  TPasteCommand = (pcCtrlV, pcShiftInsert);  // actually saved with macro definitions
+  TPasteCommand = (pcCtrlV, pcShiftInsert, pcNone);
 
 var
   Macros: array[0..BUTTON_COUNT-1] of string;
+  Pastes: array[0..BUTTON_COUNT-1] of TPasteCommand;
   MacrosModified: boolean;
-  PasteCommand: TPasteCommand;
 
 procedure SaveMacros(const filename: string);
 procedure LoadMacros(const filename: string);
@@ -71,11 +71,13 @@ var
 begin
   n := 0;
   with TInifile.create(filename) do try
-     WriteInteger('paste', 'command', ord(PasteCommand));
-     for i := 0 to BUTTON_COUNT-1 do begin
-        WriteString('macros', inttohex(i,2), macros[i]);
-        if macros[i] <> '' then inc(n);
-     end;
+    for i := 0 to BUTTON_COUNT-1 do begin
+       WriteString('macros', inttohex(i,2), macros[i]);
+       if macros[i] <> '' then inc(n);
+    end;
+    for i := 0 to BUTTON_COUNT-1 do begin
+       WriteInteger('pastes', inttohex(i,2), ord(pastes[i]));
+    end;
      MacrosModified := false;
      LogForm.log(llInfo,'Macros file %s with %d macro definitions saved', [filename, n]);
   finally
@@ -89,9 +91,10 @@ var
   s: string;
 begin
   MacrosModified := false;
-  PasteCommand := pcCtrlV;
-  for i := 0 to BUTTON_COUNT-1 do
+  for i := 0 to BUTTON_COUNT-1 do begin
      macros[i] := '';
+     pastes[i] := pcCtrlV;
+  end;
 
   n := 0;
   if (filename = '') then
@@ -99,13 +102,15 @@ begin
   else if not fileexists(filename) then
     LogForm.log(llError, 'Macros file cannot be loaded, %s does not exist', [filename])
   else with TInifile.create(filename) do try
-     PasteCommand := TPasteCommand(ReadInteger('paste', 'command', ord(PasteCommand)));
      for i := 0 to BUTTON_COUNT-1 do begin
         s := ReadString('macros', inttohex(i,2), macros[i]);
         if s <> '' then begin
           inc(n);
           macros[i] := s;
         end;
+     end;
+     for i := 0 to BUTTON_COUNT-1 do begin
+        pastes[i] := TPasteCommand(ReadInteger('pastes', inttohex(i,2), ord(pastes[i])));
      end;
      LogForm.log(llInfo,'Macros file %s contained %d macro definitions', [filename, n]);
   finally

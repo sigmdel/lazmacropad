@@ -2,6 +2,9 @@ unit macrolog;
 
 {$mode ObjFPC}{$H+}
 
+
+{ #todo 1 -oMichel -cRefactoring : Should log functions be overrides of the TCustomApplication.Log?}
+
 interface
 
 uses
