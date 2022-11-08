@@ -34,7 +34,6 @@ type
       var Value: String);
     procedure MacrosFileNameEditEditingDone(Sender: TObject);
     procedure MacrosFileNameEditEnter(Sender: TObject);
-    procedure PasteCommandButtonsChange(Sender: TObject);
     procedure SaveMacrosButtonClick(Sender: TObject);
   private
     currentmacrosfile: string;
@@ -107,14 +106,6 @@ var
   s: string;
   pc: TPasteCommand;
 begin
-  (*
-  if (MacrosEditor.Row >= 1) and (MacrosEditor.Row <= BUTTON_COUNT) and
-  (macros[MacrosEditor.Row-1] <> MacrosEditor.Cells[1, MacrosEditor.Row]) then begin
-     macros[MacrosEditor.Row-1] := MacrosEditor.Cells[1, MacrosEditor.Row];
-     SetMacrosModified(true);
-     LayoutForm.keys[MacrosEditor.Row-1].Hint := macros[MacrosEditor.Row-1];
-  end;
-  *)
   r := MacrosEditor.Row;
   c := MacrosEditor.Col;
   s := MacrosEditor.Cells[c, r];
@@ -125,6 +116,10 @@ begin
     macros[r] := s;
     LayoutForm.keys[r].Hint := macros[r];
     SetMacrosModified(true);
+    if s = '' then begin
+      pastes[r] := pcCtrlV;
+      MacrosEditor.Cells[2,r+1] := sPasteCommands[pcCtrlV];
+    end;
   end
   else if MacrosEditor.Col = 2 then begin
     if s = sPasteCommands[pcCtrlV] then
@@ -171,22 +166,6 @@ end;
 procedure TMacroForm.NewMacroFileName(var Msg: TLMessage);
 begin
   MacrosFileNameEditEditingDone(nil);
-end;
-
-procedure TMacroForm.PasteCommandButtonsChange(Sender: TObject);
-var
-  newpaste: TPasteCommand;
-begin
-  (*
-  if RadioButton5.checked then
-    newpaste := pcCtrlV
-  else
-    newpaste := pcShiftInsert;
-  if PasteCommand <> newpaste then begin
-    PasteCommand := newpaste;
-    SetMacrosModified(true);
-  end;
-  *)
 end;
 
 procedure TMacroForm.SaveMacrosBeforeQuitting;
