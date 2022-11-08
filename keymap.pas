@@ -13,7 +13,6 @@ type
   { TLayoutForm }
 
   TLayoutForm = class(TForm)
-    Image1: TImage;
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -36,52 +35,54 @@ uses
   {$ifdef Windows}Windows,{$endif}
   main;
 
+resourcestring
+  SEmpty = 'not defined';
+
 { TLayoutForm }
 
 // BAD! this is hard coded for 4x4 keypad!
 procedure TLayoutForm.FormCreate(Sender: TObject);
 const
-  SZ = 33; // width & height of buttons
-  DX = SZ + 20;  // delta to next button
-  MX = 32;
-  MY = 12;
+  SZ = 33;      // width & height of buttons
+  DD = SZ + 12; // delta to next column / rows of buttons
 var
-  i: integer;     // button #
-  x, y: integer;  // left and top
-
+  b: integer;     // button #
+  x, y: integer;  // button left and top
+  r, c: integer;  // button row, column
 begin
-  x := MX;
-  y := MY-DX;
-  for i := 0 to 15 do begin
-    if i mod 4 = 0 then begin
-      x := MX;
-      y := y + DX;
+  y := 0;
+  b := 0;
+  for r := 1 to ROW_COUNT do begin
+    x := 0;
+    for c := 1 to COL_COUNT do begin
+      keys[b] := TLabel.create(self);
+      with keys[b] do begin
+        parent := self;
+        Left := x;
+        Height := SZ;
+        Top := y;
+        Width := SZ;
+        Alignment := taCenter;
+        AutoSize := False;
+        Caption := inttohex(b, 1);
+        Color := clSilver;
+        Font.Color := clBlack;
+        Font.Height := 16;
+        Layout := tlCenter;
+        ParentColor := False;
+        ParentFont := False;
+        ParentShowHint := False;
+        ShowHint := True;
+        Transparent := False;
+        Tag := b;
+        {$ifndef Windows}
+        OnClick := @ButtonClick;
+        {$endif}
+      end;
+      x := x + DD;
+      inc(b);
     end;
-    keys[i] := TLabel.create(self);
-    with keys[i] do begin
-      parent := self;
-      Left := x;
-      Height := SZ;
-      Top := y;
-      Width := SZ;
-      Alignment := taCenter;
-      AutoSize := False;
-      Caption := inttohex(i, 1);
-      Color := clSilver;
-      Font.Color := clBlack;
-      Font.Height := 16;
-      Layout := tlCenter;
-      ParentColor := False;
-      ParentFont := False;
-      ParentShowHint := False;
-      ShowHint := True;
-      Transparent := False;
-      Tag := i;
-      {$ifndef Windows}
-      OnClick := @ButtonClick;
-      {$endif}
-    end;
-    x := x + DX;
+    y := y + DD;
   end;
 end;
 
@@ -115,7 +116,7 @@ begin
     WindowState := wsNormal;
 end;
 
-{ #todo 5 -oMichel -cAppearance : This flashes LayoutForm; anyway of avoiding this? }
+{ #todo 5 -oMichel -cAppearance : This flashes LayoutForm; any way of avoiding this? }
 { #todo 2 -oMichel -cFunctionality : This does not work in Windows }
 procedure TLayoutForm.ButtonClick(Sender: TObject);
 begin
@@ -136,7 +137,10 @@ var
   i: integer;
 begin
   for i := 0 to  BUTTON_COUNT-1 do
-    LayoutForm.keys[i].Hint := macros[i];
+    if macros[i] = '' then
+      LayoutForm.keys[i].Hint := SEmpty
+    else
+      LayoutForm.keys[i].Hint := macros[i];
 end;
 
 end.

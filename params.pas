@@ -8,7 +8,9 @@ uses
   Classes, SysUtils;
 
 CONST
-  BUTTON_COUNT = 16;
+  ROW_COUNT = 4;
+  COL_COUNT = 4;
+  BUTTON_COUNT = ROW_COUNT*COL_COUNT;
   OPTIONS_FILENAME = 'options.ini';
   DEFAULT_MACROS = 'default.macros';
 
