@@ -8,20 +8,18 @@ uses
   Classes, SysUtils;
 
 CONST
-  ROW_COUNT = 4;
-  COL_COUNT = 4;
-  BUTTON_COUNT = ROW_COUNT*COL_COUNT;
+  DEFAULT_ROW_COUNT = 3;
+  DEFAULT_COL_COUNT = 6;
   OPTIONS_FILENAME = 'options.ini';
   DEFAULT_MACROS = 'default.macros';
-
 
 type
   TLogLevel = (llDebug, llInfo, llError, llNone);
   TPasteCommand = (pcCtrlV, pcShiftInsert, pcNone);
 
 var
-  Macros: array[0..BUTTON_COUNT-1] of string;
-  Pastes: array[0..BUTTON_COUNT-1] of TPasteCommand;
+  Macros: array of string;
+  Pastes: array of TPasteCommand;
   MacrosModified: boolean;
 
 procedure SaveMacros(const filename: string);
@@ -32,10 +30,13 @@ type
   private
     FDeviceName: string;
     FBaud: longint;
+    FKeyCols: integer;
+    FKeyRows: integer;
     FLoglevel: TLogLevel;
     FLogSize: integer;
     FDefaultMacrosFile: string;
     FModified: boolean;
+    FButtonCount: integer;
     procedure SetBaud(AValue: longint);
     procedure SetDefaultMacrosFile(const AValue: string);
     procedure SetDeviceName(AValue: string);
@@ -45,10 +46,13 @@ type
     procedure Save;
     procedure Load;
     property Baud: longint read FBaud write SetBaud;
+    property ButtonCount: integer read FButtonCount;
     property DefaultMacrosFile: string read FDefaultMacrosFile write SetDefaultMacrosFile;
     property DeviceName: string read FDeviceName write SetDeviceName;
-    property LogLevel: TLogLevel read FLogLevel write SetLogLevel;
+    property KeyRows: integer read FKeyRows;
+    property KeyCols: integer read FKeyCols;
     property Modified: boolean read FModified write FModified;
+    property LogLevel: TLogLevel read FLogLevel write SetLogLevel;
     property LogSize: integer read FLogSize;
   end;
 
@@ -73,11 +77,11 @@ var
 begin
   n := 0;
   with TInifile.create(filename) do try
-    for i := 0 to BUTTON_COUNT-1 do begin
+    for i := 0 to config.ButtonCount-1 do begin
        WriteString('macros', inttohex(i,2), macros[i]);
        if macros[i] <> '' then inc(n);
     end;
-    for i := 0 to BUTTON_COUNT-1 do begin
+    for i := 0 to config.ButtonCount-1 do begin
        WriteInteger('pastes', inttohex(i,2), ord(pastes[i]));
     end;
      MacrosModified := false;
@@ -93,7 +97,7 @@ var
   s: string;
 begin
   MacrosModified := false;
-  for i := 0 to BUTTON_COUNT-1 do begin
+  for i := 0 to config.ButtonCount-1 do begin
      macros[i] := '';
      pastes[i] := pcCtrlV;
   end;
@@ -104,14 +108,14 @@ begin
   else if not fileexists(filename) then
     LogForm.log(llError, 'Macros file cannot be loaded, %s does not exist', [filename])
   else with TInifile.create(filename) do try
-     for i := 0 to BUTTON_COUNT-1 do begin
+     for i := 0 to config.ButtonCount-1 do begin
         s := ReadString('macros', inttohex(i,2), macros[i]);
         if s <> '' then begin
           inc(n);
           macros[i] := s;
         end;
      end;
-     for i := 0 to BUTTON_COUNT-1 do begin
+     for i := 0 to config.ButtonCount-1 do begin
         pastes[i] := TPasteCommand(ReadInteger('pastes', inttohex(i,2), ord(pastes[i])));
      end;
      LogForm.log(llInfo,'Macros file %s contained %d macro definitions', [filename, n]);
@@ -131,6 +135,9 @@ begin
   FDeviceName := 'COM4';
   {$endif}
   FBaud := 9600;
+  FKeyCols := DEFAULT_COL_COUNT;
+  FKeyRows := DEFAULT_ROW_COUNT;
+  FButtonCount := FKeyCols*FKeyRows;
   FLogLevel := llInfo;
   FLogSize := 256;
   FDefaultMacrosFile := '';
@@ -141,6 +148,8 @@ begin
   with TInifile.create(configfile) do try
      WriteString('serial', 'device', FDeviceName);
      WriteInteger('serial', 'baud', FBaud);
+     WriteInteger('keypad', 'cols', FkeyCols);
+     WriteInteger('keypad', 'rows', FkeyRows);
      WriteInteger('log', 'level', ord(FLoglevel));
      WriteInteger('log', 'size', FLogSize);
      writeString('macros', 'filename', FDefaultMacrosFile);
@@ -194,6 +203,14 @@ begin
   with TInifile.create(configfile) do try
     FDeviceName := ReadString('serial', 'device', FDeviceName);
     FBaud := ReadInteger('serial', 'baud', FBaud);
+    FkeyCols := ReadInteger('keypad', 'cols', FkeyCols);
+    FKeyRows := ReadInteger('keypad', 'rows', FkeyRows);
+    FButtonCount := FKeyCols*FKeyRows;
+    if FButtonCount < 1 then begin
+      FKeyCols := DEFAULT_COL_COUNT;
+      FKeyRows := DEFAULT_ROw_COUNT;
+      FButtonCount := FKeyCols*FKeyRows;
+    end;
     Floglevel := TLogLevel(ReadInteger('log', 'level', ord(Floglevel)));
     FLogSize := ReadInteger('log', 'size', FLogSize);
     FDefaultMacrosFile := ReadString('macros', 'filename', FDefaultMacrosFile);
@@ -231,11 +248,14 @@ begin
   config.Load;
   if Config.DefaultMacrosfile = '' then
      Config.DefaultMacrosFile := configdir + DEFAULT_MACROS;
+  setlength(Macros, config.ButtonCount);
+  setlength(Pastes, config.ButtonCount);
   LoadMacros(Config.DefaultMacrosfile);
 end;
 
-
 finalization
   config.free;
+  setlength(Macros, 0);
+  setlength(Pastes, 0);
 end.
 

@@ -69,8 +69,9 @@ procedure TMacroForm.FormActivate(Sender: TObject);
 var
   i: integer;
 begin
-  for i := 0 to BUTTON_COUNT-1 do
-    MacrosEditor.Cells[0,i+1] := inttohex(i, 1);
+  MacrosEditor.RowCount := config.ButtonCount+1;
+  for i := 1 to config.ButtonCount do
+    MacrosEditor.Cells[0,i] := KeyLabels[i];
   UpdateGUI;
 end;
 
@@ -109,7 +110,7 @@ begin
   r := MacrosEditor.Row;
   c := MacrosEditor.Col;
   s := MacrosEditor.Cells[c, r];
-  if (r < 1) or (r > BUTTON_COUNT) then exit;
+  if (r < 1) or (r > config.ButtonCount) then exit;
   dec(r);
   if MacrosEditor.Col = 1 then begin
     if s = macros[r] then exit;
@@ -215,7 +216,7 @@ procedure TMacroForm.UpdateGUI;
 var
   i : integer;
 begin
-  for i := 0 to  BUTTON_COUNT-1 do begin
+  for i := 0 to  config.ButtonCount-1 do begin
     MacrosEditor.Cells[1, i+1] := macros[i];
     MacrosEditor.Cells[2, i+1] := sPasteCommands[pastes[i]];
   end;

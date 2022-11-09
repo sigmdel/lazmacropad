@@ -21,7 +21,6 @@ begin
   Application.Initialize;
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TAboutForm, AboutForm);
-  Application.CreateForm(TLayoutForm, LayoutForm);
   Application.CreateForm(TLogForm, LogForm);
   Application.CreateForm(TMacroForm, MacroForm);
   Application.CreateForm(TOptionsForm, OptionsForm);

@@ -66,8 +66,9 @@ var
   i: integer;
 begin
   LogForm.Log(llDebug, 'callback(%s)', [src]);
-  i := strtointdef('$'+src, -1);
-  if (i < 0) or (i >= BUTTON_COUNT) then
+  if length(src) < 1 then exit;
+  i := KeyLabelToInt(src[1]);
+  if (i < 0) or (i >= config.ButtonCount) then
     exit;
   if (macros[i] <> '') then begin
     inject(i);
@@ -153,6 +154,9 @@ begin
   // https://forum.lazarus.freepascal.org/index.php/topic,61044.0.html
   // [SOLVED] Non functioning clipboard in Linux TrayIcon  (Read 27 times)
   paramsInit;
+  // need config.KeyCols and config.KeyRows to create the
+  // key map
+  Application.CreateForm(TLayoutForm, LayoutForm);
 
   Timer1.Enabled := OpenSerial;
 
@@ -181,11 +185,11 @@ end;
 
 procedure TMainForm.Timer1Timer(Sender: TObject);
 var
-  rx: integer;
+  rxc: char;
 begin
-  rx := ReadSerial;
-  if rx >= 0 then
-    Callback(char(rx));
+  rxc := ReadSerial;
+  if rxc > #0 then
+    Callback(rxc);
 end;
 
 // <tray menu>

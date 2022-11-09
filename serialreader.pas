@@ -9,7 +9,7 @@ uses
 
 procedure CloseSerial(quiet: boolean = false);
 function OpenSerial: boolean;
-function ReadSerial: integer; // if < 0 then no char available
+function ReadSerial: char; // if #0 then no char available
 
 implementation
 
@@ -54,7 +54,7 @@ begin
 end;
 
 
-function ReadSerial: integer;
+function ReadSerial: char;
 var
   count: integer;
   inbuf: array[0..BUFSIZE-1] of char;
@@ -62,14 +62,14 @@ var
   sstate: TSerialState;
   {$endif}
 begin
-  result := -1;
+  result := #0;
   if (serialhandle <= 0) then begin
     LogForm.Log(llError, 'Serial device %s not connected', [Config.DeviceName])
   end
   else begin
     count := SerRead(serialhandle, inbuf, sizeof(inbuf));
     if count > 0 then begin
-      result := ord(inbuf[0]);
+      result := inbuf[0];
       SerFlushInput(serialhandle);  // flush everything
     end
     else begin

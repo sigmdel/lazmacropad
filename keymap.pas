@@ -19,13 +19,21 @@ type
     procedure FormWindowStateChange(Sender: TObject);
   private
   public
-    keys: array[0..BUTTON_COUNT-1] of TLabel;
+    keys: array of TLabel;
     procedure UpdateGUI;
     procedure ButtonClick(Sender: TObject);
   end;
 
 var
   LayoutForm: TLayoutForm;
+
+resourcestring
+  SKeyLabels = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+var
+  KeyLabels: string = SKeyLabels;
+
+function KeyLabelToInt(c: char): integer;
 
 implementation
 
@@ -37,6 +45,11 @@ uses
 
 resourcestring
   SEmpty = 'not defined';
+
+function KeyLabelToInt(c: char): integer;
+begin
+  result := pos(c, KeyLabels) - 1;
+end;
 
 { TLayoutForm }
 
@@ -50,11 +63,12 @@ var
   x, y: integer;  // button left and top
   r, c: integer;  // button row, column
 begin
+  setlength(keys, config.ButtonCount);
   y := 0;
   b := 0;
-  for r := 1 to ROW_COUNT do begin
+  for r := 1 to config.KeyRows do begin
     x := 0;
-    for c := 1 to COL_COUNT do begin
+    for c := 1 to config.KeyCols do begin
       keys[b] := TLabel.create(self);
       with keys[b] do begin
         parent := self;
@@ -64,7 +78,7 @@ begin
         Width := SZ;
         Alignment := taCenter;
         AutoSize := False;
-        Caption := inttohex(b, 1);
+        Caption := KeyLabels[b+1];
         Color := clSilver;
         Font.Color := clBlack;
         Font.Height := 16;
@@ -136,7 +150,7 @@ procedure TLayoutForm.UpdateGUI;
 var
   i: integer;
 begin
-  for i := 0 to  BUTTON_COUNT-1 do
+  for i := 0 to  config.ButtonCount-1 do
     if macros[i] = '' then
       LayoutForm.keys[i].Hint := SEmpty
     else
