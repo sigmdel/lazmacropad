@@ -2,11 +2,11 @@ object AboutForm: TAboutForm
   Left = 471
   Height = 246
   Top = 250
-  Width = 349
+  Width = 385
   BorderStyle = bsDialog
   Caption = 'About - Macro Keypad'
   ClientHeight = 246
-  ClientWidth = 349
+  ClientWidth = 385
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
   Position = poMainFormCenter
@@ -308,7 +308,7 @@ object AboutForm: TAboutForm
   object Button1: TButton
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
-    Left = 137
+    Left = 155
     Height = 25
     Top = 208
     Width = 75
@@ -376,11 +376,11 @@ object AboutForm: TAboutForm
     Cursor = crHandPoint
     Left = 118
     Height = 16
-    Hint = 'https://sigmdel.ca/michel/'
+    Hint = 'https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html'
     Top = 168
-    Width = 34
+    Width = 243
     BorderSpacing.Left = 6
-    Caption = 'soon!'
+    Caption = 'post (in French) on sur sigmdel.ca/michel'
     Font.Style = [fsUnderline]
     ParentFont = False
     ParentShowHint = False

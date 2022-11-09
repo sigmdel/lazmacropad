@@ -1,12 +1,12 @@
-# *lazmacropad*
-**Macro Keypad version 0.6.0**
+# *lazmacropad* - a Macro Keypad
+**Version 0.6.0**
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
 Currently the macro keypad program has been tested and found to run on Linux Mint 20.1 Mate, Mint 21 Mate and Windows 10 although there are some limitations as described below. 
 
 
-![screenshot](images/screenshot_0_6_0.jpg)
+![screenshot](images/screenshot_0_7_0.jpg)
 
 As of version 0.6.0, *lazmacropad* is a tray application. This required a major reorganization of the source code. The three different tabs of the original program, [version 0.3.0](releases/tag/v0.3.4), where moved to windows that can be displayed independently as illustrated in the screenshot shown above.
 
@@ -68,7 +68,7 @@ The program also allows for editing, saving and loading macro definitions to sui
 
 The source code of the *lazmacropad* object pascal program is in the root directory of the repository. The [images](images/) directory contains the two images shown on this page and the image used as a background of the keyboard layout window. None of these are required to compile the program; the image bitmap is stored in the `keymap.lfm` form resource file. 
 
-The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) unit is used to generate the desired paste keyboard shortcut. The unit is found in the `lazmouseandkeyinput.lpk` non-visual package. The package found in the `$(LAZARUS)/components/mouseandkeyinput` directory. Load the package file into the Lazarus IDE and compile it. Add `lazmouseandkeyinput` to the `Required Packages` in the `Project Inspector` window (which is opened from the `Project` menu in the IDE).
+The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) unit is used to generate the desired paste keyboard shortcut. The unit is found in the `lazmouseandkeyinput.lpk` non-visual package. That package is in the `$(LAZARUS)/components/mouseandkeyinput` directory. Load the package file into the Lazarus IDE and compile it. Add `lazmouseandkeyinput` to the `Required Packages` in the `Project Inspector` window (which is opened from the `Project` menu in the IDE).
 
 ### 3.1. Linux Requirements
 
