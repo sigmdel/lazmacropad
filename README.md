@@ -1,7 +1,7 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Version 0.7.2**
+**Version 0.7.4**
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
@@ -164,7 +164,9 @@ Appending a \n sequence to a macro to be used in the terminal will mean that it 
 
 The GNOME terminal emulator and its forks such as the MATE terminal do not support the Ctrl+C and Ctrl+V key combinations, which makes sense since Ctrl+C is used to cancel a running program. On the other hand, it is possible to paste the primary selection in the terminal with Shift+Insert. Consequently, when the Shift+Insert combination is chosen to paste a macro, *lazmacropad* copies the macro into the primary selection in addition to copying it into the clipboard. It is therefore possible to insert macros when typing in the terminal. This is pretty much the behavior of Geany apps, VSCodium (and probably VS Code), GNote, LibreOffice Writer and the Lazarus IDE editor, which synchronize the two mechanisms by pasting selected text with Ctrl+V or Shift+Insert.
 
-If a macro ends with the sequence '\n' and the Shift+Insert combination is used for the paste operation then it will be executed as a command if inserted at a terminal prompt. A program could be launched or a script could be executed by pressing a single key. Care must be taken when running programs, as some, such as the Arduino IDE, may seize the serial port and as a result *lazmacropad* freezes.
+If a macro ends with the sequence '\n' and the Shift+Insert combination is used for the paste operation then it will be executed as a command if inserted at a terminal prompt. A program could be launched or a script could be executed by pressing a single key (#).  Care must be taken when running programs, as some, such as the Arduino IDE, may seize the serial port and as a result *lazmacropad* freezes.
+
+> (#) While this works well in Mint 20.1 with GTK2, it does not seem to work at all times in Mint 21 even after latest (v0.7.4) "improvement" in handling the trailing '\n'. However these tests are being done in a virtual machine which may have some impact.
 
 There is no primary selection in Windows but Shift+Insert does work just as Ctrl+V when used from the physical keyboard. So far, injecting Shift+Insert in Windows has not worked. Consequently *lazmacropad* uses Ctrl+V no matter what keyboard shortcut is specified when it is running in Windows.
 
