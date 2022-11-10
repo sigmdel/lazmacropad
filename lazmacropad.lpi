@@ -21,6 +21,7 @@
       <UseVersionInfo Value="True"/>
       <MinorVersionNr Value="7"/>
       <RevisionNr Value="2"/>
+      <BuildNr Value="1"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Default" Default="True"/>
