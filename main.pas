@@ -78,10 +78,20 @@ begin
     LogForm.Log(llInfo, 'Key: %s, no macro defined', [src]);
 end;
 
+{$DEFINE VK_RETURN_SPECIAL}
+// seems to work in
+//   Mint 20.1 MATE with QTK2 (but not needed!)
+//   Mint 21 MATE with QTK2
+//   Mint 21 MATE with Qt5 (not at all times)
+
+
 procedure TMainForm.Inject(index: integer);
 var
   convertedMacro: string;
   PasteCommand: TPasteCommand;
+  {$ifdef VK_RETURN_SPECIAL}
+  WantsVK_RETURN: boolean;
+  {$endif}
 begin
   convertedMacro := convertEscSequences(macros[index]);
   if convertedMacro = '' then exit;
@@ -90,10 +100,19 @@ begin
   PasteCommand := pastes[index];
   {$ifndef WINDOWS}
   if PasteCommand = pcShiftInsert then begin
+    {$ifdef VK_RETURN_SPECIAL}
+    WantsVK_RETURN := convertedMacro[length(ConvertedMacro)] = #13;
+    if WantsVK_RETURN then
+      setlength(convertedMacro, length(convertedMacro)-1);
+    {$endif}
     PrimarySelection.Astext := convertedMacro;
     KeyInput.Apply([ssShift]);
     KeyInput.Press(VK_INSERT);
     KeyInput.Unapply([ssShift]);
+    {$ifdef VK_RETURN_SPECIAL}
+    if WantsVK_RETURN then
+      KeyInput.Press(VK_RETURN);
+    {$endif}
     LogForm.Log(llDebug,'Paste with Shift+Insert');
   end
   else begin
