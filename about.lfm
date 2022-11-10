@@ -378,9 +378,9 @@ object AboutForm: TAboutForm
     Height = 16
     Hint = 'https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html'
     Top = 168
-    Width = 243
+    Width = 221
     BorderSpacing.Left = 6
-    Caption = 'post (in French) on sur sigmdel.ca/michel'
+    Caption = 'post (in French) on sigmdel.ca/michel'
     Font.Style = [fsUnderline]
     ParentFont = False
     ParentShowHint = False
