@@ -8,8 +8,8 @@ uses
   Classes, SysUtils;
 
 CONST
-  DEFAULT_ROW_COUNT = 3;
-  DEFAULT_COL_COUNT = 6;
+  DEFAULT_ROW_COUNT = 4;
+  DEFAULT_COL_COUNT = 4;
   OPTIONS_FILENAME = 'options.ini';
   DEFAULT_MACROS = 'default.macros';
 
