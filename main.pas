@@ -181,7 +181,7 @@ begin
 
   if Config.loglevel >= llError then
     LogForm.log(Config.loglevel, 'Change the log level in parameters to see more information.');
-  MacroForm.MacrosFileNameEdit.Filename := Config.DefaultMacrosFile;
+  MacroForm.SetMacrosFilename(Config.DefaultMacrosFile);
   MacroForm.SaveDialog1.InitialDir := configdir;
 end;
 

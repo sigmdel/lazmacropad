@@ -9,7 +9,6 @@ object MainForm: TMainForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   ShowInTaskBar = stNever
-  LCLVersion = '2.3.0.0'
   object TrayIcon: TTrayIcon
     PopUpMenu = TrayIconMenu
     Icon.Data = {

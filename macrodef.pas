@@ -5,44 +5,46 @@ unit macrodef;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, EditBtn,
-  Grids, LCLIntf, LMessages;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  Grids, LCLIntf, LMessages, Buttons, Menus, ExtCtrls, StrUtils;
 
 const
-  LM_NEW_MACROFILENAME = LM_USER + 1;    // LM_USER = WM_USER
-  LM_SAVE_MACROS_QUITTING = LM_NEW_MACROFILENAME + 1;
+  LM_SAVE_MACROS_QUITTING = LM_USER + 1;
 
 type
 
   { TMacroForm }
 
   TMacroForm = class(TForm)
-    DefaultCheckbox: TCheckBox;
-    Label1: TLabel;
+    DefaultMacrosMenuItem: TMenuItem;
+    ModifiedLabel: TLabel;
+    MacrosFilenameLabel: TLabel;
+    OpenDialog1: TOpenDialog;
+    Separator1: TMenuItem;
+    SaveMacroFileMenuItem: TMenuItem;
+    OpenMacroFileMenuItem: TMenuItem;
+    PopMacroMenuButton: TButton;
+    MacrosLabel: TLabel;
     MacrosEditor: TStringGrid;
-    MacrosFileNameEdit: TFileNameEdit;
+    MacrosPopupMenu: TPopupMenu;
     SaveDialog1: TSaveDialog;
-    SaveMacrosButton: TButton;
-    procedure DefaultCheckboxChange(Sender: TObject);
+    procedure DefaultMacrosMenuItemClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure MacrosEditorEditingDone(Sender: TObject);
     procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
-    procedure MacrosFileNameEditAcceptFileName(Sender: TObject;
-      var Value: String);
-    procedure MacrosFileNameEditEditingDone(Sender: TObject);
-    procedure MacrosFileNameEditEnter(Sender: TObject);
-    procedure SaveMacrosButtonClick(Sender: TObject);
+    procedure OpenMacroFileMenuItemClick(Sender: TObject);
+    procedure PopMacroMenuButtonClick(Sender: TObject);
+    procedure SaveMacroFileMenuItemClick(Sender: TObject);
   private
-    currentmacrosfile: string;
     procedure UpdateGUI;
     procedure SetMacrosModified(value: boolean);
   public
-    procedure NewMacroFileName(var Msg: TLMessage); message LM_NEW_MACROFILENAME;
     procedure SaveMacrosQuitting(var Msg: TLMessage); message LM_SAVE_MACROS_QUITTING;
     procedure SaveMacrosBeforeQuitting;
+    procedure SetMacrosFilename(const value: string);
   end;
 
 var
@@ -57,13 +59,35 @@ uses
   main, params, keymap;
 
 resourcestring
-  SpcCtrlV = 'Ctrl+V';
-  SpcShiftInsert = 'Shift+Insert';
+  SpcCtrlV = 'Ctrl+V';                 // 'Ctrl+V'
+  SpcShiftInsert = 'Shift+Insert';     // 'Maj+Inser
 
 var
   sPasteCommands : array[TPasteCommand] of string = (SpcCtrlV, SPcShiftInsert, '');
 
 { TMacroForm }
+
+procedure TMacroForm.DefaultMacrosMenuItemClick(Sender: TObject);
+var
+  fn: string;
+begin
+  if DefaultMacrosMenuItem.checked then begin
+     fn := MacrosFilenameLabel.hint;
+     if (fn = '') or (fn = '<') then begin
+        // never saved, do it now
+        SaveMacroFileMenuItem.Click;
+     end;
+     fn := MacrosFilenameLabel.hint;
+     if (fn = '') or (fn = '<') then begin
+        // still not saved, don't show as default
+        DefaultMacrosMenuItem.checked := false;
+        exit;
+     end;
+      Config.DefaultMacrosFile := fn;
+   end
+   else if (MacrosFileNameLabel.hint = Config.DefaultMacrosFile) then
+     DefaultMacrosMenuItem.checked := true;
+end;
 
 procedure TMacroForm.FormActivate(Sender: TObject);
 var
@@ -81,19 +105,6 @@ begin
   Constraints.MinHeight := Height;
   Width := (3*Width) div 2;
   Height := (3*Height) div 2;
-end;
-
-procedure TMacroForm.DefaultCheckboxChange(Sender: TObject);
-begin
-  if DefaultCheckbox.checked then begin
-      if MacrosFileNameEdit.filename = '' then begin
-         DefaultCheckbox.checked := false;
-         exit;
-      end;
-      Config.DefaultMacrosFile := MacrosFileNameEdit.Filename;
-   end
-   else if (MacrosFileNameEdit.Filename = Config.DefaultMacrosFile) then
-     DefaultCheckbox.checked := true;
 end;
 
 procedure TMacroForm.FormHide(Sender: TObject);
@@ -141,32 +152,45 @@ begin
   CanSelect := (aCol > 0) and (aRow > 0);
 end;
 
-procedure TMacroForm.MacrosFileNameEditAcceptFileName(Sender: TObject;
-  var Value: String);
+procedure TMacroForm.OpenMacroFileMenuItemClick(Sender: TObject);
 begin
-  PostMessage(self.handle, LM_NEW_MACROFILENAME, 0, 0);
-  // use post to return immediately so that MacrosFilenameEdit.Filename
-  // get set to Value before MacrosFileNameEditEditingDone is
-  // called by the message handler NewMacroFileName(var Msg: TLMessage)
+  with OpenDialog1 do begin
+    filename := MacrosFilenameLabel.hint;
+    if (filename = '') or (filename[1] = '<') then begin
+      filename := '';
+      initialdir := configdir;
+    end;
+    if execute then begin
+      filename := ChangeFileext(filename, '.macros');
+      LoadMacros(filename);
+      SetMacrosFilename(filename);
+      SetMacrosModified(false);
+      UpdateGUI;
+    end;
+  end;
 end;
 
-procedure TMacroForm.MacrosFileNameEditEditingDone(Sender: TObject);
+procedure TMacroForm.PopMacroMenuButtonClick(Sender: TObject);
 begin
-  if MacrosFileNameEdit.filename <> currentMacrosFile then begin
-     LoadMacros(MacrosFileNameEdit.filename);
-     currentMacrosFile := MacrosFileNameEdit.filename;
-     UpdateGUI;
-   end;
+  MacrosPopupMenu.PopUp;
 end;
 
-procedure TMacroForm.MacrosFileNameEditEnter(Sender: TObject);
+procedure TMacroForm.SaveMacroFileMenuItemClick(Sender: TObject);
 begin
-  currentmacrosfile := MacrosFileNameEdit.filename;
-end;
-
-procedure TMacroForm.NewMacroFileName(var Msg: TLMessage);
-begin
-  MacrosFileNameEditEditingDone(nil);
+  with SaveDialog1 do begin
+    filename := MacrosFilenameLabel.hint;
+    if (filename = '') or (filename[1] = '<') then begin
+      filename := '';
+      initialdir := configdir;
+    end;
+    if execute then begin
+      filename := ChangeFileext(filename, '.macros');
+      SaveMacros(filename);
+      SetMacrosFilename(filename);
+      SetMacrosModified(false);
+      UpdateGUI;
+    end;
+  end;
 end;
 
 procedure TMacroForm.SaveMacrosBeforeQuitting;
@@ -174,26 +198,12 @@ begin
   PostMessage(self.handle, LM_SAVE_MACROS_QUITTING, 0, 0);
 end;
 
-procedure TMacroForm.SaveMacrosButtonClick(Sender: TObject);
-begin
-  with SaveDialog1 do begin
-    filename := MacrosFileNameEdit.filename;
-    if execute then begin
-      filename := ChangeFileext(filename, '.macros');
-      SaveMacros(filename);
-      MacrosFileNameEdit.filename := filename;
-      SetMacrosModified(false);
-      UpdateGUI;
-    end;
-  end;
-end;
-
 procedure TMacroForm.SaveMacrosQuitting(var Msg: TLMessage);
 var
   mr: TModalResult;
   x, y: integer;
 begin
-  SaveMacrosButtonClick(nil);
+  SaveMacroFileMenuItemClick(nil);
   if macrosmodified then begin
     x := left + 100;
     y := top + 100;
@@ -206,10 +216,20 @@ begin
   MainForm.close;
 end;
 
+procedure TMacroForm.SetMacrosFilename(const value: string);
+begin
+  MacrosFilenameLabel.hint := value;
+  MacrosFilenameLabel.caption := ChangeFileExt(ExtractFileName(value), '');
+  DefaultMacrosMenuItem.checked := (Config.DefaultMacrosFile <> '')
+    and (value = Config.DefaultMacrosFile);
+end;
+
 procedure TMacroForm.SetMacrosModified(value: boolean);
 begin
   macrosmodified := value;
-  SaveMacrosButton.Enabled := value;
+  if value then
+    DefaultMacrosMenuItem.checked := false;
+  ModifiedLabel.Caption := ifThen(macrosmodified, '*', '');
 end;
 
 procedure TMacroForm.UpdateGUI;
@@ -220,14 +240,8 @@ begin
     MacrosEditor.Cells[1, i+1] := macros[i];
     MacrosEditor.Cells[2, i+1] := sPasteCommands[pastes[i]];
   end;
-  SaveMacrosButton.Enabled := macrosmodified;
-  DefaultCheckbox.checked := (Config.DefaultMacrosFile <> '')
-    and (MacrosFileNameEdit.Filename = Config.DefaultMacrosFile);
   LayoutForm.UpdateGUI;
 end;
-
-
-
 
 end.
 
