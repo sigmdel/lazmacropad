@@ -17,9 +17,16 @@ type
 
   TMacroForm = class(TForm)
     DefaultMacrosMenuItem: TMenuItem;
+    InsertMacroMenuItem: TMenuItem;
+    DeleteMacroMenuItem: TMenuItem;
+    ClearMacrosMenuItem: TMenuItem;
+    EraseMacroMenuItem: TMenuItem;
+    ReloadMacrosFileMenuItem: TMenuItem;
+    Separator2: TMenuItem;
     ModifiedLabel: TLabel;
     MacrosFilenameLabel: TLabel;
     OpenDialog1: TOpenDialog;
+    EditorPopMenu: TPopupMenu;
     Separator1: TMenuItem;
     SaveMacroFileMenuItem: TMenuItem;
     OpenMacroFileMenuItem: TMenuItem;
@@ -28,17 +35,24 @@ type
     MacrosEditor: TStringGrid;
     MacrosPopupMenu: TPopupMenu;
     SaveDialog1: TSaveDialog;
+    procedure ClearMacrosMenuItemClick(Sender: TObject);
     procedure DefaultMacrosMenuItemClick(Sender: TObject);
+    procedure DeleteMacroMenuItemClick(Sender: TObject);
+    procedure EditorPopMenuPopup(Sender: TObject);
+    procedure EraseMacroMenuItemClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
+    procedure InsertMacroMenuItemClick(Sender: TObject);
     procedure MacrosEditorEditingDone(Sender: TObject);
     procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
     procedure OpenMacroFileMenuItemClick(Sender: TObject);
     procedure PopMacroMenuButtonClick(Sender: TObject);
+    procedure ReloadMacrosFileMenuItemClick(Sender: TObject);
     procedure SaveMacroFileMenuItemClick(Sender: TObject);
   private
+    function FixupMacroName(const fn: string): string;
     procedure UpdateGUI;
     procedure SetMacrosModified(value: boolean);
   public
@@ -67,6 +81,16 @@ var
 
 { TMacroForm }
 
+procedure TMacroForm.ClearMacrosMenuItemClick(Sender: TObject);
+begin
+  Config.Create;
+  MacrosFilenameLabel.hint := '<new>';
+  MacrosFilenameLabel.caption := MacrosFilenameLabel.hint;
+  DefaultMacrosMenuItem.checked := false;
+  SetMacrosModified(false);
+  UpdateGUI;
+end;
+
 procedure TMacroForm.DefaultMacrosMenuItemClick(Sender: TObject);
 var
   fn: string;
@@ -87,6 +111,56 @@ begin
    end
    else if (MacrosFileNameLabel.hint = Config.DefaultMacrosFile) then
      DefaultMacrosMenuItem.checked := true;
+end;
+
+procedure TMacroForm.DeleteMacroMenuItemClick(Sender: TObject);
+var
+  ndx: integer;
+  j: integer;
+begin
+  ndx := MacrosEditor.row - 1;
+  for j := ndx to Config.ButtonCount-2 do begin
+    Macros[j] := Macros[j+1];
+    Pastes[j] := Pastes[j+1];
+  end;
+  Macros[Config.ButtonCount-1] := '';
+  Pastes[Config.ButtonCount-1] := pcCtrlV;
+  SetMacrosModified(true);
+  UpdateGUI;
+end;
+
+procedure TMacroForm.EditorPopMenuPopup(Sender: TObject);
+var
+  ndx: integer;
+begin
+  ndx := MacrosEditor.row - 1;
+  InsertMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount-1) and (Macros[ndx] <> '');
+  EraseMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount) and (Macros[ndx] <> '');
+  DeleteMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount) and (Macros[ndx] <> '');
+end;
+
+procedure TMacroForm.EraseMacroMenuItemClick(Sender: TObject);
+var
+  ndx: integer;
+begin
+  ndx := MacrosEditor.row - 1;
+  if (ndx >= 0) and (ndx < Config.ButtonCount) and (Macros[ndx] <> '') then begin
+    Macros[ndx] := '';
+    Pastes[ndx] := pcCtrlV;
+    SetMacrosModified(true);
+    MacrosEditor.Cells[1, ndx+1] := '';
+    MacrosEditor.Cells[2, ndx+1] := sPcCtrlV;
+  end;
+end;
+
+function TMacroForm.FixupMacroName(const fn: string): string;
+begin
+  // assume fn = 'fname.macros.bak'
+  result := ChangeFileext(fn, '');
+   // avoid creating 'fname.macros.macros'
+   while ExtractFileExt(result) = '.macros' do
+     result := ChangeFileExt(result, '');
+   result := ChangeFileext(result, '.macros');
 end;
 
 procedure TMacroForm.FormActivate(Sender: TObject);
@@ -110,6 +184,22 @@ end;
 procedure TMacroForm.FormHide(Sender: TObject);
 begin
   MainForm.MacroDefItem.Checked := false;
+end;
+
+procedure TMacroForm.InsertMacroMenuItemClick(Sender: TObject);
+var
+  ndx: integer;
+  j: integer;
+begin
+  ndx := MacrosEditor.row - 1;
+  for j := Config.ButtonCount-1 downto ndx+1 do begin
+    Macros[j] := Macros[j-1];
+    Pastes[j] := Pastes[j-1];
+  end;
+  Macros[ndx] := '';
+  Pastes[ndx] := pcCtrlV;
+  SetMacrosModified(true);
+  UpdateGUI;
 end;
 
 procedure TMacroForm.MacrosEditorEditingDone(Sender: TObject);
@@ -153,6 +243,8 @@ begin
 end;
 
 procedure TMacroForm.OpenMacroFileMenuItemClick(Sender: TObject);
+var
+  fn: string;
 begin
   with OpenDialog1 do begin
     filename := MacrosFilenameLabel.hint;
@@ -161,18 +253,56 @@ begin
       initialdir := configdir;
     end;
     if execute then begin
-      filename := ChangeFileext(filename, '.macros');
+      /// refactor this and  ReloadMacrosFileMenuItemClick(Sender: TObject);
       LoadMacros(filename);
-      SetMacrosFilename(filename);
+      fn := FixupMacroName(filename);
+      SetMacrosFilename(fn);
       SetMacrosModified(false);
       UpdateGUI;
+      if (fn <> filename) and not FileExists(fn) then
+        SaveMacros(fn);
     end;
   end;
 end;
 
 procedure TMacroForm.PopMacroMenuButtonClick(Sender: TObject);
+var
+  pt: TPoint;
 begin
-  MacrosPopupMenu.PopUp;
+  pt := MacrosfilenameLabel.ClientOrigin;
+  inc(pt.x, MacrosfilenameLabel.height+2);
+  inc(pt.y, 20);
+  MacrosPopupMenu.PopUp(pt.x, pt.y);
+end;
+
+procedure TMacroForm.ReloadMacrosFileMenuItemClick(Sender: TObject);
+var
+  fn: string;
+  x, y: integer;
+  mr: TModalResult;
+begin
+  fn := MacrosFilenameLabel.hint;
+  if fileexists(fn) then begin
+    if macrosmodified then begin
+      x := left + 50;
+      y := top + 50;
+      mr := MessageDlgPos('Save the modified macro definitions before.',
+        mtConfirmation, [mbYes, mbNo, mbCancel], 0, x, y);
+      if (mr = mrCancel) then exit;
+      if (mr = mrYes) then
+         SaveMacroFileMenuItemClick(nil);
+    end;
+    LoadMacros(fn);
+    SetMacrosFilename(fn);
+    SetMacrosModified(false);
+    UpdateGUI;
+  end
+  else begin
+    x := left + 50;
+    y := top + 50;
+    MessageDlgPos(Format('File ''%s'' does not exist.', [fn]),
+      mtInformation, [mbOk], 0, x, y);
+  end;
 end;
 
 procedure TMacroForm.SaveMacroFileMenuItemClick(Sender: TObject);
@@ -184,6 +314,13 @@ begin
       initialdir := configdir;
     end;
     if execute then begin
+      // should not be necessary
+      filename := FixupMacroName(filename);
+      // assume 'fname.macros.bak'
+      filename := ChangeFileext(filename, '');
+      // avoid creating 'fname.macros.macros'
+      while ExtractFileExt(filename) = '.macros' do
+        ChangeFileExt(filename, '');
       filename := ChangeFileext(filename, '.macros');
       SaveMacros(filename);
       SetMacrosFilename(filename);

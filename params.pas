@@ -42,6 +42,7 @@ type
     procedure SetDeviceName(AValue: string);
     procedure SetLogLevel(AValue: TLogLevel);
   public
+    procedure ClearMacros;
     constructor Create;
     procedure Save;
     procedure Load;
@@ -96,12 +97,8 @@ var
   i, n: integer;
   s: string;
 begin
+  Config.ClearMacros;
   MacrosModified := false;
-  for i := 0 to config.ButtonCount-1 do begin
-     macros[i] := '';
-     pastes[i] := pcCtrlV;
-  end;
-
   n := 0;
   if (filename = '') then
     LogForm.log(llError, 'params.LoadMacros() called with empty filename')
@@ -126,6 +123,16 @@ end;
 
 { TConfig }
 
+procedure TConfig.ClearMacros;
+var
+  i: integer;
+begin
+  for i := 0 to config.ButtonCount-1 do begin
+     macros[i] := '';
+     pastes[i] := pcCtrlV;
+  end;
+end;
+
 constructor TConfig.Create;
 begin
   {$ifdef LINUX}
@@ -141,6 +148,37 @@ begin
   FLogLevel := llInfo;
   FLogSize := 256;
   FDefaultMacrosFile := '';
+end;
+
+procedure TConfig.Load;
+begin
+  if not fileexists(configfile) then begin
+    // make sure a config file always exists
+    Save;
+    LogForm.log(llInfo, 'Default configuration file created because none was found');
+    exit;
+  end;
+  with TInifile.create(configfile) do try
+    FDeviceName := ReadString('serial', 'device', FDeviceName);
+    FBaud := ReadInteger('serial', 'baud', FBaud);
+    FkeyCols := ReadInteger('keypad', 'cols', FkeyCols);
+    FKeyRows := ReadInteger('keypad', 'rows', FkeyRows);
+    FButtonCount := FKeyCols*FKeyRows;
+    if FButtonCount < 1 then begin
+      FKeyCols := DEFAULT_COL_COUNT;
+      FKeyRows := DEFAULT_ROw_COUNT;
+      FButtonCount := FKeyCols*FKeyRows;
+    end;
+    Floglevel := TLogLevel(ReadInteger('log', 'level', ord(Floglevel)));
+    FLogSize := ReadInteger('log', 'size', FLogSize);
+    FDefaultMacrosFile := ReadString('macros', 'filename', FDefaultMacrosFile);
+    if not fileexists(FDefaultMacrosfile) and fileexists(configdir+FDefaultMacrosfile) then
+       FDefaultMacrosfile := configdir+FDefaultMacrosfile;
+    FModified := false;
+  finally
+    free;
+  end;
+  LogForm.log(llInfo, 'Configuration file %s loaded', [configfile]);
 end;
 
 procedure TConfig.Save;
@@ -192,36 +230,7 @@ begin
   FModified := true;
 end;
 
-procedure TConfig.Load;
-begin
-  if not fileexists(configfile) then begin
-    // make sure a config file always exists
-    Save;
-    LogForm.log(llInfo, 'Default configuration file created because none was found');
-    exit;
-  end;
-  with TInifile.create(configfile) do try
-    FDeviceName := ReadString('serial', 'device', FDeviceName);
-    FBaud := ReadInteger('serial', 'baud', FBaud);
-    FkeyCols := ReadInteger('keypad', 'cols', FkeyCols);
-    FKeyRows := ReadInteger('keypad', 'rows', FkeyRows);
-    FButtonCount := FKeyCols*FKeyRows;
-    if FButtonCount < 1 then begin
-      FKeyCols := DEFAULT_COL_COUNT;
-      FKeyRows := DEFAULT_ROw_COUNT;
-      FButtonCount := FKeyCols*FKeyRows;
-    end;
-    Floglevel := TLogLevel(ReadInteger('log', 'level', ord(Floglevel)));
-    FLogSize := ReadInteger('log', 'size', FLogSize);
-    FDefaultMacrosFile := ReadString('macros', 'filename', FDefaultMacrosFile);
-    if not fileexists(FDefaultMacrosfile) and fileexists(configdir+FDefaultMacrosfile) then
-       FDefaultMacrosfile := configdir+FDefaultMacrosfile;
-    FModified := false;
-  finally
-    free;
-  end;
-  LogForm.log(llInfo, 'Configuration file %s loaded', [configfile]);
-end;
+{ initialization }
 
 function Vendor: string;
 begin
@@ -233,18 +242,10 @@ begin
   result := changefileext(extractfilename(paramstr(0)), '');
 end;
 
-
 // Can't do this in initialization because LogForm.log is used
 // in config.Load which thus requires LogForm to be created
 procedure ParamsInit;
 begin
-  OnGetVendorName := @Vendor;
-  OnGetApplicationName := @GetAppName;
-  configdir := GetAppConfigDir(false);
-  ForceDirectories(configdir);   // create config directory, report error if false ?
-  configdir := IncludeTrailingPathDelimiter(configdir);
-  configfile := configdir + OPTIONS_FILENAME;
-  config := TConfig.create;
   config.Load;
   if Config.DefaultMacrosfile = '' then
      Config.DefaultMacrosFile := configdir + DEFAULT_MACROS;
@@ -252,6 +253,15 @@ begin
   setlength(Pastes, config.ButtonCount);
   LoadMacros(Config.DefaultMacrosfile);
 end;
+
+initialization
+  OnGetVendorName := @Vendor;
+  OnGetApplicationName := @GetAppName;
+  configdir := GetAppConfigDir(false);
+  ForceDirectories(configdir);   // create config directory, report error if false ?
+  configdir := IncludeTrailingPathDelimiter(configdir);
+  configfile := configdir + OPTIONS_FILENAME;
+  config := TConfig.create;
 
 finalization
   config.free;

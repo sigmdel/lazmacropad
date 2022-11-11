@@ -67,6 +67,7 @@ object MacroForm: TMacroForm
       end>
     FixedCols = 0
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goAlwaysShowEditor, goThumbTracking]
+    PopupMenu = EditorPopMenu
     RowCount = 17
     TabOrder = 1
     OnEditingDone = MacrosEditorEditingDone
@@ -105,7 +106,9 @@ object MacroForm: TMacroForm
     Width = 41
     Caption = '<new>'
     ParentShowHint = False
+    PopupMenu = MacrosPopupMenu
     ShowHint = True
+    OnClick = PopMacroMenuButtonClick
   end
   object ModifiedLabel: TLabel
     AnchorSideLeft.Control = MacrosLabel
@@ -119,6 +122,8 @@ object MacroForm: TMacroForm
     BorderSpacing.Left = 6
   end
   object SaveDialog1: TSaveDialog
+    DefaultExt = '.macros'
+    Filter = 'Macro files|*.macros'
     Left = 128
     Top = 88
   end
@@ -148,5 +153,33 @@ object MacroForm: TMacroForm
     Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
     Left = 127
     Top = 144
+  end
+  object EditorPopMenu: TPopupMenu
+    OnPopup = EditorPopMenuPopup
+    Left = 239
+    Top = 154
+    object InsertMacroMenuItem: TMenuItem
+      Caption = 'Insert a macro'
+      OnClick = InsertMacroMenuItemClick
+    end
+    object EraseMacroMenuItem: TMenuItem
+      Caption = 'Erase the current macro'
+      OnClick = EraseMacroMenuItemClick
+    end
+    object DeleteMacroMenuItem: TMenuItem
+      Caption = 'Delete the current macro'
+      OnClick = DeleteMacroMenuItemClick
+    end
+    object Separator2: TMenuItem
+      Caption = '-'
+    end
+    object ClearMacrosMenuItem: TMenuItem
+      Caption = 'Delete all macros'
+      OnClick = ClearMacrosMenuItemClick
+    end
+    object ReloadMacrosFileMenuItem: TMenuItem
+      Caption = 'Reload all macros'
+      OnClick = ReloadMacrosFileMenuItemClick
+    end
   end
 end
