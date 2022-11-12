@@ -1,7 +1,7 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Version 0.7.4**
+**Version 0.7.6**
 
 A rudimentary macro keypad based on the Arduino Nano and a simple Free Pascal/Lazarus program that pastes macros into the currently focused desktop application.
 
@@ -9,6 +9,9 @@ Currently the macro keypad program has been tested and found to run on Linux Min
 
 
 ![screenshot](images/screenshot_0_7_0.jpg)
+
+**If the microcontroller is running an older version of the Arduino sketch, it must be replaced with the newer version released in v0.7.2** (see [6. Accommodating Different Keypads](#6-accommodating-different-keypads)).
+
 
 As of version 0.6.0, *lazmacropad* is a tray application. This required a major reorganization of the source code. The three different tabs of the original program, [version 0.3.0](releases/tag/v0.3.4), where moved to windows that can be displayed independently as illustrated in the screenshot shown above.
 
@@ -34,7 +37,7 @@ As of version 0.6.0, *lazmacropad* is a tray application. This required a major 
 
 ## 1. Hardware
 
-Only three items are needed to implement a basic macro keypad:
+Only three items are needed to build a basic macro keypad:
 
   1. A switch matrix. The program assumes that the key pad is composed of 16 switches arranged in a 4 x 4 matrix.
 
@@ -60,7 +63,7 @@ Note that the Nano is upside down (microcontroller is on the hidden side of the 
 +-------------- +                   +------+                +----------------------------------------+
 ```               
 
-The Nano continuously scans the key pad. When it detects that a key has been pressed, it sends a corresponding single letter string or *message* (i.e. '0', '1' or 'f') to the desktop or portable over the serial (USB) connection. 
+The Nano continuously scans the key pad. When it detects that a key has been pressed, it sends a corresponding single letter string or *message* (i.e. '0', '1' or 'F') to the desktop or portable over the serial (USB) connection. 
 
 The Lazarus/Free Pascal program translates macro key *messages* from the Nano into strings or macros that are sent to whichever application is active on the desktop. Each macro is copied to the system clipboard and then a Ctrl+V or Shift+Insert key combination is injected into the keyboard event queue of the active application to paste the content of the clipboard.
 
@@ -102,7 +105,7 @@ $ sudo ln -s libXtst.so.6.1.0 libXtst.so
 $ sudo updatedb
 ```
 
-The directory in which are stored system libaries are stored is not necessary called `/usr/lib/x85_64-linux-gnu` so adust the above in accordance with the output obtained from the `locate` command.
+The directory in which are stored system libraries are stored is not necessarily called `/usr/lib/x85_64-linux-gnu` so adust the above in accordance with the output obtained from the `locate` command.
 
 It appears some have been installing the development package `libxtst-dev` in a bid to add the missing symbolic link, but there is no need for that. 
 
@@ -129,7 +132,7 @@ That means that the Arduino IDE could not be used to flash the sketch on the Nan
 usbfs: interface 0 claimed by ch34x while 'brltty' sets config #1 #18 
 ```
 
-A quick search yielded a couple of **StackExchange** quieries ([Unable to use [...] on USB-serial converter chip](https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip) and [On Linux Min21, unable to access tools/port...)](https://arduino.stackexchange.com/questions/90954/on-linux-min21-unable-to-access-tools-port-grayed-out) and a blog post ([Solved: brltty – USB COM Port Gets Immediately Disconnected](https://lynxbee.com/solved-brltty-usb-com-port-gets-immediately-disconnected/#.Y20o5ZCZNhE)). It seems that the screen reader [BRLTTY](https://brltty.app/) is now enabled by default and it takes over the serial port which I assume would be connected to a Braille display.
+A quick search yielded a couple of **StackExchange** queries ([Unable to use [...] on USB-serial converter chip](https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip) and [On Linux Min21, unable to access tools/port...)](https://arduino.stackexchange.com/questions/90954/on-linux-min21-unable-to-access-tools-port-grayed-out) and a blog post ([Solved: brltty – USB COM Port Gets Immediately Disconnected](https://lynxbee.com/solved-brltty-usb-com-port-gets-immediately-disconnected/#.Y20o5ZCZNhE)). It seems that the screen reader [BRLTTY](https://brltty.app/) is now enabled by default and it takes over the serial port which I assume would be connected to a Braille display.
 
 There are two ways to "resolve" the situation: disable the service as explained in the first two references or remove the `brltty` package altogether with the usual `apt remove brltty` command as explained in the last reference. Unfortunately, this is not a working solution for those that need the screen reader.  
 
@@ -162,11 +165,13 @@ Appending a \n sequence to a macro to be used in the terminal will mean that it 
 
 ## 5. Ctrl+V vs Shift+Insert
 
-The GNOME terminal emulator and its forks such as the MATE terminal do not support the Ctrl+C and Ctrl+V key combinations, which makes sense since Ctrl+C is used to cancel a running program. On the other hand, it is possible to paste the primary selection in the terminal with Shift+Insert. Consequently, when the Shift+Insert combination is chosen to paste a macro, *lazmacropad* copies the macro into the primary selection in addition to copying it into the clipboard. It is therefore possible to insert macros when typing in the terminal. This is pretty much the behavior of Geany apps, VSCodium (and probably VS Code), GNote, LibreOffice Writer and the Lazarus IDE editor, which synchronize the two mechanisms by pasting selected text with Ctrl+V or Shift+Insert.
+The GNOME terminal emulator and its forks such as the MATE terminal do not support the Ctrl+C and Ctrl+V key combinations, which makes sense since Ctrl+C is used to cancel a running program. On the other hand, it is possible to paste the primary selection in the terminal with Shift+Insert. Consequently, when the Shift+Insert combination is chosen to paste a macro, *lazmacropad* copies the macro into the primary selection in addition to copying it into the clipboard. It is therefore possible to insert macros when typing in the terminal. This is pretty much the behavior of many applications (Geany, VSCodium, VS Code, GNote, LibreOffice Writer and the Lazarus IDE editor,... ), which synchronize the two mechanisms by pasting selected text with Ctrl+V or Shift+Insert.
 
-If a macro ends with the sequence '\n' and the Shift+Insert combination is used for the paste operation then it will be executed as a command if inserted at a terminal prompt. A program could be launched or a script could be executed by pressing a single key (#).  Care must be taken when running programs, as some, such as the Arduino IDE, may seize the serial port and as a result *lazmacropad* freezes.
+If a macro ends with the sequence '\n' and the Shift+Insert combination is used for the paste operation then it will be executed as a command if inserted at a terminal prompt. A program could be launched or a script could be executed by pressing a single key (#).  Care must be taken when running programs, as some, such as the Arduino IDE, may seize the serial port and, as a result, *lazmacropad* freezes.
 
-> (#) While this works well in Mint 20.1 with GTK2, it does not seem to work at all times in Mint 21 even after latest (v0.7.4) "improvement" in handling the trailing '\n'. However these tests are being done in a virtual machine which may have some impact.
+> ~~(#) While this works well in Mint 20.1 with GTK2, it does not seem to work at all times in Mint 21 even after latest (v0.7.4) "improvement" in handling the trailing '\n'. However these tests are being done in a virtual machine which may have some impact.~~ 
+
+> (#) This works well in Mint 20.1 using GTK2. Cursory tests of *lazmacropad* (GTK2) in a LiveUSB version of Mint 21 MATE, showed that the v0.7.4 handling of trailing '\n' when using Shift+Insert does work as expected. Why this does not work in a virtual machine is not clear.
 
 There is no primary selection in Windows but Shift+Insert does work just as Ctrl+V when used from the physical keyboard. So far, injecting Shift+Insert in Windows has not worked. Consequently *lazmacropad* uses Ctrl+V no matter what keyboard shortcut is specified when it is running in Windows.
 
@@ -180,9 +185,9 @@ cols=3
 rows=5
 ```
 
-When *lazmacropad* is restarted, it will display the correct number of macros and the keymap will be adjusted to reflect the keypad matrix size. 
+The default values are 4 columns and 4 rows as before. Some changes had to be made to Arduino sketch which means that the modified version will have to be uploaded to the microcontroller. The 36 key limit is arbitrary and should one wanted to have an even bigger keypad then all that needs to be done is to add characters to the SKeyLabels resource string  in `keymap.pas` and adjust the `hexaKeys` array of chars in the Arduino sketch in a similar fashion. In any case, other values must be adjusted in the Arduino sketch: `ROWS`, `COLS` and the byte arrays `rowPins` and `colPins`.
 
-**While it might not be immediately obvious, it will be necessary to upload the modified version 0.7.2 Arduino sketch running to the microprocessor unless the keypad contains 10 or less keys.** 
+When *lazmacropad* is restarted, it will display the correct number of macros and the keymap will be adjusted to reflect the keypad matrix size. 
 
 ## 7. Acknowledgment
 
