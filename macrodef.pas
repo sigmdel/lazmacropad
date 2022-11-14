@@ -74,10 +74,15 @@ uses
 
 resourcestring
   SpcCtrlV = 'Ctrl+V';                 // 'Ctrl+V'
-  SpcShiftInsert = 'Shift+Insert';     // 'Maj+Inser
+  SpcShiftInsert = 'Shift+Insert';     // 'Shift+Insert'
+  SpcCustom = 'Custom';                // 'Shift+Ctrl+Insert'
+  SpcNone = 'None';                    // clipboards set but no paste command
+  SpcKbdEvents = 'Kbd Events';         // keyboard up down events only, no clipboard
+
 
 var
-  sPasteCommands : array[TPasteCommand] of string = (SpcCtrlV, SPcShiftInsert, '');
+  sPasteCommands : array[TPasteCommand] of string =
+    (SpcCtrlV, SpcShiftInsert, SpcCustom, SpcNone, SpcKbdEvents);
 
 { TMacroForm }
 
@@ -228,6 +233,12 @@ begin
       pc := pcCtrlV
     else if s = sPasteCommands[pcShiftInsert] then
       pc := pcShiftInsert
+    else if s = sPasteCommands[pcCustom] then
+      pc := pcCustom
+    else if s = sPasteCommands[pcNone] then
+      pc := pcNone
+    else if s = sPasteCommands[pcKbdEvents] then
+      pc := pcKbdEvents
     else
       exit;  ///
     if pastes[r] = pc then exit;

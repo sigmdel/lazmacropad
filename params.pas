@@ -15,7 +15,7 @@ CONST
 
 type
   TLogLevel = (llDebug, llInfo, llError, llNone);
-  TPasteCommand = (pcCtrlV, pcShiftInsert, pcNone);
+  TPasteCommand = (pcCtrlV, pcShiftInsert, pcCustom, pcNone, pcKbdEvents);
 
 var
   Macros: array of string;

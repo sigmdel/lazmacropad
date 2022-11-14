@@ -78,7 +78,7 @@ begin
     LogForm.Log(llInfo, 'Key: %s, no macro defined', [src]);
 end;
 
-{$DEFINE VK_RETURN_SPECIAL}
+(*{$DEFINE VK_RETURN_SPECIAL}
 // seems to work in
 //   Mint 20.1 MATE with QTK2 (but not needed!)
 //   Mint 21 MATE with QTK2
@@ -125,6 +125,61 @@ begin
   end;
   {$endif}
 end;
+ *)
+
+procedure TMainForm.Inject(index: integer);
+var
+  convertedMacro: string;
+  PasteCommand: TPasteCommand;
+  {$ifdef VK_RETURN_SPECIAL}
+  WantsVK_RETURN: boolean;
+  {$endif}
+begin
+  convertedMacro := convertEscSequences(macros[index]);
+  if convertedMacro = '' then exit;
+  PasteCommand := pastes[index];
+  {$ifdef VK_RETURN_SPECIAL}
+  if not PasteCommand = pcNone then begin
+    WantsVK_RETURN := convertedMacro[length(ConvertedMacro)] = #13;
+    if WantsVK_RETURN then
+      setlength(convertedMacro, length(convertedMacro)-1);
+  end;
+  {$endif}
+  clipboard.AsText := convertedMacro;
+  PrimarySelection.Astext := convertedMacro; // always sychronize
+
+  if PasteCommand = pcShiftInsert then begin
+    KeyInput.Apply([ssShift]);
+    KeyInput.Press(VK_INSERT);
+    KeyInput.Unapply([ssShift]);
+    {$ifdef VK_RETURN_SPECIAL}
+    if WantsVK_RETURN then
+      KeyInput.Press(VK_RETURN);
+    {$endif}
+    LogForm.Log(llDebug,'Paste with Shift+Insert');
+  end
+  else if PasteCommand = pcCustom then begin
+    KeyInput.Apply([ssShift, ssCtrl]);
+    KeyInput.Press(VK_INSERT);
+    KeyInput.Unapply([ssShift, ssCtrl]);
+    {$ifdef VK_RETURN_SPECIAL}
+    if WantsVK_RETURN then
+      KeyInput.Press(VK_RETURN);
+    {$endif}
+    LogForm.Log(llDebug,'Paste with Shift+Ctrl+Insert');
+  end
+  else if PasteCommand = pcCtrlV then begin
+    KeyInput.Apply([ssCtrl]);
+    KeyInput.Press(VK_V);
+    KeyInput.Unapply([ssCtrl]);
+    {$ifdef VK_RETURN_SPECIAL}
+    if WantsVK_RETURN then
+      KeyInput.Press(VK_RETURN);
+    {$endif}
+    LogForm.Log(llDebug,'Paste with Ctrl+V');
+  end;
+end;
+
 
 { #todo 3 -oMichel -cAppearance : Fix position of dialogues in current screen }
 
