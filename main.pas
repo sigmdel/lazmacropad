@@ -50,7 +50,7 @@ implementation
 {$R *.lfm}
 
 uses
-  about, macrolog, macrodef, options, keymap, serialreader, params;
+  about, macrolog, macrodef, options, keymap, serialreader, params, kbdev;
 
 function convertEscSequences(const ins: string): string;
 begin
@@ -127,6 +127,9 @@ begin
 end;
  *)
 
+/// Temporarily remove Windows considerations
+/// Over logged for now!
+///
 procedure TMainForm.Inject(index: integer);
 var
   convertedMacro: string;
@@ -134,10 +137,41 @@ var
   {$ifdef VK_RETURN_SPECIAL}
   WantsVK_RETURN: boolean;
   {$endif}
+  ndx: integer;
+  macro: TKbdMacro;
 begin
+  PasteCommand := pastes[index];
+  LogForm.Log(llDebug, 'Inject(%d): macro "%s" with pasteCmd %s', [index, macros[index], sPasteCommands[PasteCommand]]);
+
+  if PasteCommand = pcKbdEvents then begin
+     // no clipboard operations here
+    macro := StrToMacro(macros[index]);
+    if length(macro) < 1 then exit;
+    for ndx := 0 to length(macro)-1 do begin
+      if macro[ndx].Press then begin
+        if macro[ndx].Shift <> [] then begin
+          LogForm.Log(llDebug,'keyboard event %d, applying shift keys %4x', [ndx, integer(macro[ndx].Shift)]);
+          KeyInput.Apply(macro[ndx].Shift);
+        end;
+        LogForm.Log(llDebug,'keyboard event %d, injecting key down event, key: %4x', [ndx, macro[ndx].VK]);
+        KeyInput.Down(macro[ndx].VK);
+      end
+      else begin
+        LogForm.Log(llDebug,'keyboard event %d, injecting key up event, key: %4x', [ndx, macro[ndx].VK]);
+        KeyInput.Up(macro[ndx].VK);
+        if macro[ndx].Shift <> [] then begin
+          LogForm.Log(llDebug,'keyboard event %d, unapplying shift keys %4x', [ndx, integer(macro[ndx].Shift)]);
+          KeyInput.UnApply(macro[ndx].Shift);
+        end;
+      end;
+    end;
+    LogForm.Log(llDebug,'%d keyboard events injected', [length(macro)]);
+    exit;
+  end;
+
   convertedMacro := convertEscSequences(macros[index]);
   if convertedMacro = '' then exit;
-  PasteCommand := pastes[index];
+
   {$ifdef VK_RETURN_SPECIAL}
   if not PasteCommand = pcNone then begin
     WantsVK_RETURN := convertedMacro[length(ConvertedMacro)] = #13;
@@ -177,7 +211,7 @@ begin
       KeyInput.Press(VK_RETURN);
     {$endif}
     LogForm.Log(llDebug,'Paste with Ctrl+V');
-  end;
+  end
 end;
 
 

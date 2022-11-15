@@ -73,6 +73,7 @@ object MacroForm: TMacroForm
     PopupMenu = EditorPopMenu
     RowCount = 17
     TabOrder = 1
+    OnAfterSelection = MacrosEditorAfterSelection
     OnEditingDone = MacrosEditorEditingDone
     OnSelectCell = MacrosEditorSelectCell
     ColWidths = (

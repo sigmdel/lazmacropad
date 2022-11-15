@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Grids, LCLIntf, LMessages, Buttons, Menus, ExtCtrls, StrUtils;
+  Grids, LCLIntf, LMessages, Buttons, Menus, ExtCtrls, StrUtils, params;
 
 const
   LM_SAVE_MACROS_QUITTING = LM_USER + 1;
@@ -44,6 +44,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure InsertMacroMenuItemClick(Sender: TObject);
+    procedure MacrosEditorAfterSelection(Sender: TObject; aCol, aRow: Integer);
     procedure MacrosEditorEditingDone(Sender: TObject);
     procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
@@ -64,14 +65,6 @@ type
 var
   MacroForm: TMacroForm;
 
-
-implementation
-
-{$R *.lfm}
-
-uses
-  main, params, keymap;
-
 resourcestring
   SpcCtrlV = 'Ctrl+V';                 // 'Ctrl+V'
   SpcShiftInsert = 'Shift+Insert';     // 'Shift+Insert'
@@ -83,6 +76,13 @@ resourcestring
 var
   sPasteCommands : array[TPasteCommand] of string =
     (SpcCtrlV, SpcShiftInsert, SpcCustom, SpcNone, SpcKbdEvents);
+
+implementation
+
+{$R *.lfm}
+
+uses
+  main, keymap, editmacro;
 
 { TMacroForm }
 
@@ -205,6 +205,22 @@ begin
   Pastes[ndx] := pcCtrlV;
   SetMacrosModified(true);
   UpdateGUI;
+end;
+
+procedure TMacroForm.MacrosEditorAfterSelection(Sender: TObject; aCol,
+  aRow: Integer);
+var
+  r, c: integer;
+begin
+  r := MacrosEditor.Row;
+  c := MacrosEditor.Col;
+  if c <> 1 then exit;
+  if (r < 1) or (r > config.ButtonCount) then exit;
+  dec(r);
+  if pastes[r] <> pcKbdEvents then exit;
+  EditKbdMacroForm.SetMacro(MacrosEditor.cells[c, r+1]);
+  if EditKbdMacroForm.ShowModal = mrOk then
+    MacrosEditor.cells[c, r+1] := EditKbdMacroForm.GetMacroString;
 end;
 
 procedure TMacroForm.MacrosEditorEditingDone(Sender: TObject);
