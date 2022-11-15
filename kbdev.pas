@@ -39,7 +39,7 @@ const
   // MS documentation:
   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
   // keys ordered by code, so a binary search can be used on the code
-  KEYCOUNT = 117;
+  KEYCOUNT = 132;
   KeyCodesAndStrings: array[0..KEYCOUNT-1] of record name: string; code: byte end = (
     (name: 'Mouse_Left'; code: $1),  // VK_LBUTTON
     (name: 'Mouse_Right'; code: $2),  // VK_RBUTTON
@@ -157,7 +157,22 @@ const
     (name: 'F23'; code: $86),  // VK_F23
     (name: 'F24'; code: $87),  // VK_F24
     (name: 'NumLock'; code: $90),  // VK_NUMLOCK
-    (name: 'ScrollLock'; code: $91)  // VK_SCROLL
+    (name: 'ScrollLock'; code: $91),  // VK_SCROLL
+    (name: 'OEM_0x92'; code: $92), // 0x92
+    (name: 'OEM_0x93'; code: $93), // 0x93
+    (name: 'OEM_0x94'; code: $94), // 0x94
+    (name: 'OEM_0x95'; code: $95), // 0x95
+    (name: 'OEM_0x96'; code: $96), // 0x96
+    (name: ';'; code: $ba), //- VK_OEM_1 - Can vary by keyboard, US keyboard, the ';:' key
+    (name: '='; code: $bb), // VK_OEM_PLUS - For any country/region, the '+/=' key Delphi returns '=' Issue #0036489
+    (name: ','; code: $bc), // VK_OEM_COMMA - For any country/region, the ',' key
+    (name: '-'; code: $bd), // VK_OEM_MINUS - For any country/region, the '-' key
+    (name: '.'; code: $be), // VK_OEM_PERIOD - For any country/region, the '.' key
+    (name: '/'; code: $bf), // VK_OEM_2 - Can vary by keyboard, US keyboard, the '/?' key
+    (name: '`'; code: $c0), // VK_OEM_3 - Can vary by keyboard, US keyboard, the '`~' key
+    (name: '['; code: $db), // VK_OEM_4 - Can vary by keyboard, US keyboard, the '[{' key
+    (name: '\'; code: $dc), // VK_OEM_5 - Can vary by keyboard, US keyboard, the '\|' key
+    (name: ']'; code: $dd) // VK_OEM_6 - Can vary by keyboard, US keyboard, the ']}' key
   );
   { #todo -oMichel -cRefactoring : Use Classes TIdentMapEntry, IntToIdent etc. instead }
 
@@ -171,6 +186,7 @@ implementation
 
 uses
   LCLProc, StrUtils, LCLStrConsts;
+
 
 
 function KeyCodeFind(key: integer; var index: integer): boolean;
@@ -335,12 +351,13 @@ begin
     anEvent.Press := pos('↓', s) = 1;
     delete(s,1,length('↓'));
 
-    kname := '';  // assume name not defined
-    p := pos('[', s);
-    if p > 0 then begin
-      kname := copy(s, 1, p-1);
-      delete(s, 1, p);
+    kname := s[1];
+    delete(s, 1, 1);
+    while s[1] <> '[' do begin
+      kname := kname + s[1];
+      delete(s, 1, 1);
     end;
+    delete(s,1,1);
     shifts := '';
     p := pos(']', s);
     if p > 0 then begin
