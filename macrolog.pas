@@ -53,6 +53,10 @@ end;
 
 procedure TLogForm.Log(level: TLogLevel; const msg: string);
 begin
+  {$ifndef WINDOWS}
+  if (config.LogLevel = llDebug) then
+    writeln(Format('[%s]: %s', [SLoglevel[level], msg]));
+  {$endif}
   if level >= Config.logLevel then begin
     while LogMemo.Lines.Count >= Config.LogSize do
       LogMemo.Lines.Delete(0);

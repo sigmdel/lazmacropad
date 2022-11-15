@@ -63,6 +63,10 @@ var
 
 procedure ParamsInit;
 
+const
+ SLogLevel: array[TLogLevel] of string = ('Debug', 'Info', 'Error', 'None');
+
+
 implementation
 
 uses
