@@ -219,8 +219,10 @@ begin
   dec(r);
   if pastes[r] <> pcKbdEvents then exit;
   EditKbdMacroForm.SetMacro(MacrosEditor.cells[c, r+1]);
-  if EditKbdMacroForm.ShowModal = mrOk then
+  if EditKbdMacroForm.ShowModal = mrOk then begin
     MacrosEditor.cells[c, r+1] := EditKbdMacroForm.GetMacroString;
+    macros[r] := EditKbdMacroForm.GetMacroString;
+  end;
 end;
 
 procedure TMacroForm.MacrosEditorEditingDone(Sender: TObject);
