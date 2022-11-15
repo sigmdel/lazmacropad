@@ -170,7 +170,7 @@ begin
   ndx := MacroListBox.ItemIndex;
   n := length(macro);
   if (ndx < 0) or (ndx >= n) then exit;
-  for i := ndx to n-1 do
+  for i := ndx to n-2 do
     macro[i] := macro[i+1];
   setlength(macro,n-1);
   MacroListBox.items.Delete(ndx);
