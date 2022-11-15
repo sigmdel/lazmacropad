@@ -194,7 +194,7 @@ begin
   end
   else if PasteCommand = pcCustom then begin
     KeyInput.Apply([ssShift, ssCtrl]);
-    KeyInput.Press(VK_INSERT);
+    KeyInput.Press(VK_V);
     KeyInput.Unapply([ssShift, ssCtrl]);
     {$ifdef VK_RETURN_SPECIAL}
     if WantsVK_RETURN then
