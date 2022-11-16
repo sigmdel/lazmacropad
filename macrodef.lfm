@@ -69,12 +69,12 @@ object MacroForm: TMacroForm
         Width = 80
       end>
     FixedCols = 0
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goAlwaysShowEditor, goThumbTracking]
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goThumbTracking]
     PopupMenu = EditorPopMenu
     RowCount = 17
     TabOrder = 1
-    OnAfterSelection = MacrosEditorAfterSelection
     OnEditingDone = MacrosEditorEditingDone
+    OnSelectEditor = MacrosEditorSelectEditor
     OnSelectCell = MacrosEditorSelectCell
     ColWidths = (
       40
@@ -125,6 +125,15 @@ object MacroForm: TMacroForm
     Width = 1
     BorderSpacing.Left = 6
   end
+  object ProxyEditorButton: TButton
+    Left = 296
+    Height = 17
+    Top = 13
+    Width = 96
+    OnEnter = ProxyEditorButtonEnter
+    TabOrder = 2
+    Visible = False
+  end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.macros'
     Filter = 'Macro files|*.macros'
@@ -159,6 +168,7 @@ object MacroForm: TMacroForm
     Top = 144
   end
   object EditorPopMenu: TPopupMenu
+    AutoPopup = False
     OnPopup = EditorPopMenuPopup
     Left = 239
     Top = 154
@@ -175,6 +185,17 @@ object MacroForm: TMacroForm
       OnClick = DeleteMacroMenuItemClick
     end
     object Separator2: TMenuItem
+      Caption = '-'
+    end
+    object MoveMacroUpMenuItem: TMenuItem
+      Caption = '↑ Move the current macro up'
+      OnClick = MoveMacroUpMenuItemClick
+    end
+    object MoveMacroDownMenuItem: TMenuItem
+      Caption = '↓ Move the current macro down'
+      OnClick = MoveMacroDownMenuItemClick
+    end
+    object Separator3: TMenuItem
       Caption = '-'
     end
     object ClearMacrosMenuItem: TMenuItem

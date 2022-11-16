@@ -2,6 +2,8 @@ unit macrodef;
 
 {$mode ObjFPC}{$H+}
 
+{ #todo 1 -oMichel -cBug : Clean up handling of macros file such as loading a file over current modified defintions without checking!}
+
 interface
 
 uses
@@ -16,11 +18,15 @@ type
   { TMacroForm }
 
   TMacroForm = class(TForm)
+    ProxyEditorButton: TButton;
     DefaultMacrosMenuItem: TMenuItem;
     InsertMacroMenuItem: TMenuItem;
     DeleteMacroMenuItem: TMenuItem;
     ClearMacrosMenuItem: TMenuItem;
     EraseMacroMenuItem: TMenuItem;
+    MoveMacroUpMenuItem: TMenuItem;
+    MoveMacroDownMenuItem: TMenuItem;
+    Separator3: TMenuItem;
     ReloadMacrosFileMenuItem: TMenuItem;
     Separator2: TMenuItem;
     ModifiedLabel: TLabel;
@@ -35,6 +41,11 @@ type
     MacrosEditor: TStringGrid;
     MacrosPopupMenu: TPopupMenu;
     SaveDialog1: TSaveDialog;
+    procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
+      var CanSelect: Boolean);
+    procedure MoveMacroDownMenuItemClick(Sender: TObject);
+    procedure MoveMacroUpMenuItemClick(Sender: TObject);
+    procedure ProxyEditorButtonEnter(Sender: TObject);
     procedure ClearMacrosMenuItemClick(Sender: TObject);
     procedure DefaultMacrosMenuItemClick(Sender: TObject);
     procedure DeleteMacroMenuItemClick(Sender: TObject);
@@ -44,10 +55,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
     procedure InsertMacroMenuItemClick(Sender: TObject);
-    procedure MacrosEditorAfterSelection(Sender: TObject; aCol, aRow: Integer);
     procedure MacrosEditorEditingDone(Sender: TObject);
-    procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
-      var CanSelect: Boolean);
+    procedure MacrosEditorSelectEditor(Sender: TObject; aCol, aRow: Integer;
+      var Editor: TWinControl);
     procedure OpenMacroFileMenuItemClick(Sender: TObject);
     procedure PopMacroMenuButtonClick(Sender: TObject);
     procedure ReloadMacrosFileMenuItemClick(Sender: TObject);
@@ -56,6 +66,7 @@ type
     function FixupMacroName(const fn: string): string;
     procedure UpdateGUI;
     procedure SetMacrosModified(value: boolean);
+    procedure ProxyEditorRestoreSelection(Data: PtrInt);
   public
     procedure SaveMacrosQuitting(var Msg: TLMessage); message LM_SAVE_MACROS_QUITTING;
     procedure SaveMacrosBeforeQuitting;
@@ -82,18 +93,19 @@ implementation
 {$R *.lfm}
 
 uses
-  main, keymap, editmacro;
+  main, keymap, macrolog, editmacro;
 
 { TMacroForm }
 
 procedure TMacroForm.ClearMacrosMenuItemClick(Sender: TObject);
 begin
-  Config.Create;
+  Config.ClearMacros;
   MacrosFilenameLabel.hint := '<new>';
   MacrosFilenameLabel.caption := MacrosFilenameLabel.hint;
   DefaultMacrosMenuItem.checked := false;
   SetMacrosModified(false);
   UpdateGUI;
+  LogForm.Log(llDebug, 'Cleared all macros');
 end;
 
 procedure TMacroForm.DefaultMacrosMenuItemClick(Sender: TObject);
@@ -101,21 +113,29 @@ var
   fn: string;
 begin
   if DefaultMacrosMenuItem.checked then begin
+     // user wants to set current file as default macro file
      fn := MacrosFilenameLabel.hint;
      if (fn = '') or (fn = '<') then begin
-        // never saved, do it now
+        // never saved, do it now, could result in new filename
         SaveMacroFileMenuItem.Click;
      end;
      fn := MacrosFilenameLabel.hint;
      if (fn = '') or (fn = '<') then begin
         // still not saved, don't show as default
         DefaultMacrosMenuItem.checked := false;
+        LogForm.Log(llDebug, 'Invalid filename ("%s") for a default macro file', [fn]);
         exit;
      end;
-      Config.DefaultMacrosFile := fn;
+     Config.DefaultMacrosFile := fn;
+     LogForm.Log(llDebug, 'File "%s" set as default macro file', [fn]);
    end
-   else if (MacrosFileNameLabel.hint = Config.DefaultMacrosFile) then
-     DefaultMacrosMenuItem.checked := true;
+   else begin
+     // user does not want current file as default macro file
+     if (MacrosFileNameLabel.hint = Config.DefaultMacrosFile) then begin
+       DefaultMacrosMenuItem.checked := true;
+       LogForm.Log(llDebug, 'File "%s" remains default macro file', [Config.DefaultMacrosFile]);
+     end;
+   end;
 end;
 
 procedure TMacroForm.DeleteMacroMenuItemClick(Sender: TObject);
@@ -132,16 +152,37 @@ begin
   Pastes[Config.ButtonCount-1] := pcCtrlV;
   SetMacrosModified(true);
   UpdateGUI;
+  LogForm.Log(llDebug, 'Deleted macro %d', [ndx]);
 end;
 
 procedure TMacroForm.EditorPopMenuPopup(Sender: TObject);
+
+  function MacrosEmptyFrom(index: integer): boolean;
+  begin
+    result := false;
+    repeat
+      if Macros[index] <> '' then
+        exit;
+      inc(index);
+    until (index >= Config.ButtonCount);
+    result := true;
+  end;
+
 var
   ndx: integer;
+  notEmpty: boolean;
 begin
+  //if MacrosEditor.Col <> 1 then
+    //TPopUpMenu(Sender).Free;
   ndx := MacrosEditor.row - 1;
-  InsertMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount-1) and (Macros[ndx] <> '');
+  notEmpty := not MacrosEmptyFrom(ndx);
+  InsertMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount-1) and notEmpty;
   EraseMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount) and (Macros[ndx] <> '');
-  DeleteMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount) and (Macros[ndx] <> '');
+  DeleteMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount) and notEmpty;
+  MoveMacroUpMenuItem.Enabled := (ndx > 0);
+  MoveMacroDownMenuItem.Enabled := (ndx < Config.ButtonCount-1);
+  ClearMacrosMenuItem.Enabled := not MacrosEmptyFrom(0);
+  LogForm.Log(llDebug, 'Macros editor context menu popup');
 end;
 
 procedure TMacroForm.EraseMacroMenuItemClick(Sender: TObject);
@@ -155,7 +196,9 @@ begin
     SetMacrosModified(true);
     MacrosEditor.Cells[1, ndx+1] := '';
     MacrosEditor.Cells[2, ndx+1] := sPcCtrlV;
+    LayoutForm.keys[ndx].Hint := '';
   end;
+  LogForm.Log(llDebug, 'Erased macro %d, keymap form updated', [ndx]);
 end;
 
 function TMacroForm.FixupMacroName(const fn: string): string;
@@ -166,6 +209,8 @@ begin
    while ExtractFileExt(result) = '.macros' do
      result := ChangeFileExt(result, '');
    result := ChangeFileext(result, '.macros');
+   if result <> fn then
+     LogForm.Log(llDebug, 'Filename %s changed to %s', [fn, result]);
 end;
 
 procedure TMacroForm.FormActivate(Sender: TObject);
@@ -176,6 +221,7 @@ begin
   for i := 1 to config.ButtonCount do
     MacrosEditor.Cells[0,i] := KeyLabels[i];
   UpdateGUI;
+  LogForm.Log(llDebug, 'Macros editor form activated');
 end;
 
 procedure TMacroForm.FormCreate(Sender: TObject);
@@ -189,8 +235,10 @@ end;
 procedure TMacroForm.FormHide(Sender: TObject);
 begin
   MainForm.MacroDefItem.Checked := false;
+  LogForm.Log(llDebug, 'Macro editor form hide; unchecked Macro Definitions menu item in main form');
 end;
 
+{ #todo 1 -oMichel -cImprovement : Verify before if deleting last macro is ok }
 procedure TMacroForm.InsertMacroMenuItemClick(Sender: TObject);
 var
   ndx: integer;
@@ -205,24 +253,7 @@ begin
   Pastes[ndx] := pcCtrlV;
   SetMacrosModified(true);
   UpdateGUI;
-end;
-
-procedure TMacroForm.MacrosEditorAfterSelection(Sender: TObject; aCol,
-  aRow: Integer);
-var
-  r, c: integer;
-begin
-  r := MacrosEditor.Row;
-  c := MacrosEditor.Col;
-  if c <> 1 then exit;
-  if (r < 1) or (r > config.ButtonCount) then exit;
-  dec(r);
-  if pastes[r] <> pcKbdEvents then exit;
-  EditKbdMacroForm.SetMacro(MacrosEditor.cells[c, r+1]);
-  if EditKbdMacroForm.ShowModal = mrOk then begin
-    MacrosEditor.cells[c, r+1] := EditKbdMacroForm.GetMacroString;
-    macros[r] := EditKbdMacroForm.GetMacroString;
-  end;
+  LogForm.Log(llDebug, 'Inserted an empty macro at index %d', [ndx]);
 end;
 
 procedure TMacroForm.MacrosEditorEditingDone(Sender: TObject);
@@ -245,6 +276,7 @@ begin
       pastes[r] := pcCtrlV;
       MacrosEditor.Cells[2,r+1] := sPasteCommands[pcCtrlV];
     end;
+    LogForm.Log(llDebug, 'Macro %d modified, layout form updated', [r]);
   end
   else if MacrosEditor.Col = 2 then begin
     if s = sPasteCommands[pcCtrlV] then
@@ -262,13 +294,18 @@ begin
     if pastes[r] = pc then exit;
     pastes[r] := pc;
     SetMacrosModified(true);
+    LogForm.Log(llDebug, 'Paste command %d modified', [r]);
   end;
 end;
 
-procedure TMacroForm.MacrosEditorSelectCell(Sender: TObject; aCol,
-  aRow: Integer; var CanSelect: Boolean);
+procedure TMacroForm.MacrosEditorSelectEditor(Sender: TObject; aCol,
+  aRow: Integer; var Editor: TWinControl);
 begin
-  CanSelect := (aCol > 0) and (aRow > 0);
+  if (aCol = 1) and (Pastes[ARow-1] = pcKbdEvents) then begin
+    ProxyEditorButton.BoundsRect := Rect(10, 10, 8, 8); // make it invisible
+    Editor := ProxyEditorButton;
+    LogForm.Log(llDebug, 'Proxy editor set for cell[%d, %d]', [aCol, aRow]);
+  end;
 end;
 
 procedure TMacroForm.OpenMacroFileMenuItemClick(Sender: TObject);
@@ -284,12 +321,15 @@ begin
     if execute then begin
       /// refactor this and  ReloadMacrosFileMenuItemClick(Sender: TObject);
       LoadMacros(filename);
+      LogForm.Log(llDebug, 'Loaded macro file "%s"', [filename]);
       fn := FixupMacroName(filename);
       SetMacrosFilename(fn);
       SetMacrosModified(false);
       UpdateGUI;
-      if (fn <> filename) and not FileExists(fn) then
+      if (fn <> filename) and not FileExists(fn) then begin
         SaveMacros(fn);
+        LogForm.Log(llDebug, 'Saved macro file as "%s"', [fn]);
+      end;
     end;
   end;
 end;
@@ -302,6 +342,82 @@ begin
   inc(pt.x, MacrosfilenameLabel.height+2);
   inc(pt.y, 20);
   MacrosPopupMenu.PopUp(pt.x, pt.y);
+end;
+
+procedure TMacroForm.ProxyEditorButtonEnter(Sender: TObject);
+var
+  r, c: integer;
+begin
+  r := MacrosEditor.Row;
+  c := MacrosEditor.Col;
+  if c <> 1 then exit;
+  if (r < 1) or (r > config.ButtonCount) then exit;
+  EditKbdMacroForm.SetMacro(MacrosEditor.cells[c, r]);
+  LogForm.Log(llDebug, 'Starting Keyboard macro editor');
+  if EditKbdMacroForm.ShowModal = mrOk then begin
+    macros[r-1] := EditKbdMacroForm.GetMacroString;
+    if MacrosEditor.cells[c, r] <> EditKbdMacroForm.GetMacroString then begin
+      MacrosEditor.cells[c, r] := EditKbdMacroForm.GetMacroString;
+      SetMacrosModified(true);
+      LogForm.Log(llDebug, 'Macro %d set to %s', [r-1, EditKbdMacroForm.GetMacroString]);
+    end;
+  end;
+  Application.QueueAsyncCall(@ProxyEditorRestoreSelection, 0);
+end;
+
+procedure TMacroForm.MoveMacroUpMenuItemClick(Sender: TObject);
+var
+  tempmac: string;
+  temppc: TPasteCommand;
+  r: integer;
+begin
+  r := MacrosEditor.Row;
+  if r <= 0 then exit;
+  dec(r);
+  tempmac := macros[r-1];
+  temppc := pastes[r-1];
+  macros[r-1] := macros[r];
+  pastes[r-1] := pastes[r];
+  macros[r] := tempmac;
+  pastes[r] := temppc;
+  UpdateGUI;
+  MacrosEditor.Row := r;
+  SetMacrosModified(true);
+  LogForm.Log(llDebug, 'Moved macro %d to %d', [r, r-1]);
+end;
+
+procedure TMacroForm.MoveMacroDownMenuItemClick(Sender: TObject);
+var
+  tempmac: string;
+  temppc: TPasteCommand;
+  r: integer;
+begin
+  r := MacrosEditor.Row;
+  dec(r);
+  if r >= Config.ButtonCount-1 then exit;
+  tempmac := macros[r];
+  temppc := pastes[r];
+  macros[r] := macros[r+1];
+  pastes[r] := pastes[r+1];
+  macros[r+1] := tempmac;
+  pastes[r+1] := temppc;
+  UpdateGUI;
+  MacrosEditor.Row := r+2;
+  SetMacrosModified(true);
+  LogForm.Log(llDebug, 'Moved macro %d to %d', [r, r+1]);
+end;
+
+procedure TMacroForm.MacrosEditorSelectCell(Sender: TObject; aCol,
+  aRow: Integer; var CanSelect: Boolean);
+begin
+  CanSelect := aCol > 0;
+  EditorPopMenu.AutoPopup := aCol = 1;
+end;
+
+procedure TMacroForm.ProxyEditorRestoreSelection(Data: PtrInt);
+begin
+  MacrosEditor.Col := -1;
+  MacrosEditor.Col := 1;
 end;
 
 procedure TMacroForm.ReloadMacrosFileMenuItemClick(Sender: TObject);
@@ -325,6 +441,7 @@ begin
     SetMacrosFilename(fn);
     SetMacrosModified(false);
     UpdateGUI;
+    LogForm.Log(llDebug, 'Reloaded macro file "%s"', [fn]);
   end
   else begin
     x := left + 50;
@@ -355,6 +472,7 @@ begin
       SetMacrosFilename(filename);
       SetMacrosModified(false);
       UpdateGUI;
+      LogForm.Log(llDebug, 'Save macros to file "%s"', [filename]);
     end;
   end;
 end;
@@ -396,6 +514,7 @@ begin
   if value then
     DefaultMacrosMenuItem.checked := false;
   ModifiedLabel.Caption := ifThen(macrosmodified, '*', '');
+  LogForm.Log(llDebug, 'macrosmodified set to %s', [ifThen(value, 'True', 'False')]);
 end;
 
 procedure TMacroForm.UpdateGUI;
@@ -407,6 +526,7 @@ begin
     MacrosEditor.Cells[2, i+1] := sPasteCommands[pastes[i]];
   end;
   LayoutForm.UpdateGUI;
+  LogForm.Log(llDebug, 'Updated Macro editor and keymap forms');
 end;
 
 end.
