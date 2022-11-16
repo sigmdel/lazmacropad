@@ -267,7 +267,7 @@ begin
   s := MacrosEditor.Cells[c, r];
   if (r < 1) or (r > config.ButtonCount) then exit;
   dec(r);
-  if MacrosEditor.Col = 1 then begin
+  if c = 1 then begin
     if s = macros[r] then exit;
     macros[r] := s;
     LayoutForm.keys[r].Hint := macros[r];
@@ -278,7 +278,7 @@ begin
     end;
     LogForm.Log(llDebug, 'Macro %d modified, layout form updated', [r]);
   end
-  else if MacrosEditor.Col = 2 then begin
+  else if c = 2 then begin
     if s = sPasteCommands[pcCtrlV] then
       pc := pcCtrlV
     else if s = sPasteCommands[pcShiftInsert] then
@@ -289,8 +289,10 @@ begin
       pc := pcNone
     else if s = sPasteCommands[pcKbdEvents] then
       pc := pcKbdEvents
-    else
-      exit;  ///
+    else begin
+      MacrosEditor.Cells[c, r+1] := sPasteCommands[pastes[r]];
+      exit;
+    end;
     if pastes[r] = pc then exit;
     pastes[r] := pc;
     SetMacrosModified(true);
