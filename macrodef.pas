@@ -83,7 +83,6 @@ resourcestring
   SpcNone = 'None';                    // clipboards set but no paste command
   SpcKbdEvents = 'Kbd Events';         // keyboard up down events only, no clipboard
 
-
 var
   sPasteCommands : array[TPasteCommand] of string =
     (SpcCtrlV, SpcShiftInsert, SpcCustom, SpcNone, SpcKbdEvents);
@@ -93,7 +92,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, keymap, macrolog, editmacro;
+  main, keymap, kbdev, macrolog, editmacro;
 
 { TMacroForm }
 
@@ -145,10 +144,10 @@ var
 begin
   ndx := MacrosEditor.row - 1;
   for j := ndx to Config.ButtonCount-2 do begin
-    Macros[j] := Macros[j+1];
+    StringMacros[j] := StringMacros[j+1];
     Pastes[j] := Pastes[j+1];
   end;
-  Macros[Config.ButtonCount-1] := '';
+  StringMacros[Config.ButtonCount-1] := '';
   Pastes[Config.ButtonCount-1] := pcCtrlV;
   SetMacrosModified(true);
   UpdateGUI;
@@ -161,7 +160,7 @@ procedure TMacroForm.EditorPopMenuPopup(Sender: TObject);
   begin
     result := false;
     repeat
-      if Macros[index] <> '' then
+      if StringMacros[index] <> '' then
         exit;
       inc(index);
     until (index >= Config.ButtonCount);
@@ -177,7 +176,7 @@ begin
   ndx := MacrosEditor.row - 1;
   notEmpty := not MacrosEmptyFrom(ndx);
   InsertMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount-1) and notEmpty;
-  EraseMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount) and (Macros[ndx] <> '');
+  EraseMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount) and (StringMacros[ndx] <> '');
   DeleteMacroMenuItem.Enabled := (ndx >= 0) and (ndx < Config.ButtonCount) and notEmpty;
   MoveMacroUpMenuItem.Enabled := (ndx > 0);
   MoveMacroDownMenuItem.Enabled := (ndx < Config.ButtonCount-1);
@@ -190,8 +189,8 @@ var
   ndx: integer;
 begin
   ndx := MacrosEditor.row - 1;
-  if (ndx >= 0) and (ndx < Config.ButtonCount) and (Macros[ndx] <> '') then begin
-    Macros[ndx] := '';
+  if (ndx >= 0) and (ndx < Config.ButtonCount) and (StringMacros[ndx] <> '') then begin
+    StringMacros[ndx] := '';
     Pastes[ndx] := pcCtrlV;
     SetMacrosModified(true);
     MacrosEditor.Cells[1, ndx+1] := '';
@@ -246,10 +245,10 @@ var
 begin
   ndx := MacrosEditor.row - 1;
   for j := Config.ButtonCount-1 downto ndx+1 do begin
-    Macros[j] := Macros[j-1];
+    StringMacros[j] := StringMacros[j-1];
     Pastes[j] := Pastes[j-1];
   end;
-  Macros[ndx] := '';
+  StringMacros[ndx] := '';
   Pastes[ndx] := pcCtrlV;
   SetMacrosModified(true);
   UpdateGUI;
@@ -268,9 +267,9 @@ begin
   if (r < 1) or (r > config.ButtonCount) then exit;
   dec(r);
   if c = 1 then begin
-    if s = macros[r] then exit;
-    macros[r] := s;
-    LayoutForm.keys[r].Hint := macros[r];
+    if s = StringMacros[r] then exit;
+    StringMacros[r] := s;
+    LayoutForm.keys[r].Hint := StringMacros[r];
     SetMacrosModified(true);
     if s = '' then begin
       pastes[r] := pcCtrlV;
@@ -354,10 +353,13 @@ begin
   c := MacrosEditor.Col;
   if c <> 1 then exit;
   if (r < 1) or (r > config.ButtonCount) then exit;
-  EditKbdMacroForm.SetMacro(MacrosEditor.cells[c, r]);
+  EditKbdMacroForm.SetMacro(KbdMacros[r-1]); /////           MacrosEditor.cells[c, r]);
   LogForm.Log(llDebug, 'Starting Keyboard macro editor');
   if EditKbdMacroForm.ShowModal = mrOk then begin
-    macros[r-1] := EditKbdMacroForm.GetMacroString;
+    setlength(KbdMacros[r-1], 0);
+    KbdMacros[r-1] := EditKbdMacroForm.GetKbdMacro;
+    /// improve this
+    StringMacros[r-1] := EditKbdMacroForm.GetMacroString;
     if MacrosEditor.cells[c, r] <> EditKbdMacroForm.GetMacroString then begin
       MacrosEditor.cells[c, r] := EditKbdMacroForm.GetMacroString;
       SetMacrosModified(true);
@@ -376,11 +378,11 @@ begin
   r := MacrosEditor.Row;
   if r <= 0 then exit;
   dec(r);
-  tempmac := macros[r-1];
+  tempmac := StringMacros[r-1];
   temppc := pastes[r-1];
-  macros[r-1] := macros[r];
+  StringMacros[r-1] := StringMacros[r];
   pastes[r-1] := pastes[r];
-  macros[r] := tempmac;
+  StringMacros[r] := tempmac;
   pastes[r] := temppc;
   UpdateGUI;
   MacrosEditor.Row := r;
@@ -397,11 +399,11 @@ begin
   r := MacrosEditor.Row;
   dec(r);
   if r >= Config.ButtonCount-1 then exit;
-  tempmac := macros[r];
+  tempmac := StringMacros[r];
   temppc := pastes[r];
-  macros[r] := macros[r+1];
+  StringMacros[r] := StringMacros[r+1];
   pastes[r] := pastes[r+1];
-  macros[r+1] := tempmac;
+  StringMacros[r+1] := tempmac;
   pastes[r+1] := temppc;
   UpdateGUI;
   MacrosEditor.Row := r+2;
@@ -524,8 +526,11 @@ var
   i : integer;
 begin
   for i := 0 to  config.ButtonCount-1 do begin
-    MacrosEditor.Cells[1, i+1] := macros[i];
     MacrosEditor.Cells[2, i+1] := sPasteCommands[pastes[i]];
+    if pastes[i] = pcKbdEvents then
+      MacrosEditor.Cells[1, i+1] := KbdMacroToStr(KbdMacros[i])
+    else
+      MacrosEditor.Cells[1, i+1] := StringMacros[i];
   end;
   LayoutForm.UpdateGUI;
   LogForm.Log(llDebug, 'Updated Macro editor and keymap forms');

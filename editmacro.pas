@@ -16,8 +16,8 @@ type
     AddButton: TButton;
     Bevel1: TBevel;
     Bevel3: TBevel;
-    Button2: TButton;
-    Button3: TButton;
+    AcceptButton: TButton;
+    CancelButton: TButton;
     InsertButton: TButton;
     Label1: TLabel;
     ModifyButton: TButton;
@@ -35,7 +35,7 @@ type
     DeleteSpeedButton: TSpeedButton;
     ClearSpeedButton: TSpeedButton;
     procedure AddButtonClick(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure AcceptButtonClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure InsertButtonClick(Sender: TObject);
@@ -57,7 +57,8 @@ type
     procedure UpdateSpeedEnables;
     procedure SetEvent(anEvent: TKbdEvent);
   public
-    procedure SetMacro(const value: string);
+    procedure SetMacro(value: TKbdMacro);
+    function GetKbdMacro: TKbdMacro;
     function GetMacroString: string;
   end;
 
@@ -70,6 +71,11 @@ implementation
 
 { TEditKbdMacroForm }
 
+procedure TEditKbdMacroForm.AcceptButtonClick(Sender: TObject);
+begin
+  BuildMacroString;
+  ModalResult := mrOk;
+end;
 
 procedure TEditKbdMacroForm.AddButtonClick(Sender: TObject);
 var
@@ -89,44 +95,6 @@ begin
     event.Press := true;
   end;
   UpdateSpeedEnables;
-end;
-
-procedure TEditKbdMacroForm.Button2Click(Sender: TObject);
-begin
-  BuildMacroString;
-  ModalResult := mrOk;
-end;
-
-procedure TEditKbdMacroForm.FormActivate(Sender: TObject);
-var
-  i: integer;
-begin
-  MacroListBox.items.beginUpdate;
-  MacroListBox.items.clear;
-  for i := 0 to length(macro)-1 do
-    MacroListBox.items.add(KbdEventToStr(macro[i]));
-  MacroListBox.items.endUpdate;
-  if length(macro) > 0 then begin
-    //SetEvent(macro[0]);
-    MacroListBox.ItemIndex := 0;
-  end
-  else
-    SetEvent(DefaultEvent);
-end;
-
-procedure TEditKbdMacroForm.FormCreate(Sender: TObject);
-var
-  i: integer;
-begin
-  KeyNameComboBox.Items.BeginUpdate;
-  try
-    KeyNameComboBox.Items.clear;
-    for i := 0 to KEYCOUNT-1 do
-      KeyNameComboBox.Items.add(KeyCodesAndStrings[i].Name);
-  finally
-    KeyNameComboBox.Items.BeginUpdate;
-    KeyNameComboBox.ItemIndex := 107;
-  end;
 end;
 
 procedure TEditKbdMacroForm.BuildEventString;
@@ -195,6 +163,48 @@ begin
   UpdateSpeedEnables;
 end;
 
+procedure TEditKbdMacroForm.FormActivate(Sender: TObject);
+var
+  i: integer;
+begin
+  MacroListBox.items.beginUpdate;
+  MacroListBox.items.clear;
+  for i := 0 to length(macro)-1 do
+    MacroListBox.items.add(KbdEventToStr(macro[i]));
+  MacroListBox.items.endUpdate;
+  if length(macro) > 0 then begin
+    //SetEvent(macro[0]);
+    MacroListBox.ItemIndex := 0;
+  end
+  else
+    SetEvent(DefaultEvent);
+end;
+
+procedure TEditKbdMacroForm.FormCreate(Sender: TObject);
+var
+  i: integer;
+begin
+  KeyNameComboBox.Items.BeginUpdate;
+  try
+    KeyNameComboBox.Items.clear;
+    for i := 0 to KEYCOUNT-1 do
+      KeyNameComboBox.Items.add(KeyCodesAndStrings[i].Name);
+  finally
+    KeyNameComboBox.Items.BeginUpdate;
+    KeyNameComboBox.ItemIndex := 107;
+  end;
+end;
+
+function TEditKbdMacroForm.GetKbdMacro: TKbdMacro;
+begin
+  result := macro;
+end;
+
+function TEditKbdMacroForm.GetMacroString: string;
+begin
+  result := MacroString;
+end;
+
 procedure TEditKbdMacroForm.InsertButtonClick(Sender: TObject);
 var
   ndx: integer;
@@ -261,6 +271,26 @@ begin
   end;
 end;
 
+procedure TEditKbdMacroForm.SetEvent(anEvent: TKbdEvent);
+var
+  i: integer;
+begin
+  if KeyCodeFind(anEvent.VK, i) then begin
+    Event := anEvent;
+    KeyNameComboBox.ItemIndex := i;
+    if Event.Press then KeyActionRadioGroup.ItemIndex := 0 else KeyActionRadioGroup.ItemIndex := 1;
+    ModifiersCheckGroup.Checked[0] := ssShift In Event.Shift;
+    ModifiersCheckGroup.Checked[1] := ssCtrl In Event.Shift;
+    ModifiersCheckGroup.Checked[2] := ssAlt in Event.Shift;
+  end;
+end;
+
+procedure TEditKbdMacroForm.SetMacro(value: TKbdMacro);
+begin
+  setlength(macro, 0);
+  macro := value;
+end;
+
 procedure TEditKbdMacroForm.TestSpeedButtonClick(Sender: TObject);
 var
   s: string;
@@ -287,32 +317,6 @@ begin
   MacroListBox.Items.Exchange(i-1, i);
   MacroListBox.itemindex := i-1;
   UpdateSpeedEnables;
-end;
-
-procedure TEditKbdMacroForm.SetEvent(anEvent: TKbdEvent);
-var
-  i: integer;
-begin
-  if KeyCodeFind(anEvent.VK, i) then begin
-    Event := anEvent;
-    KeyNameComboBox.ItemIndex := i;
-    if Event.Press then KeyActionRadioGroup.ItemIndex := 0 else KeyActionRadioGroup.ItemIndex := 1;
-    ModifiersCheckGroup.Checked[0] := ssShift In Event.Shift;
-    ModifiersCheckGroup.Checked[1] := ssCtrl In Event.Shift;
-    ModifiersCheckGroup.Checked[2] := ssAlt in Event.Shift;
-  end;
-end;
-
-procedure TEditKbdMacroForm.SetMacro(const value: string);
-begin
-  setlength(macro, 0);
-  macro := StrToMacro(value);
-end;
-
-
-function TEditKbdMacroForm.GetMacroString: string;
-begin
-  result := MacroString;
 end;
 
 procedure TEditKbdMacroForm.UpdateSpeedEnables;

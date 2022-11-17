@@ -211,7 +211,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     ImageIndex = 4
     OnClick = TestSpeedButtonClick
   end
-  object Button2: TButton
+  object AcceptButton: TButton
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
@@ -224,13 +224,13 @@ object EditKbdMacroForm: TEditKbdMacroForm
     BorderSpacing.Right = 6
     BorderSpacing.Bottom = 6
     Caption = 'Accept'
-    OnClick = Button2Click
+    OnClick = AcceptButtonClick
     TabOrder = 5
   end
-  object Button3: TButton
-    AnchorSideTop.Control = Button2
+  object CancelButton: TButton
+    AnchorSideTop.Control = AcceptButton
     AnchorSideTop.Side = asrCenter
-    AnchorSideRight.Control = Button2
+    AnchorSideRight.Control = AcceptButton
     Left = 378
     Height = 25
     Top = 300
@@ -324,7 +324,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideLeft.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Button2
+    AnchorSideBottom.Control = AcceptButton
     Left = 6
     Height = 3
     Top = 291

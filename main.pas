@@ -70,62 +70,19 @@ begin
   i := KeyLabelToInt(src[1]);
   if (i < 0) or (i >= config.ButtonCount) then
     exit;
-  if (macros[i] <> '') then begin
+  inject(i);
+
+  (*
+  if (StringMacros[i] <> '') then begin
     inject(i);
-    LogForm.Log(llInfo, 'Key: %s, Macro: %s', [src, macros[i]]);
+    LogForm.Log(llInfo, 'Key: %s, Macro: %s', [src, StringMacros[i]]);
   end
   else
     LogForm.Log(llInfo, 'Key: %s, no macro defined', [src]);
+  *)
 end;
 
-(*{$DEFINE VK_RETURN_SPECIAL}
-// seems to work in
-//   Mint 20.1 MATE with QTK2 (but not needed!)
-//   Mint 21 MATE with QTK2
-//   Mint 21 MATE with Qt5 (not at all times)
-
-
-procedure TMainForm.Inject(index: integer);
-var
-  convertedMacro: string;
-  PasteCommand: TPasteCommand;
-  {$ifdef VK_RETURN_SPECIAL}
-  WantsVK_RETURN: boolean;
-  {$endif}
-begin
-  convertedMacro := convertEscSequences(macros[index]);
-  if convertedMacro = '' then exit;
-
-  clipboard.AsText := convertedMacro;
-  PasteCommand := pastes[index];
-  {$ifndef WINDOWS}
-  if PasteCommand = pcShiftInsert then begin
-    {$ifdef VK_RETURN_SPECIAL}
-    WantsVK_RETURN := convertedMacro[length(ConvertedMacro)] = #13;
-    if WantsVK_RETURN then
-      setlength(convertedMacro, length(convertedMacro)-1);
-    {$endif}
-    PrimarySelection.Astext := convertedMacro;
-    KeyInput.Apply([ssShift]);
-    KeyInput.Press(VK_INSERT);
-    KeyInput.Unapply([ssShift]);
-    {$ifdef VK_RETURN_SPECIAL}
-    if WantsVK_RETURN then
-      KeyInput.Press(VK_RETURN);
-    {$endif}
-    LogForm.Log(llDebug,'Paste with Shift+Insert');
-  end
-  else begin
-  {$endif}
-    KeyInput.Apply([ssCtrl]);
-    KeyInput.Press(VK_V);
-    KeyInput.Unapply([ssCtrl]);
-    LogForm.Log(llDebug,'Paste with Ctrl+V');
-  {$ifndef WINDOWS}
-  end;
-  {$endif}
-end;
- *)
+{ $DEFINE VK_RETURN_SPECIAL}
 
 /// Temporarily remove Windows considerations
 /// Over logged for now!
@@ -141,23 +98,26 @@ var
   macro: TKbdMacro;
 begin
   PasteCommand := pastes[index];
-  LogForm.Log(llDebug, 'Inject(%d): macro "%s" with pasteCmd %s', [index, macros[index], sPasteCommands[PasteCommand]]);
+  LogForm.Log(llDebug, 'Inject macro %d with pasteCmd %s', [index, sPasteCommands[PasteCommand]]);
 
   if PasteCommand = pcKbdEvents then begin
      // no clipboard operations here
-    macro := StrToMacro(macros[index]);
-    if length(macro) < 1 then exit;
+    macro := KbdMacros[index];
+    if length(macro) < 1 then begin
+      LogForm.Log(llInfo, 'Macro %d is not defined', [index]);
+      exit;
+    end;
     for ndx := 0 to length(macro)-1 do begin
       if macro[ndx].Press then begin
         if macro[ndx].Shift <> [] then begin
           LogForm.Log(llDebug,'keyboard event %d, applying shift keys %4x', [ndx, integer(macro[ndx].Shift)]);
           KeyInput.Apply(macro[ndx].Shift);
         end;
-        LogForm.Log(llDebug,'keyboard event %d, injecting key down event, key: %4x', [ndx, macro[ndx].VK]);
+        LogForm.Log(llDebug,'keyboard event %d, key: %4x down', [ndx, macro[ndx].VK]);
         KeyInput.Down(macro[ndx].VK);
       end
       else begin
-        LogForm.Log(llDebug,'keyboard event %d, injecting key up event, key: %4x', [ndx, macro[ndx].VK]);
+        LogForm.Log(llDebug,'keyboard event %d, key: %4x ', [ndx, macro[ndx].VK]);
         KeyInput.Up(macro[ndx].VK);
         if macro[ndx].Shift <> [] then begin
           LogForm.Log(llDebug,'keyboard event %d, unapplying shift keys %4x', [ndx, integer(macro[ndx].Shift)]);
@@ -165,13 +125,15 @@ begin
         end;
       end;
     end;
-    LogForm.Log(llDebug,'%d keyboard events injected', [length(macro)]);
+    LogForm.Log(llInfo,'%d keyboard events injected', [length(macro)]);
     exit;
   end;
 
-  convertedMacro := convertEscSequences(macros[index]);
-  if convertedMacro = '' then exit;
-
+  convertedMacro := convertEscSequences(StringMacros[index]);
+  if convertedMacro = '' then begin
+    LogForm.Log(llInfo, 'Macro %d is not defined', [index]);
+    exit;
+  end;
   {$ifdef VK_RETURN_SPECIAL}
   if not PasteCommand = pcNone then begin
     WantsVK_RETURN := convertedMacro[length(ConvertedMacro)] = #13;

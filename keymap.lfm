@@ -15,4 +15,5 @@ object LayoutForm: TLayoutForm
   OnShow = FormShow
   OnWindowStateChange = FormWindowStateChange
   ShowInTaskBar = stNever
+  LCLVersion = '2.3.0.0'
 end

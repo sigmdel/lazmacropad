@@ -27,13 +27,16 @@ function KbdEventToKeyStr(value: TKbdEvent): string;
 function KbdEventToStr(value: TKbdEvent): string;
 
 // returns a string representation of a kbd event macro
+// This can be modified at will, the string representation is
+// never converted back to a TKbdMacro
 function KbdMacroToStr(value: TKbdMacro): string;
-
-// converts a string to a kbd event macro
-function StrToMacro(const value: string): TKbdMacro;
 
 // incomplete test of validity
 function TestMacro(value: TKbdMacro): integer;
+
+// for saving/loading from macro definition file
+function KbdMacroToHex(value: TKbdMacro): string;
+function HexToKbdMacro(const value: string): TKbdMacro;
 
 const
   // MS documentation:
@@ -233,7 +236,9 @@ begin
     result := '<$'+IntToHex(value.VK,2)+'?>';
 end;
 
-// returns key name and shift state as in 'F23[Shift,Alt]'
+// returns key name and shift state as in '↓[Shift,Alt]+F3'
+// the returned string can be pretty much anything because it is
+// never parsed to a TKbdEvent
 function KbdEventToStr(value: TKbdEvent): string;
 var
   s: string;
@@ -251,18 +256,16 @@ begin
   if ssCtrl in value.Shift then AddPart(ifsCtrl);
   if ssAlt in value.Shift then AddPart(ifsAlt);
   if ssShift in value.Shift then AddPart(ifsVK_SHIFT);
-  (*
-  if ssMeta in ShiftState then
-    {$IFDEF LCLcarbon}
-    AddPart(ifsVK_CMD);
-    {$ELSE}
-    AddPart(ifsVK_META);
-    {$ENDIF}
-  if ssSuper in ShiftState then AddPart(ifsVK_SUPER);
-  *)
-  s := '[' + s + ']';
-  result := KbdEventToKeyStr(value) + s;
-  result := ifThen(value.Press, '↓', '↑') + ' ' + result;
+  if value.Press then begin
+    if s <> '' then
+      s := '[' + s + ']+';
+    result :=  '↓' + s + KbdEventToKeyStr(value)
+  end
+  else begin
+    if s <> '' then
+      s := '+[' + s + ']';
+    result := '↑' + KbdEventToKeyStr(value) + s;
+  end;
 end;
 
 // returns a string representation of a kbd event macro
@@ -335,46 +338,48 @@ begin
   end;
 end;
 
-function StrToMacro(const value: string): TKbdMacro;
+function KbdMacroToHex(value: TKbdMacro): string;
 var
-  s: string;
-  kname, shifts: string;
-  p, i, ml: integer;
+  i: integer;
+begin
+  result := '';
+  for i := 0 to length(value)-1 do begin
+    result := result + inttohex(ord(value[i].Press),2);
+    result := result + inttohex(value[i].VK, 2);
+    result := result + inttohex(integer(value[i].Shift), 4);
+  end;
+end;
+
+function HexToKbdMacro(const value: string): TKbdMacro;
+var
+  i, last, n: integer;
+  substring: string;
   anEvent: TKbdEvent;
 begin
-  setlength(result, 0);
-  ml := 0;
-  s := StringReplace(value, ' ', '', [rfReplaceAll]);
-  s := StringReplace(s, '(', '', [rfReplaceAll]);
-  s := StringReplace(s, ')', '', [rfReplaceAll]);
-  while length(s) > 0 do begin
-    anEvent.Press := pos('↓', s) = 1;
-    delete(s,1,length('↓'));
+  n := 0;
+  i := 1;
+  last := length(value)+1;
+  repeat
+    if i+2 > last then exit; // extra chars unless value = ''
 
-    kname := s[1];
-    delete(s, 1, 1);
-    while s[1] <> '[' do begin
-      kname := kname + s[1];
-      delete(s, 1, 1);
-    end;
-    delete(s,1,1);
-    shifts := '';
-    p := pos(']', s);
-    if p > 0 then begin
-      shifts := copy(s, 1, p-1);
-      delete(s, 1, p);
-    end;
-    if KeyNameIndex(kname, i) then begin
-      anEvent.VK := KeyCodesAndStrings[i].code;
-      anEvent.Shift := [];
-      if pos('Shift', shifts) > 0 then include(anEvent.Shift, ssShift);
-      if pos('Ctrl', shifts) > 0 then include(anEvent.Shift, ssCtrl);
-      if pos('Alt', shifts) > 0 then include(anEvent.Shift, ssAlt);
-      setlength(result, ml+1);
-      result[ml] := anEvent;
-      inc(ml);
-    end;
-  end;
+    substring := copy(value, i, 2);
+    anEvent.Press := strtoint(substring) = 1;
+    inc(i, 2);
+
+    if i+2 > last then exit; // extra chars
+    substring := '$' + copy(value, i, 2);
+    anEvent.VK := strtoint(substring);
+    inc(i, 2);
+
+    if i+4 > last then exit; // extra chars
+    substring := '$' + copy(value, i, 4);
+    anEvent.shift := TKbdShift(strtoint(substring));
+    inc(i, 4);
+
+    setlength(result, n+1);
+    result[n] := anEvent;
+    inc(n);
+  until false;
 end;
 
 end.

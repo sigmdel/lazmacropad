@@ -136,7 +136,7 @@ procedure TLayoutForm.ButtonClick(Sender: TObject);
 begin
   {$ifndef Windows}
   if Sender is TLabel then with Sender as TLabel do begin
-    if Macros[Tag] <> '' then begin
+    if StringMacros[Tag] <> '' then begin
       self.Hide;  // return to previous focused window
       MainForm.Inject(tag);
       self.Show;  // show this form again
@@ -151,10 +151,10 @@ var
   i: integer;
 begin
   for i := 0 to  config.ButtonCount-1 do
-    if macros[i] = '' then
+    if StringMacros[i] = '' then
       LayoutForm.keys[i].Hint := SEmpty
     else
-      LayoutForm.keys[i].Hint := macros[i];
+      LayoutForm.keys[i].Hint := StringMacros[i];
 end;
 
 end.

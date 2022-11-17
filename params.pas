@@ -5,7 +5,7 @@ unit params;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, kbdev;
 
 CONST
   DEFAULT_ROW_COUNT = 4;
@@ -18,8 +18,12 @@ type
   TPasteCommand = (pcCtrlV, pcShiftInsert, pcCustom, pcNone, pcKbdEvents);
 
 var
-  Macros: array of string;
+  // list of current paste commands
   Pastes: array of TPasteCommand;
+
+  // List of current macros
+  StringMacros: array of string; // all macros no matter the type stored here
+  KbdMacros: array of TKbdMacro; // only TKbdmacros are store here
   MacrosModified: boolean;
 
 procedure SaveMacros(const filename: string);
@@ -75,51 +79,78 @@ uses
 var
   configfile: string;
 
-
+(* Keyboard macros are saved as concatened hex kbd events
+ *
+ * Syntax of hex kbd event
+ *
+ *  |--|<-----------------TKbdEvent.Press
+ *  |--| |--|<----------- TKbdEvent.VK
+ *  |--| |--|  |----|<--- TKbdEvent.Shift
+ *   01   7B    0001
+ *
+ * There are no spaces so each event takes is 6 hexadecimal
+ * characters wide.
+ *)
 procedure SaveMacros(const filename: string);
 var
-  i,n: integer;
+  i,smcount, kmcount: integer;
 begin
-  n := 0;
+  smcount := 0;
+  kmcount := 0;
   with TInifile.create(filename) do try
     for i := 0 to config.ButtonCount-1 do begin
-       WriteString('macros', inttohex(i,2), macros[i]);
-       if macros[i] <> '' then inc(n);
+       if pastes[i] = pcKbdEvents then begin
+         WriteString('macros', inttohex(i,2), KbdMacroToHex(KbdMacros[i]));
+         if length(KbdMacros[i]) > 0 then inc(kmcount);
+       end
+       else begin
+         WriteString('macros', inttohex(i,2), StringMacros[i]);
+         if StringMacros[i] <> '' then inc(smcount);
+       end;
     end;
     for i := 0 to config.ButtonCount-1 do begin
        WriteInteger('pastes', inttohex(i,2), ord(pastes[i]));
     end;
      MacrosModified := false;
-     LogForm.log(llInfo,'Macros file %s with %d macro definitions saved', [filename, n]);
+     LogForm.log(llInfo,'Macros file %s with %d string macros and %d keyboard macros saved', [filename, smcount, kmcount]);
   finally
     free;
   end;
 end;
 
+{ #todo 1 -oMichel -cBug : No real error checking  }
 procedure LoadMacros(const filename: string);
 var
-  i, n: integer;
+  i, smcount, kmcount: integer;
   s: string;
 begin
   Config.ClearMacros;
   MacrosModified := false;
-  n := 0;
+  smcount := 0;
+  kmcount := 0;
   if (filename = '') then
     LogForm.log(llError, 'params.LoadMacros() called with empty filename')
   else if not fileexists(filename) then
     LogForm.log(llError, 'Macros file cannot be loaded, %s does not exist', [filename])
   else with TInifile.create(filename) do try
-     for i := 0 to config.ButtonCount-1 do begin
-        s := ReadString('macros', inttohex(i,2), macros[i]);
-        if s <> '' then begin
-          inc(n);
-          macros[i] := s;
+    for i := 0 to config.ButtonCount-1 do begin
+       pastes[i] := TPasteCommand(ReadInteger('pastes', inttohex(i,2), ord(pastes[i])));
+    end;
+    for i := 0 to config.ButtonCount-1 do begin
+      s := ReadString('macros', inttohex(i,2), StringMacros[i]);
+      if s <> '' then begin
+        if pastes[i] = pcKbdEvents then begin
+          KbdMacros[i] := HexToKbdMacro(s);
+          StringMacros[i] := KbdMacroToStr(KbdMacros[i]);
+          inc(kmcount);
+        end
+        else begin
+          StringMacros[i] := s;
+          inc(smcount);
         end;
-     end;
-     for i := 0 to config.ButtonCount-1 do begin
-        pastes[i] := TPasteCommand(ReadInteger('pastes', inttohex(i,2), ord(pastes[i])));
-     end;
-     LogForm.log(llInfo,'Macros file %s contained %d macro definitions', [filename, n]);
+      end;
+    end;
+    LogForm.log(llInfo,'Macros file %s contained %d string macros and %d keyboard macros', [filename, smcount, kmcount]);
   finally
     free;
   end;
@@ -132,7 +163,8 @@ var
   i: integer;
 begin
   for i := 0 to config.ButtonCount-1 do begin
-     macros[i] := '';
+     StringMacros[i] := '';
+     setlength(KbdMacros[i], 0);
      pastes[i] := pcCtrlV;
   end;
 end;
@@ -253,7 +285,8 @@ begin
   config.Load;
   if Config.DefaultMacrosfile = '' then
      Config.DefaultMacrosFile := configdir + DEFAULT_MACROS;
-  setlength(Macros, config.ButtonCount);
+  setlength(StringMacros, config.ButtonCount);
+  setlength(KbdMacros, config.ButtonCount);
   setlength(Pastes, config.ButtonCount);
   LoadMacros(Config.DefaultMacrosfile);
 end;
@@ -269,7 +302,10 @@ initialization
 
 finalization
   config.free;
-  setlength(Macros, 0);
+  (*
+  setlength(StringMacros, 0);
+  setlength(KbdMacros, 0); // this will strand allocated memory
   setlength(Pastes, 0);
+  *)
 end.
 
