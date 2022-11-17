@@ -360,8 +360,8 @@ begin
   if EditKbdMacroForm.ShowModal = mrOk then begin
     setlength(KbdMacros[r-1], 0);
     KbdMacros[r-1] := EditKbdMacroForm.GetKbdMacro;
-    /// improve this
     StringMacros[r-1] := EditKbdMacroForm.GetMacroString;
+    LayoutForm.keys[r-1].Hint := EditKbdMacroForm.GetMacroString;;
     if MacrosEditor.cells[c, r] <> EditKbdMacroForm.GetMacroString then begin
       MacrosEditor.cells[c, r] := EditKbdMacroForm.GetMacroString;
       SetMacrosModified(true);
@@ -428,15 +428,18 @@ begin
   VK := CustomPaste.VK;
   shift := CustomPaste.shift;
   if EditCustomPasteCommand(VK, shift) then begin
-    CustomPaste.VK := VK;
-    CustomPaste.shift := shift;
-    SetMacrosModified(true);
+    if (VK <> CustomPaste.VK) or (shift <> CustomPaste.shift) then begin
+      CustomPaste.VK := VK;
+      CustomPaste.shift := shift;
+      SetMacrosModified(true);
+    end;
   end;
 end;
 
 procedure TMacroForm.ProxyEditorRestoreSelection(Data: PtrInt);
 begin
-  MacrosEditor.Col := -1;
+  // MacrosEditor.Col := -1; doesn't seem to work in Windows
+  MacrosEditor.Col := 2;
   MacrosEditor.Col := 1;
 end;
 
