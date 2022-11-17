@@ -126,7 +126,7 @@ object MacroForm: TMacroForm
     BorderSpacing.Left = 6
   end
   object ProxyEditorButton: TButton
-    Left = 296
+    Left = 368
     Height = 17
     Top = 13
     Width = 96
@@ -150,6 +150,10 @@ object MacroForm: TMacroForm
     object SaveMacroFileMenuItem: TMenuItem
       Caption = 'Save...'
       OnClick = SaveMacroFileMenuItemClick
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Custom paste command...'
+      OnClick = MenuItem1Click
     end
     object Separator1: TMenuItem
       Caption = '-'

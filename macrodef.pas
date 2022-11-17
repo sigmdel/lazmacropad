@@ -18,6 +18,7 @@ type
   { TMacroForm }
 
   TMacroForm = class(TForm)
+    MenuItem1: TMenuItem;
     ProxyEditorButton: TButton;
     DefaultMacrosMenuItem: TMenuItem;
     InsertMacroMenuItem: TMenuItem;
@@ -43,6 +44,7 @@ type
     SaveDialog1: TSaveDialog;
     procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
+    procedure MenuItem1Click(Sender: TObject);
     procedure MoveMacroDownMenuItemClick(Sender: TObject);
     procedure MoveMacroUpMenuItemClick(Sender: TObject);
     procedure ProxyEditorButtonEnter(Sender: TObject);
@@ -92,7 +94,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, keymap, kbdev, macrolog, editmacro;
+  main, keymap, kbdev, macrolog, editmacro, custompastecommand;
 
 { TMacroForm }
 
@@ -416,6 +418,20 @@ procedure TMacroForm.MacrosEditorSelectCell(Sender: TObject; aCol,
 begin
   CanSelect := aCol > 0;
   EditorPopMenu.AutoPopup := aCol = 1;
+end;
+
+procedure TMacroForm.MenuItem1Click(Sender: TObject);
+var
+  VK: word;
+  shift: TKbdShift;
+begin
+  VK := CustomPaste.VK;
+  shift := CustomPaste.shift;
+  if EditCustomPasteCommand(VK, shift) then begin
+    CustomPaste.VK := VK;
+    CustomPaste.shift := shift;
+    SetMacrosModified(true);
+  end;
 end;
 
 procedure TMacroForm.ProxyEditorRestoreSelection(Data: PtrInt);

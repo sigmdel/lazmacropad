@@ -73,7 +73,7 @@ begin
   inject(i);
 end;
 
-{ $DEFINE VK_RETURN_SPECIAL}
+{$DEFINE VK_RETURN_SPECIAL}
 
 /// Temporarily remove Windows considerations
 /// Over logged for now!
@@ -126,7 +126,7 @@ begin
     exit;
   end;
   {$ifdef VK_RETURN_SPECIAL}
-  if not PasteCommand = pcNone then begin
+  if PasteCommand <> pcNone then begin
     WantsVK_RETURN := convertedMacro[length(ConvertedMacro)] = #13;
     if WantsVK_RETURN then
       setlength(convertedMacro, length(convertedMacro)-1);
@@ -146,14 +146,14 @@ begin
     LogForm.Log(llDebug,'Paste with Shift+Insert');
   end
   else if PasteCommand = pcCustom then begin
-    KeyInput.Apply([ssShift, ssCtrl]);
-    KeyInput.Press(VK_V);
-    KeyInput.Unapply([ssShift, ssCtrl]);
+    KeyInput.Apply(CustomPaste.Shift);
+    KeyInput.Press(CustomPaste.VK);
+    KeyInput.Unapply(CustomPaste.Shift);
     {$ifdef VK_RETURN_SPECIAL}
     if WantsVK_RETURN then
       KeyInput.Press(VK_RETURN);
     {$endif}
-    LogForm.Log(llDebug,'Paste with Shift+Ctrl+Insert');
+    //LogForm.Log(llDebug,'Paste with custom paste command');
   end
   else if PasteCommand = pcCtrlV then begin
     KeyInput.Apply([ssCtrl]);
@@ -165,6 +165,7 @@ begin
     {$endif}
     LogForm.Log(llDebug,'Paste with Ctrl+V');
   end
+  //else PasteCommand = pcNone
 end;
 
 

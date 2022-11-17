@@ -5,7 +5,7 @@ unit params;
 interface
 
 uses
-  Classes, SysUtils, kbdev;
+  Classes, SysUtils, LCLType, kbdev;
 
 CONST
   DEFAULT_ROW_COUNT = 4;
@@ -16,6 +16,14 @@ CONST
 type
   TLogLevel = (llDebug, llInfo, llError, llNone);
   TPasteCommand = (pcCtrlV, pcShiftInsert, pcCustom, pcNone, pcKbdEvents);
+  TCustomPaste = record
+    VK: word;
+    Shift: TKbdShift;
+  end;
+
+CONST
+  DEFAULT_CUSTOM_PASTE: TCustomPaste = (VK: VK_V; Shift: [ssShift,ssCtrl]);
+
 
 var
   // list of current paste commands
@@ -24,7 +32,8 @@ var
   // List of current macros
   StringMacros: array of string; // all macros no matter the type stored here
   KbdMacros: array of TKbdMacro; // only TKbdmacros are store here
-  MacrosModified: boolean;
+  CustomPaste: TCustomPaste;
+  macrosmodified: boolean;
 
 procedure SaveMacros(const filename: string);
 procedure LoadMacros(const filename: string);
@@ -88,9 +97,27 @@ var
  *  |--| |--|  |----|<--- TKbdEvent.Shift
  *   01   7B    0001
  *
- * There are no spaces so each event takes is 6 hexadecimal
+ * There are no spaces so each event takes is 8 hexadecimal
  * characters wide.
+ *
+ * Similarly the custom paste command is stored as 6 hexadecimals
+ *
+ *  |--|<----------- TKbdEvent.VK
+ *  |--|  |----|<--- TKbdEvent.Shift
+ *   7B    0001
  *)
+
+function PasteCommandToHex(value: TCustomPaste): string;
+begin
+  result := inttohex(value.VK, 2) + inttohex(integer(value.Shift), 4);
+end;
+
+function HexToPasteCommand(const value: string): TCustomPaste;
+begin
+  result.VK := strtoint('$'+copy(value, 1, 2));
+  result.Shift := TKbdShift(strtoint('$'+copy(value, 3, 4)));
+end;
+
 procedure SaveMacros(const filename: string);
 var
   i,smcount, kmcount: integer;
@@ -111,8 +138,9 @@ begin
     for i := 0 to config.ButtonCount-1 do begin
        WriteInteger('pastes', inttohex(i,2), ord(pastes[i]));
     end;
-     MacrosModified := false;
-     LogForm.log(llInfo,'Macros file %s with %d string macros and %d keyboard macros saved', [filename, smcount, kmcount]);
+    WriteString('custom', 'paste', PasteCommandToHex(CustomPaste));
+    MacrosModified := false;
+    LogForm.log(llInfo,'Macros file %s with %d string macros and %d keyboard macros saved', [filename, smcount, kmcount]);
   finally
     free;
   end;
@@ -150,6 +178,7 @@ begin
         end;
       end;
     end;
+    CustomPaste := HexToPasteCommand(ReadString('custom', 'paste', PasteCommandToHex(DEFAULT_CUSTOM_PASTE)));
     LogForm.log(llInfo,'Macros file %s contained %d string macros and %d keyboard macros', [filename, smcount, kmcount]);
   finally
     free;
@@ -167,6 +196,7 @@ begin
      setlength(KbdMacros[i], 0);
      pastes[i] := pcCtrlV;
   end;
+  CustomPaste := DEFAULT_CUSTOM_PASTE;
 end;
 
 constructor TConfig.Create;
