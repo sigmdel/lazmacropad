@@ -71,15 +71,6 @@ begin
   if (i < 0) or (i >= config.ButtonCount) then
     exit;
   inject(i);
-
-  (*
-  if (StringMacros[i] <> '') then begin
-    inject(i);
-    LogForm.Log(llInfo, 'Key: %s, Macro: %s', [src, StringMacros[i]]);
-  end
-  else
-    LogForm.Log(llInfo, 'Key: %s, no macro defined', [src]);
-  *)
 end;
 
 { $DEFINE VK_RETURN_SPECIAL}
@@ -110,17 +101,17 @@ begin
     for ndx := 0 to length(macro)-1 do begin
       if macro[ndx].Press then begin
         if macro[ndx].Shift <> [] then begin
-          LogForm.Log(llDebug,'keyboard event %d, applying shift keys %4x', [ndx, integer(macro[ndx].Shift)]);
+          LogForm.Log(llDebug,'keyboard event %d, applying shift keys %x', [ndx, integer(macro[ndx].Shift)]);
           KeyInput.Apply(macro[ndx].Shift);
         end;
-        LogForm.Log(llDebug,'keyboard event %d, key: %4x down', [ndx, macro[ndx].VK]);
+        LogForm.Log(llDebug,'keyboard event %d, key: %x down', [ndx, macro[ndx].VK]);
         KeyInput.Down(macro[ndx].VK);
       end
       else begin
-        LogForm.Log(llDebug,'keyboard event %d, key: %4x ', [ndx, macro[ndx].VK]);
+        LogForm.Log(llDebug,'keyboard event %d, key: %x up', [ndx, macro[ndx].VK]);
         KeyInput.Up(macro[ndx].VK);
         if macro[ndx].Shift <> [] then begin
-          LogForm.Log(llDebug,'keyboard event %d, unapplying shift keys %4x', [ndx, integer(macro[ndx].Shift)]);
+          LogForm.Log(llDebug,'keyboard event %d, unapplying shift keys %x', [ndx, integer(macro[ndx].Shift)]);
           KeyInput.UnApply(macro[ndx].Shift);
         end;
       end;
