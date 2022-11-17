@@ -1,20 +1,17 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Version 0.8.0**
+**Version 0.8.2**
 
-This project describes a rudimentary macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) identifying the pressed key. These *messages* are translated into macros by Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert...) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 is possible to bypass the clipboard and to inject a macro consisting of an array of keyboard events instead.
+This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) identifying the pressed key. These *messages* are translated into macros by Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert...) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
 
 The Lazarus program also allows for editing, saving and loading macro definitions to suit any number of applications on the desktop.
 
 There is a [post about this project](https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html) which contains a draft *user manual*. It is an incomplete draft currently available in French only.
 
-**Warning:**  Version 0.8.0 has only been used in Linux Mint 20.1 using the GTK2 widget set. Its first implementation of macros consisting of keyboard events only is a proof of concept and needs considerable reworking. Older versions the macro keypad program were tested and found to run on Linux Mint 20.1 Mate, Mint 21 Mate and Windows 10 although there are some limitations as described below. 
+**Warning:**  Version 0.8.2 has been built in Linux Mint 20.1 MATE using the GTK2 widget set. It has been tested in Linux Mint 20.1. A cursory examination shows that the binary works in Mint 21 MATE and Mint 21 Cinnamon. The program has also been compiled in Windows 10 (64 bit) and it seems to work in that environment although there are some limitations as described below. 
 
 ![screenshot](images/screenshot_0_7_0.jpg)
-
-**If the microcontroller is running an older version of the Arduino sketch, it must be replaced with the newer version released in v0.7.2** (see [6. Accommodating Different Keypads](#6-accommodating-different-keypads)).
-
 
 As of version 0.6.0, *lazmacropad* is a tray application. [Version 0.3.4](releases/tag/v0.3.4) was the last released of the project that featured a normal program.
 
@@ -30,7 +27,7 @@ As of version 0.6.0, *lazmacropad* is a tray application. [Version 0.3.4](releas
     - [2.1.4. Compiler Versions and Linux Widgetsets](#214-compiler-versions-and-linux-widgetsets)
   - [2.2. Windows Requirements](#22-windows-requirements)
 - [3. Macros](#3-macros)
-- [4. Paste Commands](#4-paste-commands)
+- [4. Clipboards and Paste Commands](#4-clipboards-and-paste-commands)
 - [5. Accommodating Different Keypads](#5-accommodating-different-keypads)
 - [6. Acknowledgment](#6-acknowledgment)
 - [7. Licence](#7-licence)
@@ -56,6 +53,9 @@ Note that the Nano is upside down (microcontroller is on the hidden side of the 
 ## 2. Source Code and Prerequisites
 
 [nanoMacroPad.ino](nanoMacroPad/nanoMacroPad.ino) contains the Arduino sketch that runs on the Nano. It requires the [Keypad library](https://playground.arduino.cc/Code/Keypad/) ([GitHub repository](https://github.com/Chris--A/Keypad)) by Mark Stanley and Alexander Brevig. It can be installed with the Arduino IDE library manager.
+
+**If the microcontroller is running an older version of the Arduino sketch, it must be replaced with the newer version released in v0.7.2** (see [6. Accommodating Different Keypads](#6-accommodating-different-keypads)).
+
 
 The source code of the *lazmacropad* object pascal program is in the root directory of the repository. The [images](images/) directory contains the three images shown on this page. None are required to compile the program. 
 
@@ -131,18 +131,18 @@ The source was compiled and tested with two versions of Lazarus in Windows 10:
 - stable: Lazarus 2.2.4 (rev lazarus_2_2_4) FPC 3.2.2 i386-win32-win32/win64
 - trunk: Lazarus 2.3.0 (rev main-2_3-2734-g2f18817fd8) FPC 3.3.1 i386-win32-win32/win64
 
-There are cosmetic problems with the macro definition screen with the binary generated with the stable version of the compiler. The maximum column width of the first column is not respected. While there is a work around, it is not included in the source code because that bug has been removed in the trunk version of the compiler. Because it is a bit more difficult to install the trunk version of the compiler, Windows binaries compiled with the trunk version of the compiler are supplied in the [0.6.0 release](https://github.com/sigmdel/lazmacropad/releases/tag/v0.6.0). Binaries for the latest release are upcoming.
+It is recommended to use the trunk version because cosmetic problems were encountered with the stable version in the macro definition window. Since then, a string grid is used instead of a value list editor so the difference between versions might be moot. 
 
-Note: The Windows version of the `Serial` unit does have a serial connection status variable. Consequently, there will be a log message about a lost connection when running in Windows. Furthermore, selection of the clipboard paste command used internally by the program is ignored in the Windows version. 
+Note: The Windows version of the `Serial` unit does have a serial connection status variable. Consequently, log messages warning of a lost connection will not appear when running in Windows.
 
 ## 3. Macros
 
 There are two types of macros:
 
-  - Strings (UTF8) that are copied to the clipboard and pasted into an application.
+  - Strings that are copied to the clipboard and pasted into an application.
   - Arrays of keyboard events
 
-The UTF8 strings can contain 3 escape sequences
+The strings are UTF8 and can contain 3 escape sequences
 
   -  `\n` will be converted to #13 (RETURN)
   -  `\t` will be converted to #9  (TAB)
@@ -154,9 +154,11 @@ Macros 0 and 1, in the macro definition window shown in the image below, both in
 
 ![](images/macro_defs.jpg)
 
-Note how each key down event (↓) must be followed by a corresponding key up event (↑) otherwise the operating system will generate a sequence of autorepeat key down events. The same applies to the Shift, Ctrl and Alt modifier keys. Macros 2 and 3 are similar to the first two except that they insert the uppercase string `HELLO` followed by a carriage return. Note how the Shift modifier was activated with the `H` key and deactivated with the `O` key, just as most would keep the shift key depressed when entering a few uppercase characters at a keyboard.
+**Notes**
 
-Note also that the virtual keyboard events injected into the keyboard event queue will be translated according to the keyboard layout in current use. So if the layout is the ISO French AZERTY keyboard, then the sequence `(↓ 2[])(↑ 2[])(↓ 7[])(↑ 7[])` will insert `éè` in the focused application. How this is done with an ANSI US (QWERTY) keyboard is not at all clear. Because the `Alt Gr` key is not yet implemented in *lazmacropad*, it is not possible to copy `ô` or `ë` etc. into the focused application with a keyboard event macro. Of course, it is easy to do with a string macro.
+  1. Each key down event (↓) must be followed by a corresponding key up event (↑) otherwise the operating system will generate a sequence of autorepeat key down events. The same applies to the Shift, Ctrl and Alt modifier keys. Macros 2 and 3 are similar to the first two except that they insert the uppercase string `HELLO` followed by a carriage return. Note how the Shift modifier was activated with the `H` key and deactivated with the `O` key, just as most would keep the shift key depressed when entering a few uppercase characters at a keyboard.
+
+  1. The virtual keyboard events injected into the keyboard event queue will be translated according to the keyboard layout in current use. So if the layout is the ISO French AZERTY keyboard, then the sequence `(↓ 2)(↑ 2)(↓ 7)(↑ 7)` will insert `éè` in the focused application. How this is done with an ANSI US (QWERTY) keyboard is not at all clear. Because the `Alt Gr` key is not yet implemented in *lazmacropad*, it is not possible to copy `ô` or `ë` etc. into the focused application with a keyboard event macro. That may never be done as it is easy to do with a string macro which was the primary reason for creating this project.
 
 ## 4. Clipboards and Paste Commands
 
@@ -166,7 +168,7 @@ Each macro must be assigned a `Paste Command` from the following list:
 
   1. `Ctrl+V`              
   2. `Shift+Insert`
-  3. `Custom`    (currently `Shift+Ctrl+V`)
+  3. `Custom`    (`Shift+Ctrl+V` by default)
   4. `None`
   5. `Kbd Events`
 
@@ -178,7 +180,7 @@ If a string macro ends with the sequence '\n' and the Shift+Insert combination i
 
 > (#) This works well in Mint 20.1 using GTK2. Cursory tests of *lazmacropad* (GTK2) in a LiveUSB version of Mint 21 MATE, showed that the v0.7.4 handling of trailing '\n' when using Shift+Insert does work as expected. Why this does not work in a virtual machine is not clear.
 
-There is no primary selection in Windows but Shift+Insert does work just as Ctrl+V when used from the physical keyboard. So far, injecting Shift+Insert in Windows has not worked. ~~Consequently *lazmacropad* uses Ctrl+V no matter what keyboard shortcut is specified when it is running in Windows.~~
+There is no primary selection in Windows. While the shortcuts Ctrl+V and Shift+Insert paste the content of the clipboard work when entered using a physical keyboard, using Shift+Insert as a paste command does not work when *lazmacropad* is running in Windows.
 
 ## 5. Accommodating Different Keypads
 
