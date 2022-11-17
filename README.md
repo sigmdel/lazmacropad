@@ -3,17 +3,19 @@
 
 **Version 0.8.2**
 
-This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) identifying the pressed key. These *messages* are translated into macros by Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert...) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
+This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) when a key on the pad is pressed. These *messages* are translated into *macros* by Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert...) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
 
 The Lazarus program also allows for editing, saving and loading macro definitions to suit any number of applications on the desktop.
 
 There is a [post about this project](https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html) which contains a draft *user manual*. It is an incomplete draft currently available in French only.
 
-**Warning:**  Version 0.8.2 has been built in Linux Mint 20.1 MATE using the GTK2 widget set. It has been tested in Linux Mint 20.1. A cursory examination shows that the binary works in Mint 21 MATE and Mint 21 Cinnamon. The program has also been compiled in Windows 10 (64 bit) and it seems to work in that environment although there are some limitations as described below. 
+Version 0.8.2 has been built in Linux Mint 20.1 MATE using the GTK2 widget set. It has been tested in Linux Mint 20.1. A cursory examination shows that the binary works in Mint 21 MATE and Mint 21 Cinnamon. The program has also been compiled in Windows 10 (64 bit) and it seems to work in that environment although there are some limitations as described below. 
+
+The latest [releases](https://github.com/sigmdel/lazmacropad/releases) contains binaries for those that want to test without compiling the program. There is no need to even build the macro keypad to test the software in Linux. Clicking on a key in the green layout window shown below simulates pressing on the corresponding key on a physical macro keypad.
 
 ![screenshot](images/screenshot_0_7_0.jpg)
 
-As of version 0.6.0, *lazmacropad* is a tray application. [Version 0.3.4](releases/tag/v0.3.4) was the last released of the project that featured a normal program.
+As of version 0.6.0, *lazmacropad* is a tray application. [Version 0.3.4](releases/tag/v0.3.4) was the last release of the project that featured a normal program.
 
 **Table of Content**
 <!-- TOC -->
@@ -174,13 +176,13 @@ Each macro must be assigned a `Paste Command` from the following list:
 
 If the last command is selected, then the macro must be an array of keyboard events. The first four paste commands then the corresponding macro is assumed to be a string that will be copied into the clipboard and primary selection. If one of the first three commands is used, then the corresponding keyboard event will be injected into the keyboard event queue and, presumably, the currently focused application will respond by pasting the clipboard or primary selection. If the `None` paste command is specified, the only thing *lazmacropad* does is to copy the macro into the clipboard.
 
-If a string macro ends with the sequence '\n' and the Shift+Insert combination is used for the paste operation then it will be executed as a command if inserted at a terminal prompt. A program could be launched or a script could be executed by pressing a single key (#).  Care must be taken when running programs, as some, such as the Arduino IDE, may seize the serial port and, as a result, *lazmacropad* freezes. 
+If a string macro ends with the sequence `\n` and the Shift+Insert combination is used for the paste operation then it will be executed as a command if inserted at a terminal prompt. A program could be launched or a script could be executed by pressing a single key (#).  Care must be taken when running programs, as some, such as the Arduino IDE, may seize the serial port and, as a result, *lazmacropad* freezes. 
 
 > ~~(#) While this works well in Mint 20.1 with GTK2, it does not seem to work at all times in Mint 21 even after latest (v0.7.4) "improvement" in handling the trailing '\n'. However these tests are being done in a virtual machine which may have some impact.~~ 
 
-> (#) This works well in Mint 20.1 using GTK2. Cursory tests of *lazmacropad* (GTK2) in a LiveUSB version of Mint 21 MATE, showed that the v0.7.4 handling of trailing '\n' when using Shift+Insert does work as expected. Why this does not work in a virtual machine is not clear.
+> (#) This works well in Mint 20.1 using GTK2. Cursory tests of *lazmacropad* (GTK2) in a LiveUSB version of Mint 21 MATE, showed that the v0.7.4 handling of trailing `\n` when using Shift+Insert does work as expected. Why this does not work in a virtual machine is not clear.
 
-There is no primary selection in Windows. While the shortcuts Ctrl+V and Shift+Insert paste the content of the clipboard work when entered using a physical keyboard, using Shift+Insert as a paste command does not work when *lazmacropad* is running in Windows.
+There is no primary selection in Windows. While the shortcuts Ctrl+V and Shift+Insert paste the content of the clipboard when entered using a physical keyboard, using Shift+Insert as a paste command does not work when *lazmacropad* is running in Windows. Ctrl+V does work however.
 
 ## 5. Accommodating Different Keypads
 
