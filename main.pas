@@ -16,6 +16,8 @@ type
     LogItem: TMenuItem;
     KeyLayoutItem: TMenuItem;
     MacroDefItem: TMenuItem;
+    ShowWindowItem: TMenuItem;
+    Separator1: TMenuItem;
     OptionsItem: TMenuItem;
     AboutItem: TMenuItem;
     Separator2: TMenuItem;
@@ -31,8 +33,10 @@ type
     procedure KeyLayoutItemClick(Sender: TObject);
     procedure AboutItemClick(Sender: TObject);
     procedure MacroDefItemClick(Sender: TObject);
+    procedure ShowWindowItemClick(Sender: TObject);
     procedure OptionsItemClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure TrayIconMenuPopup(Sender: TObject);
   private
     FIconON: TIcon;
     FIconOFF: TIcon;
@@ -254,6 +258,11 @@ begin
     Callback(rxc);
 end;
 
+procedure TMainForm.TrayIconMenuPopup(Sender: TObject);
+begin
+
+end;
+
 // <tray menu>
 
 procedure TMainForm.AboutItemClick(Sender: TObject);
@@ -284,6 +293,18 @@ end;
 procedure TMainForm.OptionsItemClick(Sender: TObject);
 begin
   OptionsForm.visible := not OptionsForm.visible;
+end;
+
+procedure TMainForm.ShowWindowItemClick(Sender: TObject);
+begin
+  if KeyLayoutItem.Checked then
+    LayoutForm.BringToFront;
+  if MacroDefItem.Checked then
+    MacroForm.BringToFront;
+  if OptionsItem.Checked then
+    OptionsForm.BringToFront;
+  if LogItem.Checked then
+    LogForm.BringToFront;
 end;
 
 // </tray menu>

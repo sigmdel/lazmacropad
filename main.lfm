@@ -9,7 +9,6 @@ object MainForm: TMainForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   ShowInTaskBar = stNever
-  LCLVersion = '2.3.0.0'
   object TrayIcon: TTrayIcon
     PopUpMenu = TrayIconMenu
     Icon.Data = {
@@ -89,6 +88,7 @@ object MainForm: TMainForm
     Top = 16
   end
   object TrayIconMenu: TPopupMenu
+    OnPopup = TrayIconMenuPopup
     Left = 88
     Top = 16
     object KeyLayoutItem: TMenuItem
@@ -110,6 +110,13 @@ object MainForm: TMainForm
       AutoCheck = True
       Caption = 'Log Window'
       OnClick = LogItemClick
+    end
+    object ShowWindowItem: TMenuItem
+      Caption = 'Show Windows'
+      OnClick = ShowWindowItemClick
+    end
+    object Separator1: TMenuItem
+      Caption = '-'
     end
     object AboutItem: TMenuItem
       Caption = 'About'
