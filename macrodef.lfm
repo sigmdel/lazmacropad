@@ -148,8 +148,12 @@ object MacroForm: TMacroForm
       OnClick = OpenMacroFileMenuItemClick
     end
     object SaveMacroFileMenuItem: TMenuItem
-      Caption = 'Save...'
+      Caption = 'Save'
       OnClick = SaveMacroFileMenuItemClick
+    end
+    object SaveMacroFileAsMenuItem: TMenuItem
+      Caption = 'Save as...'
+      OnClick = SaveMacroFileAsMenuItemClick
     end
     object CustomPasteMenuItem: TMenuItem
       Caption = 'Custom paste command...'

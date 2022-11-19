@@ -20,6 +20,7 @@ type
   TMacroForm = class(TForm)
     CustomPasteMenuItem: TMenuItem;
     EditMacroMenuItem: TMenuItem;
+    SaveMacroFileMenuItem: TMenuItem;
     ProxyEditorButton: TButton;
     DefaultMacrosMenuItem: TMenuItem;
     InsertMacroMenuItem: TMenuItem;
@@ -36,7 +37,7 @@ type
     OpenDialog1: TOpenDialog;
     EditorPopMenu: TPopupMenu;
     Separator1: TMenuItem;
-    SaveMacroFileMenuItem: TMenuItem;
+    SaveMacroFileAsMenuItem: TMenuItem;
     OpenMacroFileMenuItem: TMenuItem;
     PopMacroMenuButton: TButton;
     MacrosLabel: TLabel;
@@ -65,6 +66,7 @@ type
     procedure OpenMacroFileMenuItemClick(Sender: TObject);
     procedure PopMacroMenuButtonClick(Sender: TObject);
     procedure ReloadMacrosFileMenuItemClick(Sender: TObject);
+    procedure SaveMacroFileAsMenuItemClick(Sender: TObject);
     procedure SaveMacroFileMenuItemClick(Sender: TObject);
   private
     function FixupMacroName(const fn: string): string;
@@ -136,7 +138,7 @@ begin
      fn := MacrosFilenameLabel.hint;
      if (fn = '') or (fn = '<') then begin
         // never saved, do it now, could result in new filename
-        SaveMacroFileMenuItem.Click;
+        SaveMacroFileAsMenuItem.Click;
      end;
      fn := MacrosFilenameLabel.hint;
      if (fn = '') or (fn = '<') then begin
@@ -493,7 +495,7 @@ begin
   end;
 end;
 
-procedure TMacroForm.SaveMacroFileMenuItemClick(Sender: TObject);
+procedure TMacroForm.SaveMacroFileAsMenuItemClick(Sender: TObject);
 begin
   with SaveDialog1 do begin
     filename := MacrosFilenameLabel.hint;
@@ -516,6 +518,19 @@ begin
       UpdateGUI;
       LogForm.Log(llDebug, 'Save macros to file "%s"', [filename]);
     end;
+  end;
+end;
+
+procedure TMacroForm.SaveMacroFileMenuItemClick(Sender: TObject);
+var
+  fn: string;
+begin
+  fn := MacrosFilenameLabel.hint;
+  if (fn = '') or (fn[1] = '<') then
+    SaveMacroFileAsMenuItemClick(Sender)
+  else begin
+    SaveMacros(fn);
+    SetMacrosModified(false);
   end;
 end;
 
