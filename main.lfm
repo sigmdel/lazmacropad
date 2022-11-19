@@ -119,7 +119,7 @@ object MainForm: TMainForm
       Caption = '-'
     end
     object AboutItem: TMenuItem
-      Caption = 'About'
+      Caption = 'About...'
       OnClick = AboutItemClick
     end
     object Separator2: TMenuItem

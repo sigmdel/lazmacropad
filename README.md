@@ -1,17 +1,17 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Version 0.8.2**
+**Version 0.8.4**
 
-This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) when a key on the pad is pressed. These *messages* are translated into *macros* by Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert...) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
+This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) when a key on the pad is pressed. These *messages* are translated into *macros* by Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert...) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 it is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
 
 The Lazarus program also allows for editing, saving and loading macro definitions to suit any number of applications on the desktop.
 
 There is a [post about this project](https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html) which contains a draft *user manual*. It is an incomplete draft currently available in French only.
 
-Version 0.8.2 has been built in Linux Mint 20.1 MATE using the GTK2 widget set. It has been tested in Linux Mint 20.1. A cursory examination shows that the binary works in Mint 21 MATE and Mint 21 Cinnamon. The program has also been compiled in Windows 10 (64 bit) and it seems to work in that environment although there are some limitations as described below. 
+*lazmacropad* has been built in Linux Mint 20.1 MATE using the GTK2 widget set. It has been tested in Linux Mint 20.1. A cursory examination shows that the binary works in Mint 21 MATE and Mint 21 Cinnamon. The program has also been compiled in Windows 10 (64 bit) and it seems to work in that environment although there are some limitations as described below. 
 
-The latest [releases](https://github.com/sigmdel/lazmacropad/releases) contains binaries for those that want to test without compiling the program. There is no need to even build the macro keypad to test the software in Linux. Clicking on a key in the green layout window shown below simulates pressing on the corresponding key on a physical macro keypad.
+The latest [release](https://github.com/sigmdel/lazmacropad/releases) contains binaries for those that want to test without compiling the program. There is no need to even build the macro keypad to test the software in Linux. Clicking on a key in the green layout window shown below simulates pressing on the corresponding key on a physical macro keypad.
 
 ![screenshot](images/screenshot_0_7_0.jpg)
 

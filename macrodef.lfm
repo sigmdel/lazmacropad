@@ -164,7 +164,7 @@ object MacroForm: TMacroForm
     end
     object DefaultMacrosMenuItem: TMenuItem
       AutoCheck = True
-      Caption = 'Default definition'
+      Caption = 'Default definitions'
       OnClick = DefaultMacrosMenuItemClick
     end
   end
