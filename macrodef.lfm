@@ -151,9 +151,9 @@ object MacroForm: TMacroForm
       Caption = 'Save...'
       OnClick = SaveMacroFileMenuItemClick
     end
-    object MenuItem1: TMenuItem
+    object CustomPasteMenuItem: TMenuItem
       Caption = 'Custom paste command...'
-      OnClick = MenuItem1Click
+      OnClick = CustomPasteMenuItemClick
     end
     object Separator1: TMenuItem
       Caption = '-'
@@ -176,38 +176,42 @@ object MacroForm: TMacroForm
     OnPopup = EditorPopMenuPopup
     Left = 239
     Top = 154
+    object EditMacroMenuItem: TMenuItem
+      Caption = 'Edit...'
+      OnClick = EditMacroMenuItemClick
+    end
     object InsertMacroMenuItem: TMenuItem
-      Caption = 'Insert a macro'
+      Caption = 'Insert'
       OnClick = InsertMacroMenuItemClick
     end
     object EraseMacroMenuItem: TMenuItem
-      Caption = 'Erase the current macro'
+      Caption = 'Erase'
       OnClick = EraseMacroMenuItemClick
     end
     object DeleteMacroMenuItem: TMenuItem
-      Caption = 'Delete the current macro'
+      Caption = 'Delete'
       OnClick = DeleteMacroMenuItemClick
     end
     object Separator2: TMenuItem
       Caption = '-'
     end
     object MoveMacroUpMenuItem: TMenuItem
-      Caption = '↑ Move the current macro up'
+      Caption = '↑ Move up'
       OnClick = MoveMacroUpMenuItemClick
     end
     object MoveMacroDownMenuItem: TMenuItem
-      Caption = '↓ Move the current macro down'
+      Caption = '↓ Move down'
       OnClick = MoveMacroDownMenuItemClick
     end
     object Separator3: TMenuItem
       Caption = '-'
     end
     object ClearMacrosMenuItem: TMenuItem
-      Caption = 'Delete all macros'
+      Caption = 'Delete all'
       OnClick = ClearMacrosMenuItemClick
     end
     object ReloadMacrosFileMenuItem: TMenuItem
-      Caption = 'Reload all macros'
+      Caption = 'Reload all'
       OnClick = ReloadMacrosFileMenuItemClick
     end
   end

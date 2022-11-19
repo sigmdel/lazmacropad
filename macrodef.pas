@@ -18,7 +18,8 @@ type
   { TMacroForm }
 
   TMacroForm = class(TForm)
-    MenuItem1: TMenuItem;
+    CustomPasteMenuItem: TMenuItem;
+    EditMacroMenuItem: TMenuItem;
     ProxyEditorButton: TButton;
     DefaultMacrosMenuItem: TMenuItem;
     InsertMacroMenuItem: TMenuItem;
@@ -42,9 +43,10 @@ type
     MacrosEditor: TStringGrid;
     MacrosPopupMenu: TPopupMenu;
     SaveDialog1: TSaveDialog;
+    procedure EditMacroMenuItemClick(Sender: TObject);
     procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
-    procedure MenuItem1Click(Sender: TObject);
+    procedure CustomPasteMenuItemClick(Sender: TObject);
     procedure MoveMacroDownMenuItemClick(Sender: TObject);
     procedure MoveMacroUpMenuItemClick(Sender: TObject);
     procedure ProxyEditorButtonEnter(Sender: TObject);
@@ -94,7 +96,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, keymap, kbdev, macrolog, editmacro, custompastecommand;
+  main, keymap, kbdev, macrolog, editstringmacro, editmacro, custompastecommand;
 
 { TMacroForm }
 
@@ -107,6 +109,22 @@ begin
   SetMacrosModified(false);
   UpdateGUI;
   LogForm.Log(llDebug, 'Cleared all macros');
+end;
+
+procedure TMacroForm.CustomPasteMenuItemClick(Sender: TObject);
+var
+  VK: word;
+  shift: TKbdShift;
+begin
+  VK := CustomPaste.VK;
+  shift := CustomPaste.shift;
+  if EditCustomPasteCommand(VK, shift) then begin
+    if (VK <> CustomPaste.VK) or (shift <> CustomPaste.shift) then begin
+      CustomPaste.VK := VK;
+      CustomPaste.shift := shift;
+      SetMacrosModified(true);
+    end;
+  end;
 end;
 
 procedure TMacroForm.DefaultMacrosMenuItemClick(Sender: TObject);
@@ -154,6 +172,23 @@ begin
   SetMacrosModified(true);
   UpdateGUI;
   LogForm.Log(llDebug, 'Deleted macro %d', [ndx]);
+end;
+
+procedure TMacroForm.EditMacroMenuItemClick(Sender: TObject);
+var
+  r, c: integer;
+begin
+  c := MacrosEditor.col;
+  if c <> 1 then exit;
+  r := MacrosEditor.row;
+  if (r < 1) or (r > Config.ButtonCount) then exit;
+  if Pastes[r-1] = pcKbdEvents then
+    ProxyEditorButtonEnter(Sender)
+  else begin
+    EditStringForm.SetEditText(MacrosEditor.Cells[c, r]);
+    if EditStringForm.ShowModal = mrOk then
+      MacrosEditor.Cells[c, r] := EditStringForm.GetEditText;
+  end;
 end;
 
 procedure TMacroForm.EditorPopMenuPopup(Sender: TObject);
@@ -418,22 +453,6 @@ procedure TMacroForm.MacrosEditorSelectCell(Sender: TObject; aCol,
 begin
   CanSelect := aCol > 0;
   EditorPopMenu.AutoPopup := aCol = 1;
-end;
-
-procedure TMacroForm.MenuItem1Click(Sender: TObject);
-var
-  VK: word;
-  shift: TKbdShift;
-begin
-  VK := CustomPaste.VK;
-  shift := CustomPaste.shift;
-  if EditCustomPasteCommand(VK, shift) then begin
-    if (VK <> CustomPaste.VK) or (shift <> CustomPaste.shift) then begin
-      CustomPaste.VK := VK;
-      CustomPaste.shift := shift;
-      SetMacrosModified(true);
-    end;
-  end;
 end;
 
 procedure TMacroForm.ProxyEditorRestoreSelection(Data: PtrInt);

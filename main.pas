@@ -54,14 +54,7 @@ implementation
 {$R *.lfm}
 
 uses
-  about, macrolog, macrodef, options, keymap, serialreader, params, kbdev;
-
-function convertEscSequences(const ins: string): string;
-begin
-  result := replaceStr(ins, '\n', #13);
-  result := replaceStr(result, '\t', #9);
-  result := replacestr(result, '\\', '\');
-end;
+  about, macrolog, macrodef, editstringmacro, options, keymap, serialreader, params, kbdev;
 
 { TMainForm }
 
@@ -124,7 +117,7 @@ begin
     exit;
   end;
 
-  convertedMacro := convertEscSequences(StringMacros[index]);
+  convertedMacro := RemoveEscSequences(StringMacros[index]);
   if convertedMacro = '' then begin
     LogForm.Log(llInfo, 'Macro %d is not defined', [index]);
     exit;

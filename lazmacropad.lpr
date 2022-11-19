@@ -11,7 +11,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, main, about, keymap, macrolog, params, macrodef,
-  options, editmacro, custompastecommand;
+  options, editmacro, custompastecommand, editStringMacro;
 
 {$R *.res}
 
@@ -26,6 +26,7 @@ begin
   Application.CreateForm(TOptionsForm, OptionsForm);
   Application.CreateForm(TEditKbdMacroForm, EditKbdMacroForm);
   Application.CreateForm(TCustomPasteForm, CustomPasteForm);
+  Application.CreateForm(TEditStringForm, EditStringForm);
   Application.Run;
 end.
 
