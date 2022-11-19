@@ -155,17 +155,6 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="editmacro.lfm"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="editmacro.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="EditKbdMacroForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-      </Unit>
-      <Unit>
         <Filename Value="custompastecommand.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="CustomPasteForm"/>
@@ -179,6 +168,18 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="editStringMacro"/>
+      </Unit>
+      <Unit>
+        <Filename Value="editkbdmacro.lfm"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="editkbdmacro.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="EditKbdMacroForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="editKbdMacro"/>
       </Unit>
     </Units>
   </ProjectOptions>

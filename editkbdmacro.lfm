@@ -9,6 +9,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
   OnActivate = FormActivate
   OnCreate = FormCreate
   Position = poOwnerFormCenter
+  LCLVersion = '2.3.0.0'
   object ModifiersCheckGroup: TCheckGroup
     AnchorSideLeft.Control = KeyNameComboBox
     AnchorSideTop.Control = KeyNameComboBox

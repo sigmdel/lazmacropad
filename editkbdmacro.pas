@@ -1,4 +1,4 @@
-unit editmacro;
+unit editKbdMacro;
 
 {$mode objfpc}{$H+}
 

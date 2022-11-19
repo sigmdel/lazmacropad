@@ -96,7 +96,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, keymap, kbdev, macrolog, editstringmacro, editmacro, custompastecommand;
+  main, keymap, kbdev, macrolog, editstringmacro, editkbdmacro, custompastecommand;
 
 { TMacroForm }
 
