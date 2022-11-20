@@ -1,19 +1,35 @@
 object OptionsForm: TOptionsForm
   Left = 546
-  Height = 241
+  Height = 307
   Top = 250
-  Width = 591
+  Width = 593
   BorderIcons = [biSystemMenu]
   Caption = 'Parameters - Macro Keypad '
-  ClientHeight = 241
-  ClientWidth = 591
+  ClientHeight = 307
+  ClientWidth = 593
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnHide = FormHide
   Position = poScreenCenter
   ShowInTaskBar = stNever
-  LCLVersion = '2.3.0.0'
+  object Bevel3: TBevel
+    AnchorSideLeft.Control = Bevel1
+    AnchorSideTop.Control = Bevel2
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Bevel1
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Side = asrCenter
+    Left = 3
+    Height = 65
+    Top = 195
+    Width = 584
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 6
+    Shape = bsFrame
+  end
   object Bevel1: TBevel
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
@@ -22,28 +38,27 @@ object OptionsForm: TOptionsForm
     Left = 3
     Height = 114
     Top = 6
-    Width = 585
+    Width = 584
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 3
     BorderSpacing.Top = 6
-    BorderSpacing.Right = 3
+    BorderSpacing.Right = 6
     BorderSpacing.Bottom = 6
     Shape = bsFrame
   end
-  object Bevel3: TBevel
+  object Bevel2: TBevel
     AnchorSideLeft.Control = Bevel1
     AnchorSideTop.Control = Bevel1
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
+    AnchorSideRight.Control = Bevel1
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Side = asrCenter
     Left = 3
-    Height = 64
+    Height = 59
     Top = 128
-    Width = 585
+    Width = 584
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 8
-    BorderSpacing.Right = 3
     BorderSpacing.Bottom = 6
     Shape = bsFrame
   end
@@ -53,10 +68,11 @@ object OptionsForm: TOptionsForm
     AnchorSideTop.Side = asrBottom
     Left = 9
     Height = 30
-    Top = 200
+    Top = 268
     Width = 148
     AutoSize = True
     BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 8
     Caption = 'Restore Configuration'
     OnClick = RestoreConfigButtonClick
     TabOrder = 0
@@ -71,7 +87,7 @@ object OptionsForm: TOptionsForm
     AnchorSideBottom.Side = asrBottom
     Left = 165
     Height = 30
-    Top = 200
+    Top = 268
     Width = 130
     AutoSize = True
     BorderSpacing.Left = 8
@@ -96,6 +112,7 @@ object OptionsForm: TOptionsForm
   object DeviceEdit: TEdit
     AnchorSideLeft.Control = Label4
     AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label2
     AnchorSideTop.Side = asrBottom
     Left = 119
     Height = 27
@@ -167,13 +184,14 @@ object OptionsForm: TOptionsForm
     Width = 93
     AutoSize = True
     BorderSpacing.Left = 20
+    BorderSpacing.Right = 6
     Caption = '  Disconnect  '
     OnClick = DisconnectButtonClick
     TabOrder = 5
   end
   object Label6: TLabel
-    AnchorSideLeft.Control = Bevel3
-    AnchorSideTop.Control = Bevel3
+    AnchorSideLeft.Control = Bevel2
+    AnchorSideTop.Control = Bevel2
     Left = 9
     Height = 16
     Top = 130
@@ -183,11 +201,12 @@ object OptionsForm: TOptionsForm
     Caption = 'Log Level'
   end
   object RadioButton1: TRadioButton
-    AnchorSideTop.Control = Label6
-    AnchorSideTop.Side = asrBottom
+    AnchorSideLeft.Control = Label4
+    AnchorSideTop.Control = LogSizeSpinEdit
+    AnchorSideTop.Side = asrCenter
     Left = 33
     Height = 23
-    Top = 152
+    Top = 154
     Width = 93
     BorderSpacing.Top = 6
     Caption = 'Debug (all)'
@@ -204,7 +223,7 @@ object OptionsForm: TOptionsForm
     AnchorSideTop.Side = asrCenter
     Left = 132
     Height = 23
-    Top = 152
+    Top = 154
     Width = 98
     BorderSpacing.Left = 6
     Caption = 'Information'
@@ -219,7 +238,7 @@ object OptionsForm: TOptionsForm
     AnchorSideTop.Side = asrCenter
     Left = 236
     Height = 23
-    Top = 152
+    Top = 154
     Width = 93
     BorderSpacing.Left = 6
     Caption = 'Errors only'
@@ -236,5 +255,130 @@ object OptionsForm: TOptionsForm
     BorderSpacing.Left = 6
     BorderSpacing.Top = 2
     Caption = 'Serial Device Parameters'
+  end
+  object ColCountSpinEdit: TSpinEdit
+    AnchorSideLeft.Control = Label3
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = SetButton
+    AnchorSideTop.Side = asrCenter
+    Left = 160
+    Height = 27
+    Top = 221
+    Width = 55
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 6
+    MaxValue = 36
+    MinValue = 1
+    OnEditingDone = RowCountSpinEditEditingDone
+    TabOrder = 9
+    Value = 1
+  end
+  object RowCountSpinEdit: TSpinEdit
+    AnchorSideLeft.Control = Label7
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = ColCountSpinEdit
+    AnchorSideTop.Side = asrCenter
+    Left = 284
+    Height = 27
+    Top = 221
+    Width = 55
+    BorderSpacing.Left = 8
+    MaxValue = 36
+    MinValue = 1
+    OnEditingDone = RowCountSpinEditEditingDone
+    TabOrder = 10
+    Value = 1
+  end
+  object Label1: TLabel
+    AnchorSideLeft.Control = Bevel3
+    AnchorSideTop.Control = Bevel3
+    Left = 9
+    Height = 16
+    Top = 197
+    Width = 103
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 2
+    Caption = 'Keyboard Layout'
+  end
+  object Label3: TLabel
+    AnchorSideLeft.Control = Label4
+    AnchorSideTop.Control = ColCountSpinEdit
+    AnchorSideTop.Side = asrCenter
+    Left = 33
+    Height = 16
+    Top = 226
+    Width = 119
+    Caption = 'Number of columns'
+  end
+  object Label7: TLabel
+    AnchorSideLeft.Control = ColCountSpinEdit
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = ColCountSpinEdit
+    AnchorSideTop.Side = asrCenter
+    Left = 221
+    Height = 16
+    Top = 226
+    Width = 55
+    BorderSpacing.Left = 6
+    Caption = 'and rows'
+  end
+  object SetButton: TButton
+    AnchorSideLeft.Control = RowCountSpinEdit
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    Left = 347
+    Height = 30
+    Top = 219
+    Width = 33
+    AutoSize = True
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 6
+    Caption = 'Set'
+    OnClick = SetButtonClick
+    TabOrder = 11
+  end
+  object ResetButton: TButton
+    AnchorSideLeft.Control = SetButton
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = SetButton
+    AnchorSideTop.Side = asrCenter
+    Left = 386
+    Height = 30
+    Top = 219
+    Width = 47
+    AutoSize = True
+    BorderSpacing.Left = 6
+    Caption = 'Reset'
+    OnClick = ResetButtonClick
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 12
+  end
+  object Label8: TLabel
+    AnchorSideLeft.Control = ConnectButton
+    AnchorSideTop.Control = Label6
+    AnchorSideTop.Side = asrCenter
+    Left = 365
+    Height = 16
+    Top = 130
+    Width = 49
+    Caption = 'Log Size'
+  end
+  object LogSizeSpinEdit: TSpinEdit
+    AnchorSideLeft.Control = Label8
+    AnchorSideTop.Control = Label8
+    AnchorSideTop.Side = asrBottom
+    Left = 393
+    Height = 27
+    Top = 152
+    Width = 105
+    BorderSpacing.Left = 28
+    BorderSpacing.Top = 6
+    MaxValue = 32000
+    MinValue = 32
+    OnEditingDone = LogSizeSpinEditEditingDone
+    TabOrder = 13
+    Value = 32
   end
 end

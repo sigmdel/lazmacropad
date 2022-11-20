@@ -23,7 +23,7 @@ type
 
 CONST
   DEFAULT_CUSTOM_PASTE: TCustomPaste = (VK: VK_V; Shift: [ssShift,ssCtrl]);
-
+  SLogLevel: array[TLogLevel] of string = ('Debug', 'Info', 'Error', 'None');
 
 var
   // list of current paste commands
@@ -39,6 +39,9 @@ procedure SaveMacros(const filename: string);
 procedure LoadMacros(const filename: string);
 
 type
+  
+  { TConfig }
+
   TConfig = class
   private
     FDeviceName: string;
@@ -54,11 +57,13 @@ type
     procedure SetDefaultMacrosFile(const AValue: string);
     procedure SetDeviceName(AValue: string);
     procedure SetLogLevel(AValue: TLogLevel);
+    procedure SetLogSize(AValue: integer);
   public
     procedure ClearMacros;
     constructor Create;
-    procedure Save;
     procedure Load;
+    procedure Save;
+    function SetKeyLayout(cols, rows: integer): boolean;
     property Baud: longint read FBaud write SetBaud;
     property ButtonCount: integer read FButtonCount;
     property DefaultMacrosFile: string read FDefaultMacrosFile write SetDefaultMacrosFile;
@@ -67,17 +72,20 @@ type
     property KeyCols: integer read FKeyCols;
     property Modified: boolean read FModified write FModified;
     property LogLevel: TLogLevel read FLogLevel write SetLogLevel;
-    property LogSize: integer read FLogSize;
+    property LogSize: integer read FLogSize write SetLogSize;
   end;
 
+
+resourcestring
+  SKeyLabels = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
 var
+  KeyLabels: string = SKeyLabels;
   Config: TConfig;
   ConfigDir: string;
 
 procedure ParamsInit;
 
-const
- SLogLevel: array[TLogLevel] of string = ('Debug', 'Info', 'Error', 'None');
 
 
 implementation
@@ -264,6 +272,24 @@ begin
    LogForm.log(llInfo, 'Configuration file %s saved', [configfile]);
 end;
 
+function TConfig.SetKeyLayout(cols, rows: integer): boolean;
+begin
+  if (cols < 1) or (rows < 1) or (cols * rows > length(KeyLabels)) then begin
+    result := false;
+    exit;
+  end;
+  result := true;
+  if (FKeyCols = cols) and (FKeyRows = rows) then
+     exit;
+  FKeyCols := cols;
+  FKeyRows := rows;
+  FButtonCount := cols*rows;
+  setlength(StringMacros, config.ButtonCount);
+  setlength(KbdMacros, config.ButtonCount);
+  setlength(Pastes, config.ButtonCount);
+  FModified := true;
+end;
+
 procedure TConfig.SetBaud(AValue: longint);
 begin
   if FBaud=AValue then Exit;
@@ -293,6 +319,17 @@ procedure TConfig.SetLogLevel(AValue: TLogLevel);
 begin
   if FLogLevel=AValue then Exit;
   FLogLevel:=AValue;
+  FModified := true;
+end;
+
+procedure TConfig.SetLogSize(AValue: integer);
+begin
+  if aValue < 32 then
+     aValue := 32
+  else if aValue > 32000 then
+     aValue := 32000;
+  if FLogSize=AValue then Exit;
+  FLogSize:=AValue;
   FModified := true;
 end;
 

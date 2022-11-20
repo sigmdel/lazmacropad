@@ -27,11 +27,6 @@ type
 var
   LayoutForm: TLayoutForm;
 
-resourcestring
-  SKeyLabels = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-var
-  KeyLabels: string = SKeyLabels;
 
 function KeyLabelToInt(c: char): integer;
 

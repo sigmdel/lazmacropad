@@ -5,7 +5,8 @@ unit options;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
+  Spin;
 
 type
 
@@ -14,20 +15,33 @@ type
   TOptionsForm = class(TForm)
     BaudComboBox: TComboBox;
     Bevel1: TBevel;
+    Bevel2: TBevel;
     Bevel3: TBevel;
+    Label8: TLabel;
+    SetButton: TButton;
+    ResetButton: TButton;
     ConnectButton: TButton;
     DeviceEdit: TEdit;
     DisconnectButton: TButton;
+    Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
+    Label7: TLabel;
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     RadioButton3: TRadioButton;
     RestoreConfigButton: TButton;
     SaveConfigButton: TButton;
+    ColCountSpinEdit: TSpinEdit;
+    RowCountSpinEdit: TSpinEdit;
+    LogSizeSpinEdit: TSpinEdit;
     procedure BaudComboBoxChange(Sender: TObject);
+    procedure LogSizeSpinEditEditingDone(Sender: TObject);
+    procedure SetButtonClick(Sender: TObject);
+    procedure ResetButtonClick(Sender: TObject);
     procedure ConnectButtonClick(Sender: TObject);
     procedure DeviceEditEditingDone(Sender: TObject);
     procedure DisconnectButtonClick(Sender: TObject);
@@ -36,8 +50,13 @@ type
     procedure FormHide(Sender: TObject);
     procedure LogLevelButtonsChange(Sender: TObject);
     procedure RestoreConfigButtonClick(Sender: TObject);
+    procedure RowCountSpinEditEditingDone(Sender: TObject);
     procedure SaveConfigButtonClick(Sender: TObject);
   private
+    FOldCol: integer;
+    FOldRow: integer;
+    FCountsChanged: boolean;
+    function SetButtonCount: boolean;
     procedure UpdateGUI;
   public
   end;
@@ -50,7 +69,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, macrolog, serialreader, params;
+  main, macrolog, serialreader, params, keymap;
 
 { TOptionsForm }
 
@@ -66,6 +85,26 @@ begin
      Config.Baud := newbaud;
      //Log(llInfo, 'New baud, %d. Connection to %s closed. Press [Connect] button to establish connection.', [Baud, DeviceName]);
      LogForm.Log(llInfo, 'New baud, %d. Press [Connect] button to establish connection with this new value.', [Config.Baud]);
+  end;
+end;
+
+procedure TOptionsForm.LogSizeSpinEditEditingDone(Sender: TObject);
+begin
+  Config.LogSize := LogSizeSpinEdit.value;
+  LogSizeSpinEdit.value := Config.LogSize; // just in case out of bounds
+end;
+
+procedure TOptionsForm.SetButtonClick(Sender: TObject);
+begin
+  SetButtonCount;
+end;
+
+procedure TOptionsForm.ResetButtonClick(Sender: TObject);
+begin
+  if (FOldCol > 0) and (FOldRow > 0) then begin
+    ColCountSpinEdit.Value := FOldCol;
+    RowCountSpinEdit.Value := FOldRow;
+    SetButtonCount;
   end;
 end;
 
@@ -123,12 +162,54 @@ end;
 procedure TOptionsForm.RestoreConfigButtonClick(Sender: TObject);
 begin
   Config.Load;
-  //UpdateGui;
+  UpdateGui;
+  SetButtonCount;
+end;
+
+procedure TOptionsForm.RowCountSpinEditEditingDone(Sender: TObject);
+begin
+  FCountsChanged := (RowCountSpinEdit.Value <> Config.KeyRows)
+    or (ColCountSpinEdit.Value <> Config.KeyCols);
 end;
 
 procedure TOptionsForm.SaveConfigButtonClick(Sender: TObject);
 begin
+  if FCountsChanged and not SetButtonCount then
+    exit;
   Config.Save;
+end;
+
+function TOptionsForm.SetButtonCount: boolean;
+var
+  r, c: integer;
+  vis: boolean;
+begin
+  r := RowCountSpinEdit.Value;
+  c := ColCountSpinEdit.Value;
+  if (r = Config.KeyRows) and (c = Config.KeyCols) then begin
+    FCountsChanged := false;
+    result := true;
+  end;
+  FOldCol := Config.KeyCols;
+  FOldRow := Config.KeyRows;
+  ResetButton.Hint := Format('%d x %d', [FOldCol, FOldRow]);
+  if not Config.SetKeyLayout(c, r) then begin
+    result := false;
+    FCountsChanged := true;
+    if (c < 1) or (r < 1) then
+      LogForm.Log(llError, 'Must have at least one row and one column of buttons')
+    else
+      LogForm.Log(llError, 'The maximum number of buttons is %d', [length(KeyLabels)]);
+  end
+  else begin
+    FCountsChanged := false;
+    vis := LayoutForm.visible;
+    freeandnil(LayoutForm);
+    Application.CreateForm(TLayoutForm, LayoutForm);
+    LayoutForm.visible := vis;
+    mainForm.KeyLayoutItem.Checked := vis;
+    result := true;
+  end;
 end;
 
 procedure TOptionsForm.UpdateGUI;
@@ -138,6 +219,9 @@ begin
   RadioButton1.checked := Config.logLevel = llDebug;
   RadioButton2.checked := Config.logLevel = llInfo;
   RadioButton3.checked := Config.logLevel = llError;
+  LogSizeSpinEdit.value := Config.LogSize;
+  ColCountSpinEdit.value := Config.KeyCols;
+  RowCountSpinEdit.value := Config.KeyRows;
 end;
 
 end.
