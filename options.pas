@@ -110,10 +110,8 @@ end;
 
 procedure TOptionsForm.ConnectButtonClick(Sender: TObject);
 begin
-  if OpenSerial then begin
-    MainForm.Timer1.Enabled := true;
-    MainForm.SetTrayIcon(true);
-  end;
+  MainForm.Timer1.Enabled := OpenSerial;
+  MainForm.SetTrayIcon(MainForm.Timer1.Enabled);
 end;
 
 procedure TOptionsForm.DeviceEditEditingDone(Sender: TObject);
@@ -123,7 +121,7 @@ begin
     MainForm.SetTrayIcon(false);
     MainForm.Timer1.Enabled := false;
     Config.DeviceName := DeviceEdit.text;
-    LogForm.Log(llInfo, 'New serial device, %s, not opened. Press [Connect] button to establish connection', [Config.DeviceName]);
+    LogForm.Log(llInfo, 'New serial device: %s. Press [Connect] button to establish connection', [Config.DeviceName]);
   end;
 end;
 

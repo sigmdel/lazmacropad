@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Menus,
-  MouseAndKeyInput, Clipbrd, StrUtils, LCLType;
+  MouseAndKeyInput, Clipbrd, LCLType;
 
 type
 
@@ -36,7 +36,7 @@ type
     procedure ShowWindowItemClick(Sender: TObject);
     procedure OptionsItemClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
-    procedure TrayIconMenuPopup(Sender: TObject);
+    procedure TrayIconClick(Sender: TObject);
   private
     FIconON: TIcon;
     FIconOFF: TIcon;
@@ -203,7 +203,7 @@ begin
   FIconON.LoadFromResourceName(Hinstance,  'LAZMACROPAD_ON');
   FIconOFF := TIcon.Create;
   FIconOFF.LoadFromResourceName(Hinstance,  'LAZMACROPAD_OFF');
-  SetTrayIcon(false);
+  //SetTrayIcon(false); // don't do this to get a fighting chance at showing the correct icon!
 end;
 
 procedure TMainForm.FormActivate(Sender: TObject);
@@ -217,12 +217,12 @@ begin
   // key map
   Application.CreateForm(TLayoutForm, LayoutForm);
 
-  Timer1.Enabled := OpenSerial;
-
   if Config.loglevel >= llError then
     LogForm.log(Config.loglevel, 'Change the log level in parameters to see more information.');
   MacroForm.SetMacrosFilename(Config.DefaultMacrosFile);
   MacroForm.SaveDialog1.InitialDir := configdir;
+  Timer1.Enabled := OpenSerial;
+  SetTrayIcon(Timer1.Enabled);
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -237,9 +237,7 @@ begin
     TrayIcon.Icon.Assign(FIconON)
   else
     TrayIcon.Icon.Assign(FIconOFF);
-  repeat
-    application.processmessages;
-  until TrayIcon.Show;
+  TrayIcon.InternalUpdate;  // "always a safe function to call, regardless of the widgetset."
 end;
 
 procedure TMainForm.Timer1Timer(Sender: TObject);
@@ -251,10 +249,11 @@ begin
     Callback(rxc);
 end;
 
-procedure TMainForm.TrayIconMenuPopup(Sender: TObject);
+procedure TMainForm.TrayIconClick(Sender: TObject);
 begin
-
+  TrayIcon.PopUpMenu.PopUp;
 end;
+
 
 // <tray menu>
 
