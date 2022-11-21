@@ -1,7 +1,7 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Version 0.8.4**
+**Version 0.8.6**
 
 This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) when a key on the pad is pressed. These *messages* are translated into *macros* by Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert...) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 it is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
 
@@ -133,7 +133,7 @@ The source was compiled and tested with two versions of Lazarus in Windows 10:
 - stable: Lazarus 2.2.4 (rev lazarus_2_2_4) FPC 3.2.2 i386-win32-win32/win64
 - trunk: Lazarus 2.3.0 (rev main-2_3-2734-g2f18817fd8) FPC 3.3.1 i386-win32-win32/win64
 
-It is recommended to use the trunk version because cosmetic problems were encountered with the stable version in the macro definition window. Since then, a string grid is used instead of a value list editor so the difference between versions might be moot. 
+It is recommended to use the trunk version because cosmetic problems were encountered with the stable version in the macro definition window. 
 
 Note: The Windows version of the `Serial` unit does have a serial connection status variable. Consequently, log messages warning of a lost connection will not appear when running in Windows.
 
@@ -150,6 +150,8 @@ The strings are UTF8 and can contain 3 escape sequences
   -  `\t` will be converted to #9  (TAB)
   -  `\\` will be converted to `\`
 
+If a string macro is edited with the dedicated multiline editor, the latter will take care of encoding the RETURN, TAB and backslash. This editor can be launched from the context menu available when a string macro is selected.
+
 Appending a `\n` sequence to a macro to be used in the terminal will mean that it will be executed as soon as the corresponding key is pressed. This could be used to start a program. Be careful, some programs such as the Arduino IDE can grab the serial port and, as a result, *lazmacropad* freezes.
 
 Macros 0 and 1, in the macro definition window shown in the image below, both inject `hello`  into the currently focused application on the computer running *lazmacropad*. 
@@ -160,7 +162,7 @@ Macros 0 and 1, in the macro definition window shown in the image below, both in
 
   1. Each key down event (↓) must be followed by a corresponding key up event (↑) otherwise the operating system will generate a sequence of autorepeat key down events. The same applies to the Shift, Ctrl and Alt modifier keys. Macros 2 and 3 are similar to the first two except that they insert the uppercase string `HELLO` followed by a carriage return. Note how the Shift modifier was activated with the `H` key and deactivated with the `O` key, just as most would keep the shift key depressed when entering a few uppercase characters at a keyboard.
 
-  1. The virtual keyboard events injected into the keyboard event queue will be translated according to the keyboard layout in current use. So if the layout is the ISO French AZERTY keyboard, then the sequence `(↓ 2)(↑ 2)(↓ 7)(↑ 7)` will insert `éè` in the focused application. How this is done with an ANSI US (QWERTY) keyboard is not at all clear. Because the `Alt Gr` key is not yet implemented in *lazmacropad*, it is not possible to copy `ô` or `ë` etc. into the focused application with a keyboard event macro. That may never be done as it is easy to do with a string macro which was the primary reason for creating this project.
+  1. The virtual keyboard events injected into the keyboard event queue will be translated according to the keyboard layout in current use. So if the layout is the ISO French AZERTY keyboard, then the sequence `(↓ 2)(↑ 2)(↓ 7)(↑ 7)` will insert `éè` in the focused application. How this is done with an ANSI US (QWERTY) keyboard is not at all clear. Because the `Alt Gr` key is not yet implemented in *lazmacropad*, it is not possible to copy `ô` or `ë` etc. into the focused application with a keyboard event macro even with an AZERTY keyboard. That may never be done as it is easy to do with a string macro which was the primary reason for creating this project.
 
 ## 4. Clipboards and Paste Commands
 
@@ -186,17 +188,9 @@ There is no primary selection in Windows. While the shortcuts Ctrl+V and Shift+I
 
 ## 5. Accommodating Different Keypads
 
-With version 0.7.2, *lazmacropad* can handle keypads with up to 36 keys. The number of rows and columns must be specified in the configuration file. Open the log and parameters windows. Make sure that the `Log Level` is set to `Information` or `Debug` and then click on the `Save Configuration` button. The full path of the configuration file, `options.ini`, will be displayed in the log. Close *lazmacropad*, the edit the `[keypad]` section of the configuration file, specifying the number of columns and rows in the key matrix.
+With version 0.7.2, *lazmacropad* can handle keypads with up to 36 keys. Starting with version 0.8.6 it is no longer necessary to edit the configuration file manually to set the number of rows and columns. This can be done in the `Parameters` window.  Adjustments in those values will be reflected as soon as they are set.
 
-```ini
-[keypad]
-cols=3
-rows=5
-```
-
-The default values are 4 columns and 4 rows as before. Some changes had to be made to Arduino sketch which means that the modified version will have to be uploaded to the microcontroller. The 36 key limit is arbitrary and should one wanted to have an even bigger keypad then all that needs to be done is to add characters to the SKeyLabels resource string  in `keymap.pas` and adjust the `hexaKeys` array of chars in the Arduino sketch in a similar fashion. In any case, other values must be adjusted in the Arduino sketch: `ROWS`, `COLS` and the byte arrays `rowPins` and `colPins`.
-
-When *lazmacropad* is restarted, it will display the correct number of macros and the keymap will be adjusted to reflect the keypad matrix size. 
+The default values are 4 columns and 4 rows. There is a 36 key limit which is arbitrary. Should one wanted to have an even bigger keypad then additional character *messages* to the SKeyLabels resource string  in `params.pas` and the `hexaKeys` array of chars in the Arduino sketch has to be adjusted as a consequence. Other values must also be adjusted in the Arduino sketch: `ROWS`, `COLS` and the byte arrays `rowPins` and `colPins`.
 
 ## 6. Acknowledgment
 
