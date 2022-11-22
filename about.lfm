@@ -1,12 +1,12 @@
 object AboutForm: TAboutForm
   Left = 471
-  Height = 246
+  Height = 297
   Top = 250
-  Width = 385
+  Width = 400
   BorderStyle = bsDialog
   Caption = 'About - Macro Keypad'
-  ClientHeight = 246
-  ClientWidth = 385
+  ClientHeight = 297
+  ClientWidth = 400
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
   Position = poMainFormCenter
@@ -296,9 +296,10 @@ object AboutForm: TAboutForm
     Stretch = True
   end
   object Label1: TLabel
+    AnchorSideTop.Control = Image1
     Left = 160
     Height = 22
-    Top = 16
+    Top = 13
     Width = 61
     Caption = 'Label1'
     Font.Height = -19
@@ -308,31 +309,38 @@ object AboutForm: TAboutForm
   object Button1: TButton
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
-    Left = 155
-    Height = 25
-    Top = 208
+    AnchorSideTop.Control = Label6
+    AnchorSideTop.Side = asrBottom
+    Left = 163
+    Height = 34
+    Top = 252
     Width = 75
+    BorderSpacing.Top = 15
+    BorderSpacing.Bottom = 10
     Caption = 'Close'
     ModalResult = 11
     TabOrder = 0
   end
   object Label2: TLabel
-    AnchorSideLeft.Control = Label1
+    AnchorSideLeft.Control = Label11
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
-    Left = 160
-    Height = 1
-    Top = 50
-    Width = 1
-    BorderSpacing.Top = 12
+    Left = 216
+    Height = 16
+    Top = 45
+    Width = 44
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 10
+    Caption = 'version'
   end
   object Label3: TLabel
     AnchorSideLeft.Control = Image1
-    AnchorSideTop.Control = Image1
+    AnchorSideTop.Control = Bevel1
     AnchorSideTop.Side = asrBottom
     Left = 15
     Height = 16
-    Top = 140
+    Top = 197
     Width = 47
     BorderSpacing.Top = 12
     Caption = 'Source: '
@@ -346,7 +354,7 @@ object AboutForm: TAboutForm
     Left = 68
     Height = 16
     Hint = 'https://github.com/sigmdel/lazmacropad'
-    Top = 140
+    Top = 197
     Width = 141
     BorderSpacing.Left = 6
     Caption = 'lazmacropad on GitHub'
@@ -362,9 +370,9 @@ object AboutForm: TAboutForm
     AnchorSideTop.Side = asrBottom
     Left = 15
     Height = 16
-    Top = 168
+    Top = 221
     Width = 97
-    BorderSpacing.Top = 12
+    BorderSpacing.Top = 8
     Caption = 'Documentation:'
     ParentFont = False
   end
@@ -377,7 +385,7 @@ object AboutForm: TAboutForm
     Left = 118
     Height = 16
     Hint = 'https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html'
-    Top = 168
+    Top = 221
     Width = 221
     BorderSpacing.Left = 6
     Caption = 'post (in French) on sigmdel.ca/michel'
@@ -388,14 +396,129 @@ object AboutForm: TAboutForm
     OnClick = Label4Click
   end
   object Label7: TLabel
-    AnchorSideLeft.Control = Label2
-    AnchorSideTop.Control = Label2
+    AnchorSideLeft.Control = Label12
+    AnchorSideTop.Control = buildDateLabel
     AnchorSideTop.Side = asrBottom
     Left = 160
     Height = 16
-    Top = 63
+    Top = 89
     Width = 155
-    BorderSpacing.Top = 12
+    BorderSpacing.Top = 6
     Caption = '© 2022, Michel Deslierres'
+  end
+  object Label8: TLabel
+    AnchorSideLeft.Control = Label9
+    AnchorSideTop.Control = Label9
+    AnchorSideTop.Side = asrBottom
+    Left = 160
+    Height = 16
+    Top = 133
+    Width = 100
+    BorderSpacing.Top = 6
+    Caption = 'Lazarus Version: '
+  end
+  object lazVersionLabel: TLabel
+    AnchorSideLeft.Control = Label8
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label8
+    AnchorSideTop.Side = asrCenter
+    Left = 268
+    Height = 16
+    Top = 133
+    Width = 95
+    BorderSpacing.Left = 8
+    Caption = 'lazVersionLabel'
+  end
+  object buildDateLabel: TLabel
+    AnchorSideLeft.Control = Label12
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label12
+    AnchorSideTop.Side = asrCenter
+    Left = 234
+    Height = 16
+    Top = 67
+    Width = 27
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 6
+    Caption = 'date'
+  end
+  object Label9: TLabel
+    AnchorSideLeft.Control = Label7
+    AnchorSideTop.Control = Label7
+    AnchorSideTop.Side = asrBottom
+    Left = 160
+    Height = 16
+    Top = 111
+    Width = 121
+    BorderSpacing.Top = 6
+    Caption = 'Free Pascal Version: '
+  end
+  object fpcVersionLabel: TLabel
+    AnchorSideLeft.Control = Label9
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label9
+    AnchorSideTop.Side = asrCenter
+    Left = 289
+    Height = 16
+    Top = 111
+    Width = 97
+    BorderSpacing.Left = 8
+    Caption = 'fpcVersionLabel'
+  end
+  object Label10: TLabel
+    AnchorSideLeft.Control = Label8
+    AnchorSideTop.Control = Label8
+    AnchorSideTop.Side = asrBottom
+    Left = 160
+    Height = 16
+    Top = 155
+    Width = 59
+    BorderSpacing.Top = 6
+    Caption = 'Platform: '
+  end
+  object platformLabel: TLabel
+    AnchorSideLeft.Control = Label10
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label10
+    AnchorSideTop.Side = asrCenter
+    Left = 227
+    Height = 16
+    Top = 155
+    Width = 86
+    BorderSpacing.Left = 8
+    Caption = 'platformLabel'
+  end
+  object Bevel1: TBevel
+    AnchorSideLeft.Control = Image1
+    AnchorSideTop.Control = Label10
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 15
+    Height = 2
+    Top = 183
+    Width = 347
+    BorderSpacing.Top = 12
+    BorderSpacing.Right = 15
+    Shape = bsTopLine
+  end
+  object Label11: TLabel
+    AnchorSideLeft.Control = Label1
+    Left = 160
+    Height = 16
+    Top = 45
+    Width = 48
+    Caption = 'Version:'
+  end
+  object Label12: TLabel
+    AnchorSideLeft.Control = Label11
+    AnchorSideTop.Control = Label11
+    AnchorSideTop.Side = asrBottom
+    Left = 160
+    Height = 16
+    Top = 67
+    Width = 66
+    BorderSpacing.Top = 6
+    Caption = 'Build Date:'
   end
 end
