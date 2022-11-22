@@ -40,17 +40,17 @@ As of version 0.6.0, *lazmacropad* is a tray application. [Version 0.3.4](releas
 
 Only three items are needed to build a basic macro keypad:
 
-  1. A switch matrix. The program assumes that the key pad is composed of 16 switches arranged in a 4 x 4 matrix.
+  1. An Arduino Nano R3. This is an older, smaller, Arduino board based on the ATmega328P microcontroller. It has a Mini-B USB socket, but some clones come with a Micro or Type-C USB connector.
 
-  2. An Arduino Nano R3. This is an older, smaller, Arduino board based on the ATmega328P microcontroller. It has a Mini-B USB socket, but some clones come with a Micro or Type-C USB connector.
+  2. A switch matrix. The program assumes that the key pad is composed of 16 switches arranged in a 4 x 4 matrix. The Arduino sketch on the Nano and *lazmacropad* can handle keypads with up to 36 keys (and more with changes to the code). Of course, a 36 key array requires a minimum of 12 I/O pins. Not all microcontrollers have so many I/O pins, but the Nano does have 18 digital I/O pins plus the Rx and Tx pins for the serial connection.
 
   3. An appropriate USB cable to connect the Nano to a desktop or portable computer.
 
-Basically, any development board with 8 digital I/O pins and a serial port could be used, but the Nano and the readily available 4x4 tactile push button matrix shown below are very easily connected to each other.
+The Nano and the readily available 4x4 tactile push button matrix shown below are very easily connected to each other.
 
 ![hardware](images/macrokeypad.jpg)
 
-Note that the Nano is upside down (microcontroller is on the hidden side of the board) so that the USB cable will go off to the right. The Nano could be connected facing in the other direction by flipping it right side up if it is more convenient to orient the cable towards the left. The character transmitted over the serial port as of each key is pressed and the mapping of the Nano I/O pins should be modified in the Arduino sketch running on the Nano. 
+Note that the Nano is upside down (microcontroller is on the hidden side of the board) so that the USB cable will go off to the right. The Nano could be connected facing in the other direction by flipping it right side up if it is more convenient to orient the cable towards the left. The character transmitted over the serial port as each key is pressed and the mapping of the Nano I/O pins in the Arduino sketch should be modified according to the number rows and columns of keys on the keypad and its desired orientation. 
 
 ## 2. Source Code and Prerequisites
 
@@ -61,7 +61,7 @@ Note that the Nano is upside down (microcontroller is on the hidden side of the 
 
 The source code of the *lazmacropad* object pascal program is in the root directory of the repository. The [images](images/) directory contains the three images shown on this page. None are required to compile the program. 
 
-The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) unit is used to generate the desired paste keyboard shortcut. The unit is found in the `lazmouseandkeyinput.lpk` non-visual package. That package is in the `$(LAZARUS)/components/mouseandkeyinput` directory. Load the package file into the Lazarus IDE and compile it. Add `lazmouseandkeyinput` to the `Required Packages` in the `Project Inspector` window (which is opened from the `Project` menu in the IDE).
+The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) unit is used to inject key press and releasse events into the operating system keyboard driver. The unit is found in the `lazmouseandkeyinput.lpk` non-visual package. That package is in the `$(LAZARUS)/components/mouseandkeyinput` directory. Load the package file into the Lazarus IDE and compile it. Add `lazmouseandkeyinput` to the `Required Packages` in the `Project Inspector` window (which is opened from the `Project` menu in the IDE).
 
 ### 2.1. Linux Requirements
 
@@ -101,7 +101,7 @@ Chances are the program will work, except in some *older* distributions. An unen
 
 #### 2.1.3. Serial USB Device Problem in Mint 21 and Ubuntu 22.04
 
-The serial device, usually `dev ttyUSB0` on my systems, would not be created on connection of the Nano to the desktop in Mint 21 and Ubuntu 22.04. That was unusual because the USB device was found.
+The serial device, usually `/dev/ttyUSB0` on my systems, would not be created on connection of the Nano to the desktop in Mint 21 and Ubuntu 22.04. That was unusual because the USB device was found.
 
 ```bash
 michel@hp:~$ lsusb
@@ -122,9 +122,9 @@ There are two ways to "resolve" the situation: disable the service as explained 
 
 #### 2.1.4. Compiler Versions and Linux Widgetsets
 
-The program was developed in Linux Mint 20.1 Mate using Lazarus 2.3.0 (rev main-2_3-1602-gdb285860e3) FPC 3.3.1 x86_64-linux-gtk2. The resulting GTK2 binary runs without limitations in Linux Mint 20.1 and Mint 21.
+The program was developed in Linux Mint 20.1 Mate using Lazarus 2.3.0 (rev main-2_3-1602-gdb285860e3) FPC 3.3.1 x86_64-linux-gtk2. The resulting GTK2 binary runs without limitations in Linux Mint 20.1 and Mint 21. The latest (2022-11-21) Linux binary was compiled with revision main-2_3-2897-gecf49109b1, but the older version would work just as well.
 
-The source code was also compiled in Mint 21 using a slightly more recent, trunk version, of the compiler: Lazarus 2.3.0 (rev main-2_3-2735-g4628b33d4a) FPC 3.3.1 x86_64-linux-qt5. The target widget toolkit was set to Qt5 instead of the "default" GTK2 widget set. This required installing `libqt5pas1_2.10xxxx` and `libqt5pas-dev_2.10xxxx` libraries by David Bannon (Davo aka dbannon on the Lazarus forum) from his [Github repository](https://github.com/davidbannon/libqt5pas) instead of the `libqt5pas` and `libqt5pas-dev` from the Debian repository. The program compiled for that widget set does work when using Ctrl+V as the paste shortcut, but pasting macros with the Shift+Insert shortcut fails. Consequently, until a solution is found, a Qt5 version of the program will not be released.
+The source code was also compiled in Mint 21 using the QT5 widget set instead of the "default" GTK2 widget set. This required installing `libqt5pas1_2.10xxxx` and `libqt5pas-dev_2.10xxxx` libraries by David Bannon (Davo aka dbannon on the Lazarus forum) from his [Github repository](https://github.com/davidbannon/libqt5pas) instead of the `libqt5pas` and `libqt5pas-dev` from the Debian repository. The program compiled for that widget set does work when using Ctrl+V as the paste shortcut, but pasting macros with the Shift+Insert shortcut fails. Consequently, until a solution is found, a Qt5 version of the program will not be released.
 
 ### 2.2. Windows Requirements
 
@@ -135,14 +135,14 @@ The source was compiled and tested with two versions of Lazarus in Windows 10:
 
 It is recommended to use the trunk version because cosmetic problems were encountered with the stable version in the macro definition window. 
 
-Note: The Windows version of the `Serial` unit does have a serial connection status variable. Consequently, log messages warning of a lost connection will not appear when running in Windows.
+Note: The Windows version of the `Serial` unit does not have a serial connection status variable. Consequently, log messages warning of a lost connection will not appear when running in Windows.
 
 ## 3. Macros
 
 There are two types of macros:
 
-  - Strings that are copied to the clipboard and pasted into an application.
-  - Arrays of keyboard events
+  - Strings that are copied to the clipboard and, from there, pasted into an application.
+  - Arrays of keyboard events directly injected in the operating system keyboard driver.
 
 The strings are UTF8 and can contain 3 escape sequences
 
@@ -166,9 +166,9 @@ Macros 0 and 1, in the macro definition window shown in the image below, both in
 
 ## 4. Clipboards and Paste Commands
 
-The GNOME terminal emulator and its forks such as the MATE terminal do not support the Ctrl+C and Ctrl+V key combinations, which makes sense since Ctrl+C is used to cancel a running program. On the other hand, it is possible to paste the primary selection in the terminal with Shift+Insert or Shift+Ctrl+V. Consequently, a string macro is copied into the clipboard, *lazmacropad* also copies it into the primary selection. This is pretty much the behaviour of many applications (Geany, VSCodium, VS Code, GNote, LibreOffice Writer and the Lazarus IDE editor,... ), which synchronize the two mechanisms by pasting selected text with Ctrl+V or Shift+Insert.
+The GNOME terminal emulator and its forks such as the MATE terminal do not support the clipboard shortcuts Ctrl+C and Ctrl+V, which makes sense since Ctrl+C is used to cancel a running program. On the other hand, it is possible to paste the primary selection in the terminal with Shift+Insert or Shift+Ctrl+V. Consequently, when a string macro is copied into the clipboard, *lazmacropad* also copies it into the primary selection. This is pretty much the behaviour of many applications (Geany, VSCodium, VS Code, GNote, LibreOffice Writer and the Lazarus IDE editor,... ), which synchronize the two mechanisms so that  pasting selected text can be done with Ctrl+V or Shift+Insert.
 
-Each macro must be assigned a `Paste Command` from the following list:
+Each macro must be assigned a `Paste Command` from the following list of keyboard shortcuts:
 
   1. `Ctrl+V`              
   2. `Shift+Insert`
@@ -176,7 +176,7 @@ Each macro must be assigned a `Paste Command` from the following list:
   4. `None`
   5. `Kbd Events`
 
-If the last command is selected, then the macro must be an array of keyboard events. The first four paste commands then the corresponding macro is assumed to be a string that will be copied into the clipboard and primary selection. If one of the first three commands is used, then the corresponding keyboard event will be injected into the keyboard event queue and, presumably, the currently focused application will respond by pasting the clipboard or primary selection. If the `None` paste command is specified, the only thing *lazmacropad* does is to copy the macro into the clipboard.
+Actually, the last two choices are not keyboard shortcuts. If the last command is selected, then the macro must be an array of keyboard events directly bypassing the clipboard and primary selection altogether. With the first four paste commands then the corresponding macro is assumed to be a string that gets copied into the clipboard and primary selection. If `None` is selected as a paste command then nothing else is done, while for the first three commands, then the corresponding keyboard event will be injected into the keyboard event queue and, presumably, the currently focused application will respond by pasting the clipboard or primary selection. 
 
 If a string macro ends with the sequence `\n` and the Shift+Insert combination is used for the paste operation then it will be executed as a command if inserted at a terminal prompt. A program could be launched or a script could be executed by pressing a single key (#).  Care must be taken when running programs, as some, such as the Arduino IDE, may seize the serial port and, as a result, *lazmacropad* freezes. 
 
