@@ -122,7 +122,7 @@ There are two ways to "resolve" the situation: disable the service as explained 
 
 #### 2.1.4. Compiler Versions and Linux Widgetsets
 
-The program was developed in Linux Mint 20.1 Mate using Lazarus 2.3.0 (rev main-2_3-1602-gdb285860e3) FPC 3.3.1 x86_64-linux-gtk2. The resulting GTK2 binary runs without limitations in Linux Mint 20.1 and Mint 21. The latest (2022-11-21) Linux binary was compiled with revision main-2_3-2897-gecf49109b1, but the older version would work just as well.
+The program was developed in Linux Mint 20.1 Mate using Lazarus 2.3.0 / FPC 3.3.1 / x86_64-linux-gtk2. The resulting GTK2 binary runs without limitations in Linux Mint 20.1 and Mint 21. The [2022-11-26 Linux binary](https://github.com/sigmdel/lazmacropad/releases/tag/v0.8.6) was compiled with revision main-2_3-2933-g3bdcb55eb2. The no longer available 2022-11-21 Linux binary compiled with revision main-2_3-2897-gecf49109b1 introduced a bug. The problem, which would manifest itself when closing *lazmacropad* if changes had been made to the macro file, had not existed in binaries compiled with previous revisions of Lazarus.
 
 The source code was also compiled in Mint 21 using the QT5 widget set instead of the "default" GTK2 widget set. This required installing `libqt5pas1_2.10xxxx` and `libqt5pas-dev_2.10xxxx` libraries by David Bannon (Davo aka dbannon on the Lazarus forum) from his [Github repository](https://github.com/davidbannon/libqt5pas) instead of the `libqt5pas` and `libqt5pas-dev` from the Debian repository. The program compiled for that widget set does work when using Ctrl+V as the paste shortcut, but pasting macros with the Shift+Insert shortcut fails. Consequently, until a solution is found, a Qt5 version of the program will not be released.
 
@@ -135,7 +135,9 @@ The source was compiled and tested with two versions of Lazarus in Windows 10:
 
 It is recommended to use the trunk version because cosmetic problems were encountered with the stable version in the macro definition window. 
 
-Note: The Windows version of the `Serial` unit does not have a serial connection status variable. Consequently, log messages warning of a lost connection will not appear when running in Windows.
+Notes: 
+- The Windows version of the `Serial` unit does not have a serial connection status variable. Consequently, log messages warning of a lost connection will not appear when running in Windows.
+- No tests for the Linux bug described in the previous section have been done.
 
 ## 3. Macros
 
