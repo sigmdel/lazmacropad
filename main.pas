@@ -179,10 +179,8 @@ begin
   if macrosmodified then begin
     mr := MessageDlgPos('Save the modified macro definitions before closing.',
       mtConfirmation, [mbYes, mbNo, mbCancel], 0, x, y);
-    if (mr = mrYes) then begin
-      MacroForm.SaveMacrosBeforeQuitting;
-      exit;
-    end;
+    if (mr = mrYes) then
+      mr := MacroForm.SaveMacrosFile;
     if (mr = mrCancel) then
       exit;
   end;

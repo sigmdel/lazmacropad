@@ -74,8 +74,9 @@ type
     procedure SetMacrosModified(value: boolean);
     procedure ProxyEditorRestoreSelection(Data: PtrInt);
   public
-    procedure SaveMacrosQuitting(var Msg: TLMessage); message LM_SAVE_MACROS_QUITTING;
-    procedure SaveMacrosBeforeQuitting;
+      // returns mrOk if saved, or not saved with user confirmation
+      // returns mrCancel if user canceled save operation
+    function SaveMacrosFile: integer;
     procedure SetMacrosFilename(const value: string);
   end;
 
@@ -534,27 +535,22 @@ begin
   end;
 end;
 
-procedure TMacroForm.SaveMacrosBeforeQuitting;
-begin
-  PostMessage(self.handle, LM_SAVE_MACROS_QUITTING, 0, 0);
-end;
-
-procedure TMacroForm.SaveMacrosQuitting(var Msg: TLMessage);
+function TMacroForm.SaveMacrosFile: integer;
 var
   mr: TModalResult;
   x, y: integer;
 begin
+  result := mrOk;
   SaveMacroFileMenuItemClick(nil);
   if macrosmodified then begin
+    // file not saved
     x := left + 100;
     y := top + 100;
     mr := MessageDlgPos('Close the application even if the modified macro definitions will be lost?',
       mtWarning, [mbYes, mbNo], 0, x, y);
     if (mr = mrNo) then
-      exit;
-    SetMacrosmodified(false);
+      result := mrCancel;
   end;
-  MainForm.close;
 end;
 
 procedure TMacroForm.SetMacrosFilename(const value: string);
