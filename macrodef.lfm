@@ -59,7 +59,7 @@ object MacroForm: TMacroForm
         ButtonStyle = cbsPickList
         MaxSize = 80
         PickList.Strings = (
-          'Ctlr+V'
+          'Ctrl+V'
           'Shift+Insert'
           'Custom'
           'None'
