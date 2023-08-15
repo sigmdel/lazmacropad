@@ -2,16 +2,13 @@ unit macrodef;
 
 {$mode ObjFPC}{$H+}
 
-{ #todo 1 -oMichel -cBug : Clean up handling of macros file such as loading a file over current modified defintions without checking!}
+{ #todo 1 -oMichel -cBug : Clean up handling of macros file such as loading a file over current modified definitions without checking!}
 
 interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Grids, LCLIntf, LMessages, Buttons, Menus, ExtCtrls, StrUtils, params;
-
-const
-  LM_SAVE_MACROS_QUITTING = LM_USER + 1;
+  Grids, LCLIntf, Buttons, Menus, ExtCtrls, StrUtils, params;
 
 type
 
