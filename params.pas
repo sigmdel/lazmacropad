@@ -16,24 +16,18 @@ CONST
 type
   TLogLevel = (llDebug, llInfo, llError, llNone);
   TPasteCommand = (pcCtrlV, pcShiftInsert, pcCustom, pcNone, pcKbdEvents);
-  TCustomPaste = record
-    VK: word;
-    Shift: TKbdShift;
-  end;
 
 CONST
-  DEFAULT_CUSTOM_PASTE: TCustomPaste = (VK: VK_V; Shift: [ssShift,ssCtrl]);
   SLogLevel: array[TLogLevel] of string = ('Debug', 'Info', 'Error', 'None');
 
 var
-  // list of current paste commands
+  // list of current macros' paste commands
   Pastes: array of TPasteCommand;
-
   // List of current macros
-  StringMacros: array of string; // all macros no matter the type stored here
+  StringMacros: array of string; // all macros no matter the type stored here (as string)
   KbdMacros: array of TKbdMacro; // only TKbdmacros are store here
-  CustomPaste: TCustomPaste;
-  macrosmodified: boolean;
+  PasteCommands: TKbdMacro;      // pcCtrlV..pcCustom commands see InitPasteCommands below
+  macrosmodified: boolean;       // verify saving modified macro definition if true
 
 procedure SaveMacros(const filename: string);
 procedure LoadMacros(const filename: string);
@@ -87,7 +81,6 @@ var
 procedure ParamsInit;
 
 
-
 implementation
 
 uses
@@ -96,34 +89,42 @@ uses
 var
   configfile: string;
 
-(* Keyboard macros are saved as concatened hex kbd events
- *
- * Syntax of hex kbd event
- *
- *  |--|<-----------------TKbdEvent.Press
- *  |--| |--|<----------- TKbdEvent.VK
- *  |--| |--|  |----|<--- TKbdEvent.Shift
- *   01   7B    0001
- *
- * There are no spaces so each event takes is 8 hexadecimal
- * characters wide.
- *
- * Similarly the custom paste command is stored as 6 hexadecimals
- *
- *  |--|<----------- TKbdEvent.VK
- *  |--|  |----|<--- TKbdEvent.Shift
- *   7B    0001
- *)
-
-function PasteCommandToHex(value: TCustomPaste): string;
+procedure InitDefaultCtrlVPasteCommand;
 begin
-  result := inttohex(value.VK, 2) + inttohex(integer(value.Shift), 4);
+  with PasteCommands[ord(pcCtrlV)] do begin
+    Code := VK_V;             // read only
+    Shift.State := [ssCtrl];  // read only
+    Delayms := 0;             // read, write
+    Press := true;            // ignored
+  end;
 end;
 
-function HexToPasteCommand(const value: string): TCustomPaste;
+procedure InitDefaultShiftInsertPasteCommand;
 begin
-  result.VK := strtoint('$'+copy(value, 1, 2));
-  result.Shift := TKbdShift(strtoint('$'+copy(value, 3, 4)));
+  with PasteCommands[ord(pcShiftInsert)] do begin
+    Code := VK_INSERT;         // read only
+    Shift.State := [ssShift];  // read only
+    Delayms := 0;              // read, write
+    Press := true;             // ignored
+  end;
+end;
+
+procedure InitDefaultCustomPasteCommand;
+begin
+  with PasteCommands[ord(pcCustom)] do begin
+    Code := VK_V;                      // read, write
+    Shift.State := [ssShift, ssCtrl];  // read, write
+    Delayms := 0;                      // read, write
+    Press := true;                     // ignored
+  end;
+end;
+
+procedure InitPasteCommands;
+begin
+  setlength(PasteCommands, 3);
+  InitDefaultCtrlVPasteCommand;
+  InitDefaultShiftInsertPasteCommand;
+  InitDefaultCustomPasteCommand;
 end;
 
 procedure SaveMacros(const filename: string);
@@ -146,7 +147,9 @@ begin
     for i := 0 to config.ButtonCount-1 do begin
        WriteInteger('pastes', inttohex(i,2), ord(pastes[i]));
     end;
-    WriteString('custom', 'paste', PasteCommandToHex(CustomPaste));
+    WriteInteger('pastecmd', 'ctrl-v', PasteCommands[ord(pcCtrlV)].Delayms);
+    WriteInteger('pastecmd', 'shift-insert', PasteCommands[ord(pcShiftInsert)].Delayms);
+    WriteString('pastecmd', 'custom', PasteCommands[ord(pcCustom)].EventToHex);
     MacrosModified := false;
     LogForm.log(llInfo,'Macros file %s with %d string macros and %d keyboard macros saved', [filename, smcount, kmcount]);
   finally
@@ -157,8 +160,9 @@ end;
 { #todo 1 -oMichel -cBug : No real error checking  }
 procedure LoadMacros(const filename: string);
 var
-  i, smcount, kmcount: integer;
+  i, smcount, kmcount, pcount: integer;
   s: string;
+  ke: TKbdEvent;
 begin
   Config.ClearMacros;
   MacrosModified := false;
@@ -176,9 +180,13 @@ begin
       s := ReadString('macros', inttohex(i,2), StringMacros[i]);
       if s <> '' then begin
         if pastes[i] = pcKbdEvents then begin
-          KbdMacros[i] := HexToKbdMacro(s);
-          StringMacros[i] := KbdMacroToStr(KbdMacros[i]);
-          inc(kmcount);
+          try
+            KbdMacros[i] := HexToKbdMacro(s);
+            StringMacros[i] := KbdMacroToStr(KbdMacros[i]);
+            inc(kmcount);
+          except
+            LogForm.Log(llError,'Keyboard Macro %d read error', [i]);
+          end;
         end
         else begin
           StringMacros[i] := s;
@@ -186,8 +194,29 @@ begin
         end;
       end;
     end;
-    CustomPaste := HexToPasteCommand(ReadString('custom', 'paste', PasteCommandToHex(DEFAULT_CUSTOM_PASTE)));
+
+    with PasteCommands[ord(pcCtrlV)] do
+      DelayMs := ReadInteger('pastecmd', 'ctrl-v', DelayMs);
+
+    with PasteCommands[ord(pcShiftInsert)] do
+      DelayMs := ReadInteger('pastecmd', 'shift-insert', DelayMs);
+
+    s := ReadString('pastecmd', 'custom', '');
+    i := 1;
+    try
+      ke.HexToEvent(s, i);
+    except
+      ke.code := 0;
+    end;
+    if (ke.Code = 0) then begin
+      LogForm.log(llInfo,'Macros file %s contained invalid custom paste command, using default value', [filename]);
+      InitDefaultCustomPasteCommand;
+    end
+    else
+      PasteCommands[ord(pcCustom)] := ke;
+
     LogForm.log(llInfo,'Macros file %s contained %d string macros and %d keyboard macros', [filename, smcount, kmcount]);
+
   finally
     free;
   end;
@@ -204,7 +233,7 @@ begin
      setlength(KbdMacros[i], 0);
      pastes[i] := pcCtrlV;
   end;
-  CustomPaste := DEFAULT_CUSTOM_PASTE;
+  InitDefaultCustomPasteCommand;
 end;
 
 constructor TConfig.Create;
@@ -355,6 +384,7 @@ begin
   setlength(StringMacros, config.ButtonCount);
   setlength(KbdMacros, config.ButtonCount);
   setlength(Pastes, config.ButtonCount);
+  InitPasteCommands;
   LoadMacros(Config.DefaultMacrosfile);
 end;
 
@@ -369,10 +399,5 @@ initialization
 
 finalization
   config.free;
-  (*
-  setlength(StringMacros, 0);
-  setlength(KbdMacros, 0); // this will strand allocated memory
-  setlength(Pastes, 0);
-  *)
 end.
 

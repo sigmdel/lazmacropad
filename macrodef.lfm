@@ -12,7 +12,6 @@ object MacroForm: TMacroForm
   OnHide = FormHide
   Position = poScreenCenter
   ShowInTaskBar = stNever
-  LCLVersion = '2.2.7.0'
   object MacrosLabel: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = PopMacroMenuButton
@@ -57,11 +56,11 @@ object MacroForm: TMacroForm
       item
         MaxSize = 1800
         Title.Caption = 'Macro'
-        Width = 303
+        Width = 298
       end    
       item
         ButtonStyle = cbsPickList
-        MaxSize = 125
+        MaxSize = 115
         PickList.Strings = (
           'Ctrl+V'
           'Shift+Insert'
@@ -71,7 +70,7 @@ object MacroForm: TMacroForm
         )
         SizePriority = 0
         Title.Caption = 'Paste'
-        Width = 125
+        Width = 115
       end>
     FixedCols = 0
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goEditing, goThumbTracking]
@@ -83,8 +82,8 @@ object MacroForm: TMacroForm
     OnSelectCell = MacrosEditorSelectCell
     ColWidths = (
       40
-      303
-      125
+      298
+      115
     )
   end
   object PopMacroMenuButton: TButton
@@ -167,6 +166,13 @@ object MacroForm: TMacroForm
       OnClick = CustomPasteMenuItemClick
     end
     object Separator1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Paste command delays...'
+      OnClick = MenuItem1Click
+    end
+    object Separator4: TMenuItem
       Caption = '-'
     end
     object DefaultMacrosMenuItem: TMenuItem

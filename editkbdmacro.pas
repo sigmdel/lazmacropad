@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-  ComCtrls, Buttons, kbdev;
+  ComCtrls, Buttons, Spin, kbdev;
 
 type
 
@@ -20,6 +20,7 @@ type
     CancelButton: TButton;
     InsertButton: TButton;
     Label1: TLabel;
+    Label2: TLabel;
     ModifyButton: TButton;
     CheckBox1: TCheckBox;
     ModifiersCheckGroup: TCheckGroup;
@@ -29,6 +30,7 @@ type
     Label4: TLabel;
     MacroListBox: TListBox;
     KeyActionRadioGroup: TRadioGroup;
+    DelaySpinEdit: TSpinEdit;
     TestSpeedButton: TSpeedButton;
     UpSpeedButton: TSpeedButton;
     DownSpeedButton: TSpeedButton;
@@ -38,6 +40,7 @@ type
     procedure AcceptButtonClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure InsertButtonClick(Sender: TObject);
     procedure ClearSpeedButtonClick(Sender: TObject);
     procedure DeleteSpeedButtonClick(Sender: TObject);
@@ -91,7 +94,7 @@ begin
     n := length(macro);
     setlength(macro, n+1);
     macro[n] := event;
-    MacroListBox.items.add(KbdEventToStr(Event));
+    MacroListBox.items.add(Event.EventToStr);
     event.Press := true;
   end;
   UpdateSpeedEnables;
@@ -99,13 +102,14 @@ end;
 
 procedure TEditKbdMacroForm.BuildEventString;
 begin
-  Event.VK := KeyCodesAndStrings[KeyNameComboBox.ItemIndex].code;
+  Event.Code := byte(ptrInt(KeyNameComboBox.Items.Objects[KeyNameCombobox.ItemIndex]));
   Event.Press := KeyActionRadioGroup.ItemIndex = 0;
-  Event.Shift := [];
-  if ModifiersCheckGroup.Checked[0] then include(Event.Shift, ssShift);
-  if ModifiersCheckGroup.Checked[1] then include(Event.Shift, ssCtrl);
-  if ModifiersCheckGroup.Checked[2] then include(Event.Shift, ssAlt);
-  EventString := KbdEventToStr(Event);
+  Event.Shift.State := [];
+  if ModifiersCheckGroup.Checked[0] then include(Event.Shift.State, ssShift);
+  if ModifiersCheckGroup.Checked[1] then include(Event.Shift.State, ssCtrl);
+  if ModifiersCheckGroup.Checked[2] then include(Event.Shift.State, ssAlt);
+  Event.Delayms := DelaySpinEdit.value;
+  EventString := Event.EventToStr;
 end;
 
 procedure TEditKbdMacroForm.BuildMacroString;
@@ -113,7 +117,7 @@ procedure TEditKbdMacroForm.BuildMacroString;
   begin
     if MacroString <> '' then
       MacroString := MacroString + ' ';
-    MacroString := MacroString + '(' + s + ')';
+    MacroString := MacroString + s; //'(' + s + ')';
   end;
 var
   i: integer;
@@ -170,29 +174,31 @@ begin
   MacroListBox.items.beginUpdate;
   MacroListBox.items.clear;
   for i := 0 to length(macro)-1 do
-    MacroListBox.items.add(KbdEventToStr(macro[i]));
+    MacroListBox.items.add(macro[i].EventToStr);
   MacroListBox.items.endUpdate;
   if length(macro) > 0 then begin
     //SetEvent(macro[0]);
     MacroListBox.ItemIndex := 0;
   end
-  else
-    SetEvent(DefaultEvent);
+  else begin
+    with Event do begin
+      Code := $7C; // VK_F13;
+      Press := true;
+      Shift.state := [];
+      DelayMS := 0;
+    end;
+    SetEvent(Event);
+  end;
 end;
 
 procedure TEditKbdMacroForm.FormCreate(Sender: TObject);
-var
-  i: integer;
 begin
-  KeyNameComboBox.Items.BeginUpdate;
-  try
-    KeyNameComboBox.Items.clear;
-    for i := 0 to KEYCOUNT-1 do
-      KeyNameComboBox.Items.add(KeyCodesAndStrings[i].Name);
-  finally
-    KeyNameComboBox.Items.BeginUpdate;
-    KeyNameComboBox.ItemIndex := 107;
-  end;
+  AssignKeyNamesCodes(KeyNameComboBox.Items);
+end;
+
+procedure TEditKbdMacroForm.FormDestroy(Sender: TObject);
+begin
+  KeynameComboBox.Items.Clear;
 end;
 
 function TEditKbdMacroForm.GetKbdMacro: TKbdMacro;
@@ -231,7 +237,7 @@ begin
       macro[i] := macro[i-1];
     event.Press := false;
     macro[ndx] := event;
-    MacroListBox.items.Insert(ndx, KbdEventToStr(Event));
+    MacroListBox.items.Insert(ndx, Event.EventToStr);
     event.Press := true;
   end;
   UpdateSpeedEnables;
@@ -258,15 +264,15 @@ var
 begin
   ndx := MacroListBox.ItemIndex;
   if (ndx < 0) or (ndx >= length(macro)) then exit;
-  hasrelease := (ndx < length(macro)-1) and (macro[ndx].VK = macro[ndx+1].VK)
-   and (macro[ndx].shift = macro[ndx+1].shift);
+  hasrelease := (ndx < length(macro)-1) and (macro[ndx].Code = macro[ndx+1].Code)
+   and (macro[ndx].shift.state = macro[ndx+1].shift.state);
   BuildEventString;
   MacroListBox.Items[ndx] := EventString;
   macro[ndx] := Event;
   if hasrelease and Event.Press then begin
     Event.Press := false;
     macro[ndx+1] := Event;
-    MacroListBox.Items[ndx+1] :=  KbdEventToStr(Event);
+    MacroListBox.Items[ndx+1] :=  Event.EventToStr;
     Event.Press := true;
   end;
 end;
@@ -275,13 +281,14 @@ procedure TEditKbdMacroForm.SetEvent(anEvent: TKbdEvent);
 var
   i: integer;
 begin
-  if KeyCodeFind(anEvent.VK, i) then begin
+  if KeyCodeFind(anEvent.Code, i) then begin
     Event := anEvent;
     KeyNameComboBox.ItemIndex := i;
     if Event.Press then KeyActionRadioGroup.ItemIndex := 0 else KeyActionRadioGroup.ItemIndex := 1;
-    ModifiersCheckGroup.Checked[0] := ssShift In Event.Shift;
-    ModifiersCheckGroup.Checked[1] := ssCtrl In Event.Shift;
-    ModifiersCheckGroup.Checked[2] := ssAlt in Event.Shift;
+    ModifiersCheckGroup.Checked[0] := ssShift In Event.Shift.State;
+    ModifiersCheckGroup.Checked[1] := ssCtrl In Event.Shift.State;
+    ModifiersCheckGroup.Checked[2] := ssAlt in Event.Shift.State;
+    DelaySpinEdit.Value := Event.delayms;
   end;
 end;
 
@@ -295,12 +302,14 @@ procedure TEditKbdMacroForm.TestSpeedButtonClick(Sender: TObject);
 var
   s: string;
   n: integer;
+  i: integer;
 begin
-  n := testMacro(macro);
+  i := 0;
+  n := testKbdMacro(macro, i);
   if n = 0 then
     s := 'The macro is valid'
   else
-    s := Format('The macro is not valid (error %d)', [n]);
+    s := Format('The macro is not valid (error %d) in event %d', [n, i]);
   MessageDlg('Macro verification', s, mtInformation, [mbOK], 0);
 end;
 

@@ -5,7 +5,7 @@ unit custompastecommand;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, kbdev;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, Spin, kbdev;
 
 type
 
@@ -14,7 +14,9 @@ type
   TCustomPasteForm = class(TForm)
     Button1: TButton;
     Button2: TButton;
+    DelaySpinEdit: TSpinEdit;
     KeyNameComboBox: TComboBox;
+    Label2: TLabel;
     ShiftCheckBox: TCheckBox;
     CtrlCheckBox: TCheckBox;
     AltCheckBox: TCheckBox;
@@ -26,51 +28,42 @@ type
 var
   CustomPasteForm: TCustomPasteForm;
 
-function EditCustomPasteCommand(var VK: word; var shift: TKbdShift): boolean;
+function EditCustomPasteCommand(var ke: TKbdEvent): boolean;
 
 implementation
 
 {$R *.lfm}
 
-function EditCustomPasteCommand(var VK: word; var shift: TKbdShift): boolean;
+function EditCustomPasteCommand(var ke: TKbdEvent): boolean;
 var
   i: integer;
 begin
-  if not KeyCodeFind(VK, i) then
+  if not KeyCodeFind(ke.Code, i) then
     i := 0;
   with CustomPasteForm do begin
     KeyNameComboBox.ItemIndex := i;
-    ShiftCheckBox.Checked := ssShift In shift;
-    CtrlCheckBox.Checked := ssCtrl In shift;
-    AltCheckBox.Checked := ssAlt In shift;
+    ShiftCheckBox.Checked := ssShift In ke.Shift.State;
+    CtrlCheckBox.Checked := ssCtrl In ke.Shift.State;
+    AltCheckBox.Checked := ssAlt In ke.Shift.state;
+    DelaySpinEdit.Value := ke.Delayms;
     result := ShowModal = mrOk;
-    shift := [];
+    ke.shift.state := [];
+    ke.Code := 0;
     if result then begin
-      VK := KeyCodesAndStrings[KeyNameComboBox.ItemIndex].code;
-      if ShiftCheckBox.Checked then include(shift, ssShift);
-      if CtrlCheckBox.Checked then include(shift, ssCtrl);
-      if AltCheckBox.Checked then include(shift, ssAlt);
+      ke.Code := byte(PtrUInt(KeyNameComboBox.Items.Objects[KeyNameComboBox.ItemIndex]));
+      if ShiftCheckBox.Checked then include(ke.Shift.state, ssShift);
+      if CtrlCheckBox.Checked then include(ke.Shift.state, ssCtrl);
+      if AltCheckBox.Checked then include(ke.Shift.state, ssAlt);
+      ke.Delayms := DelaySpinEdit.Value;
     end
-    else
-      VK := 0;
   end;
 end;
 
 { TCustomPasteForm }
 
 procedure TCustomPasteForm.FormCreate(Sender: TObject);
-var
-  i: integer;
 begin
-  KeyNameComboBox.Items.BeginUpdate;
-  try
-    KeyNameComboBox.Items.clear;
-    for i := 0 to KEYCOUNT-1 do
-      KeyNameComboBox.Items.add(KeyCodesAndStrings[i].Name);
-  finally
-    KeyNameComboBox.Items.BeginUpdate;
-    KeyNameComboBox.ItemIndex := 107;
-  end;
+  AssignKeyNamesCodes(KeyNameComboBox.Items)
 end;
 
 

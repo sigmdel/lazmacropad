@@ -17,6 +17,8 @@ type
   TMacroForm = class(TForm)
     CustomPasteMenuItem: TMenuItem;
     EditMacroMenuItem: TMenuItem;
+    MenuItem1: TMenuItem;
+    Separator4: TMenuItem;
     SaveMacroFileMenuItem: TMenuItem;
     ProxyEditorButton: TButton;
     DefaultMacrosMenuItem: TMenuItem;
@@ -45,6 +47,7 @@ type
     procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
     procedure CustomPasteMenuItemClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure MoveMacroDownMenuItemClick(Sender: TObject);
     procedure MoveMacroUpMenuItemClick(Sender: TObject);
     procedure ProxyEditorButtonEnter(Sender: TObject);
@@ -68,13 +71,13 @@ type
   private
     function FixupMacroName(const fn: string): string;
     procedure UpdateGUI;
-    procedure SetMacrosModified(value: boolean);
     procedure ProxyEditorRestoreSelection(Data: PtrInt);
   public
       // returns mrOk if saved, or not saved with user confirmation
       // returns mrCancel if user canceled save operation
     function SaveMacrosFile: integer;
     procedure SetMacrosFilename(const value: string);
+    procedure SetMacrosModified(value: boolean);
   end;
 
 var
@@ -96,7 +99,8 @@ implementation
 {$R *.lfm}
 
 uses
-  main, keymap, kbdev, macrolog, editstringmacro, editkbdmacro, custompastecommand;
+  main, keymap, kbdev, macrolog, editstringmacro, editkbdmacro,
+  custompastecommand, editpastedelays;
 
 { TMacroForm }
 
@@ -113,18 +117,19 @@ end;
 
 procedure TMacroForm.CustomPasteMenuItemClick(Sender: TObject);
 var
-  VK: word;
-  shift: TKbdShift;
+  ek: TKbdEvent;
 begin
-  VK := CustomPaste.VK;
-  shift := CustomPaste.shift;
-  if EditCustomPasteCommand(VK, shift) then begin
-    if (VK <> CustomPaste.VK) or (shift <> CustomPaste.shift) then begin
-      CustomPaste.VK := VK;
-      CustomPaste.shift := shift;
-      SetMacrosModified(true);
-    end;
+  ek := PasteCommands[ord(pcCustom)];
+  if EditCustomPasteCommand(ek) and (ek <> PasteCommands[ord(pcCustom)]) then begin
+    PasteCommands[ord(pcCustom)] := ek;
+    SetMacrosModified(true);
   end;
+end;
+
+procedure TMacroForm.MenuItem1Click(Sender: TObject);
+begin
+  if doEditPasteDelays then
+    SetMacrosModified(true);
 end;
 
 procedure TMacroForm.DefaultMacrosMenuItemClick(Sender: TObject);

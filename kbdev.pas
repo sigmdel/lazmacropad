@@ -4,39 +4,90 @@ unit kbdev;
 
 interface
 
+{$PACKSET 1}
+
 uses
   Classes, SysUtils, LCLType;
 
 type
   TKbdShiftEnum = ssShift..ssCtrl;
-  TKbdShift = set of TKbdShiftEnum;
-
-  TKbdEvent = record
-    Press: boolean;
-    VK: word;
-    Shift: TKbdShift;
+  TKbdShift = record case boolean of
+     False: (State: set of TKbdShiftEnum);
+     True:  (Value: byte); // avoid type casting
   end;
-  KbdEvent = ^TKbdEvent;
+
+  { TKbdEvent }
+
+  TKbdEvent = object
+  public
+    Code: byte;
+    Shift: TKbdShift;
+    Delayms: word;
+    Press: boolean;
+
+    // Convert the key code to a key name or 2 digit hex value if the
+    // name is not known.
+    function CodetoStr: string;
+
+    // Convert Shift.State to string representation.
+    // If the no modifier keys specified returns empty string.
+    function ShiftStateToStr: string;
+
+    // Convert the complete event to a hex string used for
+    // storage/retrieval in a text ini file
+    function EventToHex: string;
+
+    // Convert the complete event to a string.
+    // ex.
+    //
+    // This can be modified at will.
+    function EventToStr: string;
+
+    // Parses the value string starting at position index to
+    // set the kbd event fields.
+    procedure HexToEvent(const value: string; var index: integer);
+
+  end;
 
   TKbdMacro = array of TKbdEvent;
 
-// returns key name of value.VK or '<?xxx?>' if the VK is unknown
-function KbdEventToKeyStr(value: TKbdEvent): string;
+  // String representation of shortcuts macro
+  // This can be modified at will, the string representation is
+  // never converted back to a TKbdMacro
+  function KbdMacroToStr(value: TKbdMacro): string;
 
-// returns key name and shift state as in 'F23[Shift,Alt]'
-function KbdEventToStr(value: TKbdEvent): string;
+  // Hex representation of shortcuts macro used
+  // for saving/loading from macro definition file
+  function KbdMacroToHex(value: TKbdMacro): string;
+  function HexToKbdMacro(const value: string): TKbdMacro;
 
-// returns a string representation of a kbd event macro
-// This can be modified at will, the string representation is
-// never converted back to a TKbdMacro
-function KbdMacroToStr(value: TKbdMacro): string;
+  // test of validity
+  function TestKbdMacro(value: TKbdMacro; var index: integer): integer;
 
-// incomplete test of validity
-function TestMacro(value: TKbdMacro): integer;
+procedure AssignKeyNamesCodes(strings: TStrings);
 
-// for saving/loading from macro definition file
-function KbdMacroToHex(value: TKbdMacro): string;
-function HexToKbdMacro(const value: string): TKbdMacro;
+function KeyCodeFind(key: integer; var index: integer): boolean;
+
+// equality operator for TKbdEvent
+operator = (const ke1, ke2: TKbdEvent): boolean;
+
+implementation
+
+uses
+  LCLProc, LCLStrConsts;
+
+// TKbdEvent operator
+operator = (const ke1, ke2: TKbdEvent): boolean;
+begin
+  result := (ke1.Code = ke2.Code)
+     and (ke1.Shift.Value = ke2.Shift.Value)
+     and (ke1.Delayms = ke2.Delayms)
+     and (ke1.Press = ke2.Press);
+end;
+
+const
+  UpArrow   = #$E2+#$86+#$91; // UTF-8 encoding of U+2191 UPWARD ARROW
+  DownArrow = #$E2+#$86+#$93; // UTF-8 encoding of U+2193 DOWNWARD ARROW
 
 const
   // MS documentation:
@@ -81,8 +132,8 @@ const
     (name: 'Ins'; code: $2d),  // VK_INSERT
     (name: 'Del'; code: $2e),  // VK_DELETE
     (name: 'Help'; code: $2f),  // VK_HELP
-    (name: '0'; code: $30),
-    (name: '1'; code: $31),
+    (name: '0'; code: $30),  // VK_0
+    (name: '1'; code: $31),  // VK_1 ...
     (name: '2'; code: $32),
     (name: '3'; code: $33),
     (name: '4'; code: $34),
@@ -116,7 +167,7 @@ const
     (name: 'W'; code: $57),
     (name: 'X'; code: $58),
     (name: 'Y'; code: $59),
-    (name: 'Z'; code: $5A),
+    (name: 'Z'; code: $5A),  // VK_Z
     (name: 'PopUp'; code: $5d),  // VK_APPS
     (name: 'Sleep'; code: $5f),  // VK_SLEEP
     (name: 'Num0'; code: $60),  // VK_NUMPAD0
@@ -179,18 +230,19 @@ const
   );
   { #todo -oMichel -cRefactoring : Use Classes TIdentMapEntry, IntToIdent etc. instead }
 
-function KeyCodeFind(key: integer; var index: integer): boolean;
-function KeyNameIndex(const name: string; var index: integer): boolean;
-
-const
-  DefaultEvent: TKbdEvent = (Press: true; VK: VK_F13; Shift: []);
-
-implementation
-
-uses
-  LCLProc, StrUtils, LCLStrConsts;
-
-
+procedure AssignKeyNamesCodes(strings: TStrings);
+var
+ i: integer;
+begin
+  Strings.BeginUpdate;
+  try
+    strings.Clear;
+    for i := 0 to KEYCOUNT-1 do
+      strings.AddObject(KeyCodesAndStrings[i].name, TObject(pointer(KeyCodesAndStrings[i].code)));
+  finally
+    Strings.EndUpdate;
+  end;
+end;
 
 function KeyCodeFind(key: integer; var index: integer): boolean;
 var
@@ -225,162 +277,186 @@ begin
   result := false;
 end;
 
-// returns key name of value.VK or '<?xxx?>' if the VK is unknown
-function KbdEventToKeyStr(value: TKbdEvent): string;
-var
-  index: integer;
+procedure addPart(const apart, separator: string; var value: string);
 begin
-  if KeyCodeFind(value.VK, index) then
-    result := KeyCodesAndStrings[index].Name
+  if value = '' then
+    value := apart
   else
-    result := '<$'+IntToHex(value.VK,2)+'?>';
+    value := value + separator + apart;
 end;
 
-// returns key name and shift state as in '↓[Shift,Alt]+F3'
-// the returned string can be pretty much anything because it is
-// never parsed to a TKbdEvent
-function KbdEventToStr(value: TKbdEvent): string;
+
+function HexToKbdMacro(const value: string): TKbdMacro;
 var
-  s: string;
-
-  procedure AddPart(const APart: string);
-  begin
-    if s <> '' then
-      s := s + ',';
-    s := s + APart;
-  end;
-
+  i, n, count: integer;
 begin
-  Result := '';
-  s := '';
-  if ssCtrl in value.Shift then AddPart(ifsCtrl);
-  if ssAlt in value.Shift then AddPart(ifsAlt);
-  if ssShift in value.Shift then AddPart(ifsVK_SHIFT);
-  if value.Press then begin
-    if s <> '' then
-      s := '[' + s + ']+';
-    result :=  '↓' + s + KbdEventToKeyStr(value)
-  end
-  else begin
-    if s <> '' then
-      s := '+[' + s + ']';
-    result := '↑' + KbdEventToKeyStr(value) + s;
+  count := strToInt('$' + copy(value, 1, 2));
+  n := 1;
+  i := 3;
+  setlength(result, 0);
+  while i < length(value) do begin
+    setlength(result, n);
+    result[n-1].HexToEvent(value, i);
+    inc(n);
   end;
+  if n-1 <> count then
+    Raise Exception.CreateFmt('Expected %d events, found %d', [count, n-1]);
 end;
 
-// returns a string representation of a kbd event macro
 function KbdMacroToStr(value: TKbdMacro): string;
 var
   i: integer;
 begin
   result := '';
-  for i := 0 to length(value)-1 do begin
-    if result <> '' then
-      result := result + ' ';
-    result := result + '(' + KbdEventToStr(value[i]) + ')';
-  end;
-end;
-
-function MakeTKbEvent(press: boolean; key: word; shift: TKbdShift): KbdEvent;
-begin
-  new(result);
-  result^.press := press;
-  result^.VK := key;
-  result^.shift := shift;
-end;
-
-function TestMacro(value: TKbdMacro): integer;
-var
-  aResult: integer;
-  i: integer;
-  count: integer;
-  delta: integer;
-  temp: integer;
-
-function adjustCount: boolean;
-begin
-  count := count + delta;
-  if count >= 0 then
-    result := true
-  else begin
-    aResult := -3;
-    result := false;
-  end;
-end;
-
-begin
-  aResult := 0;
-  count := 0;
-  try
-    if length(value) < 1 then begin
-      aResult := -1;
-      exit;
-    end;
-    for i := 0 to length(value)-1 do begin
-      if value[i].Press then
-        delta := 1
-      else
-        delta := -1;
-      //if KeyCodeToKeyString(value[i].VK, true) = '' then begin
-      if not KeyCodeFind(value[i].VK, temp) then begin
-        aResult := -2;
-        exit;
-      end;
-      if not adjustCount then exit;
-      if (ssShift in value[i].Shift) and not adjustCount then exit;
-      if (ssCtrl in value[i].Shift) and not adjustCount then exit;
-      if (ssAlt in value[i].Shift) and not adjustCount then exit;
-    end;
-    if count <> 0 then
-      aResult := -4;
-  finally
-    result := aResult;
-  end;
+  for i := 0 to length(value)-1 do
+    addPart(value[i].EventToStr, ' ', result);
 end;
 
 function KbdMacroToHex(value: TKbdMacro): string;
 var
   i: integer;
 begin
-  result := '';
-  for i := 0 to length(value)-1 do begin
-    result := result + inttohex(ord(value[i].Press),2);
-    result := result + inttohex(value[i].VK, 2);
-    result := result + inttohex(integer(value[i].Shift), 4);
+  result := inttohex(length(value), 2);
+  for i := 0 to length(value)-1 do
+    addPart(value[i].EventToHex, '', result);
+end;
+
+{ TKbdEvent}
+
+function TKbdEvent.CodetoStr: string;
+var
+  index: integer;
+begin
+  if KeyCodeFind(Code, index) then
+    result := KeyCodesAndStrings[index].Name
+  else
+    result := IntToHex(Code,2);
+end;
+
+//   12 3 4567 8
+//   38 5 1000 0
+function TKbdEvent.EventToHex: string;
+begin
+ result := inttohex(Code, 2);
+ result := result + inttohex(Shift.Value, 1);
+ result := result + inttohex(delayms, 4);
+ result := result + inttohex(ord(Press),1);
+end;
+
+function TKbdEvent.EventToStr: string;
+begin
+  if Press then
+    result := DownArrow + ShiftStateToStr + CodeToStr
+  else
+    result :=  UpArrow + CodeToStr + ShiftStateToStr;
+  if delayms > 0 then
+    result := Format('(%dms)%s', [delayms, result]);
+end;
+
+function TKbdEvent.ShiftStateToStr: string;
+begin
+  Result := '';
+  if ssCtrl in Shift.State then AddPart(ifsCtrl, ',', result);
+  if ssAlt in Shift.State then AddPart(ifsAlt, ',', result);
+  if ssShift in Shift.State then AddPart(ifsVK_SHIFT, ',', result);
+  if result <> '' then
+    result := '[' + result + ']';
+end;
+
+procedure TKbdEvent.HexToEvent(const value: string; var index: integer);
+begin
+  Code := 0;
+  Shift.State := [];
+  Press := false;
+  DelayMs := 0;
+  if index < 1 then
+    index := 1;
+  if index + 8 > length(value)+1 then begin
+    index := length(value)+1; // signal done!
+    exit;
+  end;
+  Code := strToInt('$' + copy(value, index, 2));
+  inc(index, 2);
+  Shift.Value := strToInt('$' + copy(value, index, 1));
+  inc(index);
+  DelayMs := strToInt('$' + copy(value, index, 4));
+  inc(index, 4);
+  Press := strToInt(copy(value, index, 1)) = 1;
+  inc(index);
+end;
+
+function TestKbdMacro(value: TKbdMacro; var index: integer): integer;
+var
+  KeyDown: array[0..255] of boolean;
+  shiftstate: set of TKbdShiftEnum;
+  aResult, i: integer;
+
+function adjustShift(ss: TKbdShiftEnum; press: boolean): boolean;
+begin
+  if press then begin
+    if (ss in shiftstate) then
+      aResult := -4 // already low
+    else
+      include(shiftstate, ss);
+  end
+  else begin // not press
+    if (ss in shiftstate) then
+      exclude(shiftstate, ss)
+    else
+      aResult := -5;
+  end;
+  result := aResult = 0;
+end;
+
+begin
+  fillchar(keydown, 256, 0);
+  shiftstate := [];
+  aResult := 0;
+  try
+    if length(value) < 1 then begin
+      aResult := -1;
+      exit;
+    end;
+    index := 0;
+    while index < length(value) do begin
+      if value[index].Press then begin
+        if KeyDown[value[index].Code] then begin
+          aResult := -2;  // key is already pressed
+          exit;
+        end;
+        KeyDown[value[index].Code] := true;
+      end
+      else begin // not value[index].Press
+        if KeyDown[value[index].Code] then
+          KeyDown[value[index].Code] := false
+        else begin
+          aResult := -3;  // key is already released
+          exit;
+        end;
+      end;
+      if (ssShift in value[index].Shift.State) and not adjustShift(ssShift, value[index].Press) then exit;
+      if (ssCtrl in value[index].Shift.State) and not adjustShift(ssCtrl, value[index].Press) then exit;
+      if (ssAlt in value[index].Shift.State) and not adjustShift(ssAlt, value[index].Press) then exit;
+      inc(index);
+    end;
+  finally
+    if aResult = 0 then
+      for i := 0 to 255 do
+        if KeyDown[i] then begin
+          aResult := -6;
+          break;
+        end;
+    if (aResult = 0) and (shiftstate <> []) then
+      aResult := -7;
+    result := aResult;
   end;
 end;
 
-function HexToKbdMacro(const value: string): TKbdMacro;
-var
-  i, last, n: integer;
-  substring: string;
-  anEvent: TKbdEvent;
-begin
-  n := 0;
-  i := 1;
-  last := length(value)+1;
-  repeat
-    if i+2 > last then exit; // extra chars unless value = ''
 
-    substring := copy(value, i, 2);
-    anEvent.Press := strtoint(substring) = 1;
-    inc(i, 2);
-
-    if i+2 > last then exit; // extra chars
-    substring := '$' + copy(value, i, 2);
-    anEvent.VK := strtoint(substring);
-    inc(i, 2);
-
-    if i+4 > last then exit; // extra chars
-    substring := '$' + copy(value, i, 4);
-    anEvent.shift := TKbdShift(strtoint(substring));
-    inc(i, 4);
-
-    setlength(result, n+1);
-    result[n] := anEvent;
-    inc(n);
-  until false;
-end;
-
+{$ifdef DEBUG}
+initialization
+  if sizeof(TKbdEvent.Shift.State) <> sizeof(TKbdEvent.Shift.Value) then
+    Raise Exception.Create('Size mismatch between Shift.State and Shift.Value in TKbdEvent');
+{$ENDIF}
 end.
 

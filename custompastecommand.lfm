@@ -1,12 +1,13 @@
 object CustomPasteForm: TCustomPasteForm
   Left = 526
-  Height = 75
+  Height = 102
   Top = 250
-  Width = 330
+  Width = 339
   AutoSize = True
+  BorderIcons = [biSystemMenu]
   Caption = 'Custom Paste Command'
-  ClientHeight = 75
-  ClientWidth = 330
+  ClientHeight = 102
+  ClientWidth = 339
   OnCreate = FormCreate
   Position = poMainFormCenter
   object ShiftCheckBox: TCheckBox
@@ -14,9 +15,9 @@ object CustomPasteForm: TCustomPasteForm
     AnchorSideTop.Control = KeyNameComboBox
     AnchorSideTop.Side = asrCenter
     Left = 6
-    Height = 23
-    Top = 8
-    Width = 54
+    Height = 21
+    Top = 9
+    Width = 57
     BorderSpacing.Left = 6
     BorderSpacing.Top = 6
     Caption = 'Shift'
@@ -27,10 +28,10 @@ object CustomPasteForm: TCustomPasteForm
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = ShiftCheckBox
     AnchorSideTop.Side = asrCenter
-    Left = 66
-    Height = 23
-    Top = 8
-    Width = 48
+    Left = 69
+    Height = 21
+    Top = 9
+    Width = 51
     BorderSpacing.Left = 6
     Caption = 'Ctrl'
     TabOrder = 1
@@ -40,10 +41,10 @@ object CustomPasteForm: TCustomPasteForm
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = CtrlCheckBox
     AnchorSideTop.Side = asrCenter
-    Left = 120
-    Height = 23
-    Top = 8
-    Width = 44
+    Left = 126
+    Height = 21
+    Top = 9
+    Width = 47
     BorderSpacing.Left = 6
     Caption = 'Alt'
     TabOrder = 2
@@ -52,14 +53,14 @@ object CustomPasteForm: TCustomPasteForm
     AnchorSideLeft.Control = AltCheckBox
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Owner
-    Left = 170
-    Height = 27
+    Left = 179
+    Height = 26
     Top = 6
     Width = 154
     BorderSpacing.Left = 6
     BorderSpacing.Top = 6
     BorderSpacing.Right = 6
-    ItemHeight = 0
+    ItemHeight = 24
     TabOrder = 3
     Text = 'KeyNameComboBox'
   end
@@ -67,10 +68,10 @@ object CustomPasteForm: TCustomPasteForm
     AnchorSideTop.Control = Button2
     AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = Button2
-    Left = 209
-    Height = 30
-    Top = 39
-    Width = 54
+    Left = 219
+    Height = 26
+    Top = 70
+    Width = 53
     Anchors = [akTop, akRight]
     AutoSize = True
     BorderSpacing.Right = 6
@@ -79,13 +80,13 @@ object CustomPasteForm: TCustomPasteForm
     TabOrder = 4
   end
   object Button2: TButton
-    AnchorSideTop.Control = KeyNameComboBox
+    AnchorSideTop.Control = DelaySpinEdit
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = KeyNameComboBox
+    AnchorSideRight.Control = DelaySpinEdit
     AnchorSideRight.Side = asrBottom
-    Left = 269
-    Height = 30
-    Top = 39
+    Left = 278
+    Height = 26
+    Top = 70
     Width = 55
     Anchors = [akTop, akRight]
     AutoSize = True
@@ -94,5 +95,32 @@ object CustomPasteForm: TCustomPasteForm
     Caption = 'Accept'
     ModalResult = 1
     TabOrder = 5
+  end
+  object Label2: TLabel
+    AnchorSideTop.Control = DelaySpinEdit
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = DelaySpinEdit
+    Left = 137
+    Height = 16
+    Top = 43
+    Width = 117
+    Anchors = [akTop, akRight]
+    BorderSpacing.Right = 6
+    Caption = 'Delay (milliseconds)'
+    ParentColor = False
+  end
+  object DelaySpinEdit: TSpinEdit
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = KeyNameComboBox
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = KeyNameComboBox
+    AnchorSideRight.Side = asrBottom
+    Left = 260
+    Height = 26
+    Top = 38
+    Width = 73
+    Anchors = [akTop, akRight]
+    BorderSpacing.Top = 6
+    TabOrder = 6
   end
 end

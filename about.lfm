@@ -304,6 +304,7 @@ object AboutForm: TAboutForm
     Caption = 'Label1'
     Font.Height = -19
     Font.Style = [fsBold]
+    ParentColor = False
     ParentFont = False
   end
   object Button1: TButton
@@ -329,10 +330,11 @@ object AboutForm: TAboutForm
     Left = 216
     Height = 16
     Top = 45
-    Width = 44
+    Width = 43
     BorderSpacing.Left = 8
     BorderSpacing.Top = 10
     Caption = 'version'
+    ParentColor = False
   end
   object Label3: TLabel
     AnchorSideLeft.Control = Image1
@@ -344,6 +346,7 @@ object AboutForm: TAboutForm
     Width = 47
     BorderSpacing.Top = 12
     Caption = 'Source: '
+    ParentColor = False
   end
   object Label4: TLabel
     AnchorSideLeft.Control = Label3
@@ -355,10 +358,11 @@ object AboutForm: TAboutForm
     Height = 16
     Hint = 'https://github.com/sigmdel/lazmacropad'
     Top = 197
-    Width = 141
+    Width = 138
     BorderSpacing.Left = 6
     Caption = 'lazmacropad on GitHub'
     Font.Style = [fsUnderline]
+    ParentColor = False
     ParentFont = False
     ParentShowHint = False
     ShowHint = True
@@ -371,9 +375,10 @@ object AboutForm: TAboutForm
     Left = 15
     Height = 16
     Top = 221
-    Width = 97
+    Width = 96
     BorderSpacing.Top = 8
     Caption = 'Documentation:'
+    ParentColor = False
     ParentFont = False
   end
   object Label6: TLabel
@@ -382,14 +387,15 @@ object AboutForm: TAboutForm
     AnchorSideTop.Control = Label5
     AnchorSideTop.Side = asrCenter
     Cursor = crHandPoint
-    Left = 118
+    Left = 117
     Height = 16
     Hint = 'https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html'
     Top = 221
-    Width = 221
+    Width = 218
     BorderSpacing.Left = 6
     Caption = 'post (in French) on sigmdel.ca/michel'
     Font.Style = [fsUnderline]
+    ParentColor = False
     ParentFont = False
     ParentShowHint = False
     ShowHint = True
@@ -402,9 +408,10 @@ object AboutForm: TAboutForm
     Left = 160
     Height = 16
     Top = 89
-    Width = 155
+    Width = 180
     BorderSpacing.Top = 6
-    Caption = '© 2022, Michel Deslierres'
+    Caption = '© 2022,2023 Michel Deslierres'
+    ParentColor = False
   end
   object Label8: TLabel
     AnchorSideLeft.Control = Label9
@@ -413,34 +420,37 @@ object AboutForm: TAboutForm
     Left = 160
     Height = 16
     Top = 133
-    Width = 100
+    Width = 99
     BorderSpacing.Top = 6
     Caption = 'Lazarus Version: '
+    ParentColor = False
   end
   object lazVersionLabel: TLabel
     AnchorSideLeft.Control = Label8
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label8
     AnchorSideTop.Side = asrCenter
-    Left = 268
+    Left = 267
     Height = 16
     Top = 133
-    Width = 95
+    Width = 93
     BorderSpacing.Left = 8
     Caption = 'lazVersionLabel'
+    ParentColor = False
   end
   object buildDateLabel: TLabel
     AnchorSideLeft.Control = Label12
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label12
     AnchorSideTop.Side = asrCenter
-    Left = 234
+    Left = 233
     Height = 16
     Top = 67
     Width = 27
     BorderSpacing.Left = 8
     BorderSpacing.Top = 6
     Caption = 'date'
+    ParentColor = False
   end
   object Label9: TLabel
     AnchorSideLeft.Control = Label7
@@ -449,21 +459,23 @@ object AboutForm: TAboutForm
     Left = 160
     Height = 16
     Top = 111
-    Width = 121
+    Width = 120
     BorderSpacing.Top = 6
     Caption = 'Free Pascal Version: '
+    ParentColor = False
   end
   object fpcVersionLabel: TLabel
     AnchorSideLeft.Control = Label9
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label9
     AnchorSideTop.Side = asrCenter
-    Left = 289
+    Left = 288
     Height = 16
     Top = 111
-    Width = 97
+    Width = 96
     BorderSpacing.Left = 8
     Caption = 'fpcVersionLabel'
+    ParentColor = False
   end
   object Label10: TLabel
     AnchorSideLeft.Control = Label8
@@ -475,6 +487,7 @@ object AboutForm: TAboutForm
     Width = 59
     BorderSpacing.Top = 6
     Caption = 'Platform: '
+    ParentColor = False
   end
   object platformLabel: TLabel
     AnchorSideLeft.Control = Label10
@@ -484,9 +497,10 @@ object AboutForm: TAboutForm
     Left = 227
     Height = 16
     Top = 155
-    Width = 86
+    Width = 85
     BorderSpacing.Left = 8
     Caption = 'platformLabel'
+    ParentColor = False
   end
   object Bevel1: TBevel
     AnchorSideLeft.Control = Image1
@@ -509,6 +523,7 @@ object AboutForm: TAboutForm
     Top = 45
     Width = 48
     Caption = 'Version:'
+    ParentColor = False
   end
   object Label12: TLabel
     AnchorSideLeft.Control = Label11
@@ -517,8 +532,9 @@ object AboutForm: TAboutForm
     Left = 160
     Height = 16
     Top = 67
-    Width = 66
+    Width = 65
     BorderSpacing.Top = 6
     Caption = 'Build Date:'
+    ParentColor = False
   end
 end

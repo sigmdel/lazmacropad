@@ -70,6 +70,15 @@ begin
   inject(i);
 end;
 
+procedure Delay(ms: QWORD);
+var
+  tc : QWORD;
+begin
+  tc := GetTickCount64 + ms;
+  while (GetTickCount64 < tc) and (not Application.Terminated) do
+    Application.ProcessMessages;
+end;
+
 {$DEFINE VK_RETURN_SPECIAL}
 
 /// Temporarily remove Windows considerations
@@ -97,19 +106,19 @@ begin
     end;
     for ndx := 0 to length(macro)-1 do begin
       if macro[ndx].Press then begin
-        if macro[ndx].Shift <> [] then begin
-          LogForm.Log(llDebug,'keyboard event %d, applying shift keys %x', [ndx, integer(macro[ndx].Shift)]);
-          KeyInput.Apply(macro[ndx].Shift);
+        if macro[ndx].Shift.state <> [] then begin
+          LogForm.Log(llDebug,'keyboard event %d, applying shift keys %s', [ndx, macro[ndx].ShiftStateToStr]);
+          KeyInput.Apply(macro[ndx].Shift.State);
         end;
-        LogForm.Log(llDebug,'keyboard event %d, key: %x down', [ndx, macro[ndx].VK]);
-        KeyInput.Down(macro[ndx].VK);
+        LogForm.Log(llDebug,'keyboard event %d, key: %x down', [ndx, macro[ndx].code]);
+        KeyInput.Down(macro[ndx].Code);
       end
       else begin
-        LogForm.Log(llDebug,'keyboard event %d, key: %x up', [ndx, macro[ndx].VK]);
-        KeyInput.Up(macro[ndx].VK);
-        if macro[ndx].Shift <> [] then begin
-          LogForm.Log(llDebug,'keyboard event %d, unapplying shift keys %x', [ndx, integer(macro[ndx].Shift)]);
-          KeyInput.UnApply(macro[ndx].Shift);
+        LogForm.Log(llDebug,'keyboard event %d, key: %x up', [ndx, macro[ndx].code]);
+        KeyInput.Up(macro[ndx].code);
+        if macro[ndx].Shift.state <> [] then begin
+          LogForm.Log(llDebug,'keyboard event %d, unapplying shift keys %s', [ndx, macro[ndx].ShiftStateToStr]);
+          KeyInput.UnApply(macro[ndx].Shift.state);
         end;
       end;
     end;
@@ -132,37 +141,19 @@ begin
   clipboard.AsText := convertedMacro;
   PrimarySelection.Astext := convertedMacro; // always sychronize
 
-  if PasteCommand = pcShiftInsert then begin
-    KeyInput.Apply([ssShift]);
-    KeyInput.Press(VK_INSERT);
-    KeyInput.Unapply([ssShift]);
+  if PasteCommand <= pcCustom then with pasteCommands[ord(PasteCommand)] do begin
+    Delay(Delayms);
+    KeyInput.Apply(Shift.State);
+    KeyInput.Press(Code);
+    KeyInput.Unapply(Shift.State);
+    LogForm.Log(llDebug,'Paste with %s', [sPasteCommands[PasteCommand]]);
     {$ifdef VK_RETURN_SPECIAL}
-    if WantsVK_RETURN then
-      KeyInput.Press(VK_RETURN);
+    if WantsVK_RETURN then begin
+       KeyInput.Press(VK_RETURN);
+       LogForm.Log(llDebug,'Appended VK_RETURN');
+    end;
     {$endif}
-    LogForm.Log(llDebug,'Paste with Shift+Insert');
-  end
-  else if PasteCommand = pcCustom then begin
-    KeyInput.Apply(CustomPaste.Shift);
-    KeyInput.Press(CustomPaste.VK);
-    KeyInput.Unapply(CustomPaste.Shift);
-    {$ifdef VK_RETURN_SPECIAL}
-    if WantsVK_RETURN then
-      KeyInput.Press(VK_RETURN);
-    {$endif}
-    //LogForm.Log(llDebug,'Paste with custom paste command');
-  end
-  else if PasteCommand = pcCtrlV then begin
-    KeyInput.Apply([ssCtrl]);
-    KeyInput.Press(VK_V);
-    KeyInput.Unapply([ssCtrl]);
-    {$ifdef VK_RETURN_SPECIAL}
-    if WantsVK_RETURN then
-      KeyInput.Press(VK_RETURN);
-    {$endif}
-    LogForm.Log(llDebug,'Paste with Ctrl+V');
-  end
-  //else PasteCommand = pcNone
+  end;
 end;
 
 
