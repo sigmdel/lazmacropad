@@ -166,14 +166,13 @@ Notes:
 
 There are two types of macros:
 
-  - Strings that are copied to the clipboard and, from there, pasted into an application.
-  - Arrays of keyboard events directly injected in the operating system keyboard driver.
+  - Strings that are copied to the clipboard and, from there, pasted into an application with a user selectable keyboard paste command.
+  - Arrays of keyboard events directly injected into the operating system keyboard handler.
 
 
 ![](images/macro_defs.jpg)
 
-Macros 3 and 4, in the macro definition window shown in the image above, both inject `été`  into the currently focused application on the computer running *lazmacropad*. Macro 3 is a string macro and will work on any system that supports UTF8 encoded strings. Macro 4 is a keyboard macro that will inject `été` on computers that use the French / (AZERTY) key map only. 
-
+Macros 3 and 4, in the macro definition window shown above, both inject `été`  into the currently focused application on the computer running *lazmacropad*. Macro 3 is a string macro and will work on any system that supports UTF8 encoded strings. Macro 4 is a keyboard macro that will inject `été` on computers that use the French (AZERTY) key map while `2t2` will be injected in most QWERTY type keyboard.
 
 The strings are UTF8 and can contain 3 escape sequences
 
@@ -226,7 +225,7 @@ The default values are 4 columns and 4 rows. There is a 36-key limit which is ar
 
 ## 8. Documentation 
 
-There is a [post about this project](https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html) which contains a draft *user manual*. It is an incomplete draft currently available in French only. It does not cover changes made after release 0.8.6.
+There is a [post about this project](https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html) which contains a draft *user manual*. It is an incomplete, does not cover changes made after release 0.8.6 and currently available in French only.
 
 ## 9. Acknowledgment
 

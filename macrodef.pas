@@ -170,9 +170,11 @@ begin
   ndx := MacrosEditor.row - 1;
   for j := ndx to Config.ButtonCount-2 do begin
     StringMacros[j] := StringMacros[j+1];
+    KbdMacros[j] := KbdMacros[j+1];
     Pastes[j] := Pastes[j+1];
   end;
   StringMacros[Config.ButtonCount-1] := '';
+  SetLength(KbdMacros[Config.ButtonCount-1], 0);
   Pastes[Config.ButtonCount-1] := pcCtrlV;
   SetMacrosModified(true);
   UpdateGUI;
@@ -202,7 +204,7 @@ procedure TMacroForm.EditorPopMenuPopup(Sender: TObject);
   begin
     result := false;
     repeat
-      if StringMacros[index] <> '' then
+      if (StringMacros[index] <> '') or (length(KbdMacros) > 0) then
         exit;
       inc(index);
     until (index >= Config.ButtonCount);
@@ -231,8 +233,9 @@ var
   ndx: integer;
 begin
   ndx := MacrosEditor.row - 1;
-  if (ndx >= 0) and (ndx < Config.ButtonCount) and (StringMacros[ndx] <> '') then begin
+  if (ndx >= 0) and (ndx < Config.ButtonCount) and ((StringMacros[ndx] <> '') or (length(KbdMacros[ndx]) > 0)) then begin
     StringMacros[ndx] := '';
+    SetLength(KbdMacros[ndx], 0);
     Pastes[ndx] := pcCtrlV;
     SetMacrosModified(true);
     MacrosEditor.Cells[1, ndx+1] := '';
@@ -288,9 +291,11 @@ begin
   ndx := MacrosEditor.row - 1;
   for j := Config.ButtonCount-1 downto ndx+1 do begin
     StringMacros[j] := StringMacros[j-1];
+    KbdMacros[j] := KbdMacros[j-1];
     Pastes[j] := Pastes[j-1];
   end;
   StringMacros[ndx] := '';
+  SetLength(KbdMacros[ndx], 0);
   Pastes[ndx] := pcCtrlV;
   SetMacrosModified(true);
   UpdateGUI;
@@ -298,6 +303,7 @@ begin
 end;
 
 procedure TMacroForm.MacrosEditorEditingDone(Sender: TObject);
+// not executed when editing kbdmacro
 var
   r, c: integer;
   s: string;
@@ -362,7 +368,7 @@ begin
       initialdir := configdir;
     end;
     if execute then begin
-      /// refactor this and  ReloadMacrosFileMenuItemClick(Sender: TObject);
+      { #todo -cRefactor : refactor this and  ReloadMacrosFileMenuItemClick(Sender: TObject); }
       LoadMacros(filename);
       LogForm.Log(llDebug, 'Loaded macro file "%s"', [filename]);
       fn := FixupMacroName(filename);
@@ -395,7 +401,7 @@ begin
   c := MacrosEditor.Col;
   if c <> 1 then exit;
   if (r < 1) or (r > config.ButtonCount) then exit;
-  EditKbdMacroForm.SetMacro(KbdMacros[r-1]); /////           MacrosEditor.cells[c, r]);
+  EditKbdMacroForm.SetMacro(KbdMacros[r-1]); // = cells[c, r]
   LogForm.Log(llDebug, 'Starting Keyboard macro editor');
   if EditKbdMacroForm.ShowModal = mrOk then begin
     setlength(KbdMacros[r-1], 0);
@@ -414,6 +420,7 @@ end;
 procedure TMacroForm.MoveMacroUpMenuItemClick(Sender: TObject);
 var
   tempmac: string;
+  tempkbdmac: TKbdMacro;
   temppc: TPasteCommand;
   r: integer;
 begin
@@ -421,11 +428,17 @@ begin
   if r <= 0 then exit;
   dec(r);
   tempmac := StringMacros[r-1];
+  tempkbdmac := KbdMacros[r-1];
   temppc := pastes[r-1];
+
   StringMacros[r-1] := StringMacros[r];
+  KbdMacros[r-1] := KbdMacros[r];
   pastes[r-1] := pastes[r];
+
   StringMacros[r] := tempmac;
+  KbdMacros[r] := tempkbdmac;
   pastes[r] := temppc;
+
   UpdateGUI;
   MacrosEditor.Row := r;
   SetMacrosModified(true);
@@ -435,18 +448,26 @@ end;
 procedure TMacroForm.MoveMacroDownMenuItemClick(Sender: TObject);
 var
   tempmac: string;
+  tempkbdmac: TKbdMacro;
   temppc: TPasteCommand;
   r: integer;
 begin
   r := MacrosEditor.Row;
   dec(r);
   if r >= Config.ButtonCount-1 then exit;
+
   tempmac := StringMacros[r];
+  tempkbdmac := KbdMacros[r];
   temppc := pastes[r];
+
   StringMacros[r] := StringMacros[r+1];
+  KbdMacros[r] := KbdMacros[r+1];
   pastes[r] := pastes[r+1];
+
   StringMacros[r+1] := tempmac;
+  KbdMacros[r+1] := tempkbdmac;
   pastes[r+1] := temppc;
+
   UpdateGUI;
   MacrosEditor.Row := r+2;
   SetMacrosModified(true);
