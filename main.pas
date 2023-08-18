@@ -62,11 +62,20 @@ procedure TMainForm.Callback(const src: string);
 var
   i: integer;
 begin
-  LogForm.Log(llDebug, 'callback(%s)', [src]);
-  if length(src) < 1 then exit;
-  i := KeyLabelToInt(src[1]);
-  if (i < 0) or (i >= config.ButtonCount) then
+  if length(src) < 1 then begin
+    LogForm.Log(llError, 'callback with empty message');
     exit;
+  end;
+  if (src[1] < ' ') then begin
+    LogForm.log(llDebug, 'keypad syn message received');
+    exit;
+  end;
+  i := KeyLabelToInt(src[1]);
+  if (i < 0) or (i >= config.ButtonCount) then begin
+    LogForm.log(llError, 'invalid keypad message "%s" received', [src]);
+    exit;
+  end;
+  LogForm.log(llDebug, 'keypad message %d received', [i]);
   inject(i);
 end;
 

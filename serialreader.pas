@@ -14,13 +14,17 @@ function ReadSerial: char; // if #0 then no char available
 implementation
 
 uses
-  serial, macrolog, params;
+  serial, macrolog, params, main;
 
 const
   BUFSIZE = 5;
+  SERIAL_LOST = 20000;      // 4 times the Arduino keep alive SYN message interval
+  LOG_SERIAL_LOST = 60000;  // log 'Keypad not connected' message interval
 
 var
   serialhandle: longint;
+  alivetime: QWORD = 0;
+  disconnectTime: QWORD = 0;
 
 procedure CloseSerial(quiet: boolean);
 begin
@@ -32,6 +36,7 @@ begin
   serialhandle := -1;
   if not quiet then
     LogForm.Log(llInfo, 'Serial device closed');
+  MainForm.SetTrayIcon(false);
 end;
 
 function OpenSerial: boolean;
@@ -45,6 +50,7 @@ begin
     Flags := []; // none
     SerSetParams(serialhandle, Config.Baud, 8, NoneParity, 1, Flags);
     LogForm.Log(llInfo, 'Using device: %s at %d bps', [Config.DeviceName, Config.Baud]);
+    alivetime := GetTickCount64;
   end
   else if serialhandle = -1 then
     LogForm.Log(llError, 'Serial device %s not found', [Config.DeviceName])
@@ -53,45 +59,31 @@ begin
   result := serialhandle > 0;
 end;
 
-
 function ReadSerial: char;
 var
-  count: integer;
   inbuf: array[0..BUFSIZE-1] of char;
-  {$ifndef WINDOWS}
-  sstate: TSerialState;
-  {$endif}
 begin
   result := #0;
   if (serialhandle <= 0) then begin
-    LogForm.Log(llError, 'Serial device %s not connected', [Config.DeviceName])
+    if (GetTickCount64 - disconnectTime > LOG_SERIAL_LOST) then begin
+      LogForm.Log(llInfo, 'Keypad not connected');
+      disconnectTime := GetTickCount64;
+    end
+  end
+  else if SerRead(serialhandle, inbuf, sizeof(inbuf)) > 0 then begin
+    result := inbuf[0];
+    alivetime := GetTickCount64;
+    SerFlushInput(serialhandle);  // flush everything
   end
   else begin
-    count := SerRead(serialhandle, inbuf, sizeof(inbuf));
-    if count > 0 then begin
-      result := inbuf[0];
-      SerFlushInput(serialhandle);  // flush everything
-    end
-    else begin
-      // nothing read, check if connection still valid
-      {$IFNDEF WINDOWS}
-      // unable to check if connection lost in Windows
-      // could have the nano send a 'heartbeat' message
-      // (say '@') at regular intervals and use that to
-      // check for lost connections
-      // nothing read, check if connection still valid
-      sstate := SerSaveState(serialhandle);
-      if sstate.LineState = 0 then begin
-        // serial connection lost
+    if (GetTickCount64 - alivetime > SERIAL_LOST) then begin
         CloseSerial(true);
-        LogForm.Log(llError, 'Serial connection with %s lost (LineState = %d)', [ Config.DeviceName, sstate.LineState]);
+        LogForm.Log(llError, 'Serial connection with %s lost', [Config.DeviceName]);
         LogForm.Log(llError, 'Use the [Connect] button in Parameters to reconnect');
-      end;
-      {$ENDIF}
+        disconnectTime := GetTickCount64;
     end
   end;
 end;
-
 
 end.
 
