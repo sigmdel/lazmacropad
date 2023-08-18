@@ -1,7 +1,9 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Current Source Version: 0.8.9** (August 15, 2023)
+**Current Source Version: 0.9.0** (August 18, 2023)
+
+
 
 **Current Release Version: 0.8.6** (November 20, 2022)
 
@@ -53,10 +55,16 @@ The release contains binaries for those that want to test without compiling the 
 
 ![screenshot](images/screenshot_0_8_9.jpg)
 
-### 2.3. The 0.8.9 Source Code
+### 2.3. The 0.9.0 Source Code
 
-The current 0.8.9 version, only available as source code, is being tested in Linux Mint 21.2 MATE using the Qt5 widget set. Tests have yet to be done in Windows. The significant changes with the 0.8.6 version are code simplifications and a [fix](commit/7f25647c559735cd8b38d333059180b85a1d2e33) for a bug that made it difficult to pick `Ctrl-V` as the paste command in the macro definition window.
+Version 0.9.0, currently only available as source code, is being tested in Linux Mint 21.2 MATE using the Qt5 widget set. Tests have yet to be done in Windows. The significant changes with the 0.8.6 version are
 
+  - some [code simplifications](commit/9b92465359ca4fd64766c152c662aad5251ee0d1) to query if modified macros should be saved when closing the app
+  - a [fix](commit/7f25647c559735cd8b38d333059180b85a1d2e33) for a bug that made it difficult to pick `Ctrl-V` as the paste command in the macro definitions window.
+  - [better form properties](commit/fc07c4ef73034f56ea44a0b33db9fdc4d56c7b83) to improve the auto column widths in the macros definition form
+  - [refactored](hcommit/6feefdb28a8d5e1d2f17ff2a9a59e57478230854) handling of paste commands
+  - a [fix]() for a bad bug that caused loss of kbdmacros when inserting, deleting or moving macros in the macro definitions window
+  - [addition]() of a serial connection alive message. The microcontroller firmware **must be updated** to version 2.
 
 ## 3. Hardware
 
@@ -78,8 +86,7 @@ Note that the Nano is upside down (microcontroller is on the hidden side of the 
 
 [nanoMacroPad.ino](nanoMacroPad/nanoMacroPad.ino) contains the Arduino sketch that runs on the Nano. It requires the [Keypad library](https://playground.arduino.cc/Code/Keypad/) ([GitHub repository](https://github.com/Chris--A/Keypad)) by Mark Stanley and Alexander Brevig. It can be installed with the Arduino IDE library manager.
 
-**If the microcontroller is running an older version of the Arduino sketch, it must be replaced with the newer version released in v0.7.2** (see [6. Accommodating Different Keypads](#6-accommodating-different-keypads)).
-
+**The microcontroller firmware must be updated to version 2 which is supplied with version 0.9.0 of *lazmicropad***. 
 
 The source code of the *lazmacropad* object pascal program is in the root directory of the repository. The [images](images/) directory contains the three images shown on this page. None are required to compile the program. 
 
