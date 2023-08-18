@@ -59,12 +59,12 @@ The release contains binaries for those that want to test without compiling the 
 
 Version 0.9.0, currently only available as source code, is being tested in Linux Mint 21.2 MATE using the Qt5 widget set. Tests have yet to be done in Windows. The significant changes with the 0.8.6 version are
 
-  - some [code simplifications](commit/9b92465359ca4fd64766c152c662aad5251ee0d1) to query if modified macros should be saved when closing the app
-  - a [fix](commit/7f25647c559735cd8b38d333059180b85a1d2e33) for a bug that made it difficult to pick `Ctrl-V` as the paste command in the macro definitions window.
-  - [better form properties](commit/fc07c4ef73034f56ea44a0b33db9fdc4d56c7b83) to improve the auto column widths in the macros definition form
-  - [refactored](hcommit/6feefdb28a8d5e1d2f17ff2a9a59e57478230854) handling of paste commands
-  - a [fix]() for a bad bug that caused loss of kbdmacros when inserting, deleting or moving macros in the macro definitions window
-  - [addition]() of a serial connection alive message. The microcontroller firmware **must be updated** to version 2.
+  - some [code simplifications](https://github.com/sigmdel/lazmacropad/commit/9b92465359ca4fd64766c152c662aad5251ee0d1) to query if modified macros should be saved when closing the app
+  - a [fix](https://github.com/sigmdel/lazmacropad/commit/7f25647c559735cd8b38d333059180b85a1d2e33) for a bug that made it difficult to pick `Ctrl-V` as the paste command in the macro definitions window.
+  - [better form properties](https://github.com/sigmdel/lazmacropad/commit/fc07c4ef73034f56ea44a0b33db9fdc4d56c7b83) to improve the auto column widths in the macros definition form
+  - [refactored](https://github.com/sigmdel/lazmacropad/commit/6feefdb28a8d5e1d2f17ff2a9a59e57478230854) handling of paste commands
+  - a [fix](https://github.com/sigmdel/lazmacropad/commit/8db42fafb89b3744ba6d6233cd1ff7bc39e17145) for a bad bug that caused loss of kbdmacros when inserting, deleting or moving macros in the macro definitions window
+  - [addition](https://github.com/sigmdel/lazmacropad/commit/eb6105e60e0896c848d929c4620c4818d3dd3519) of a serial connection alive message. The microcontroller firmware **must be updated** to version 2.
 
 ## 3. Hardware
 
@@ -84,7 +84,7 @@ Note that the Nano is upside down (microcontroller is on the hidden side of the 
 
 ## 4. Source Code and Prerequisites
 
-[nanoMacroPad.ino](nanoMacroPad/nanoMacroPad.ino) contains the Arduino sketch that runs on the Nano. It requires the [Keypad library](https://playground.arduino.cc/Code/Keypad/) ([GitHub repository](https://github.com/Chris--A/Keypad)) by Mark Stanley and Alexander Brevig. It can be installed with the Arduino IDE library manager.
+[nanoMacroPad.ino](nanoMacroPad/nanoMacroPad.ino) contains the Arduino sketch that runs on the Nano. It requires the [Keypad library](https://playground.arduino.cc/Code/Keypad/) ([GitHub repository](https://github.com/Chris--A/Keypad)) by Mark Stanley and Alexander Brevig. It can be installed with the Arduino IDE library manager. A `platformio.ini` configuration file which takes care of this dependancy in PlatformIO is now included.
 
 **The microcontroller firmware must be updated to version 2 which is supplied with version 0.9.0 of *lazmicropad***. 
 
