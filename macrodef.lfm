@@ -1,12 +1,12 @@
 object MacroForm: TMacroForm
   Left = 414
-  Height = 269
+  Height = 270
   Top = 250
-  Width = 472
+  Width = 475
   BorderIcons = [biSystemMenu]
   Caption = 'Definitions - Macro Keypad '
-  ClientHeight = 269
-  ClientWidth = 472
+  ClientHeight = 270
+  ClientWidth = 475
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnHide = FormHide
@@ -33,9 +33,9 @@ object MacroForm: TMacroForm
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 2
-    Height = 225
+    Height = 228
     Top = 38
-    Width = 468
+    Width = 475
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFillColumns = True
     BorderSpacing.Left = 2
@@ -56,7 +56,7 @@ object MacroForm: TMacroForm
       item
         MaxSize = 1800
         Title.Caption = 'Macro'
-        Width = 298
+        Width = 305
       end    
       item
         ButtonStyle = cbsPickList
@@ -82,7 +82,7 @@ object MacroForm: TMacroForm
     OnSelectCell = MacrosEditorSelectCell
     ColWidths = (
       40
-      298
+      305
       115
     )
   end
@@ -177,7 +177,7 @@ object MacroForm: TMacroForm
     end
     object DefaultMacrosMenuItem: TMenuItem
       AutoCheck = True
-      Caption = 'Default definitions'
+      Caption = 'Set as default definitions'
       OnClick = DefaultMacrosMenuItemClick
     end
   end
