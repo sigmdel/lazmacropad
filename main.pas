@@ -90,9 +90,14 @@ end;
 
 {$DEFINE VK_RETURN_SPECIAL}
 
-/// Temporarily remove Windows considerations
-/// Over logged for now!
-///
+{$IFDEF VK_RETURN_SPECIAL}
+{$DEFINE NEED_VK_RETURN_DELAY}
+
+CONST
+  VK_RETURN_DELAY = 50; // milleconds delay before VK_RETURN
+{$ENDIF}
+
+
 procedure TMainForm.Inject(index: integer);
 var
   convertedMacro: string;
@@ -158,6 +163,11 @@ begin
     LogForm.Log(llDebug,'Paste with %s', [sPasteCommands[PasteCommand]]);
     {$ifdef VK_RETURN_SPECIAL}
     if WantsVK_RETURN then begin
+       // A relatively long delay before injecting the VK_RETURN keyboard event
+       // may be needed. Otherwise, the clipboard paste operation will not
+       // be completed and only the return key will be posted. This problem
+       // has been observed to occur only in VSCodium with the QT5 widget set.
+       Delay(VK_RETURN_DELAY);
        KeyInput.Press(VK_RETURN);
        LogForm.Log(llDebug,'Appended VK_RETURN');
     end;
