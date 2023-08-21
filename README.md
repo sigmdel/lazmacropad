@@ -1,7 +1,7 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Current Source Version: 0.9.1** (August 20, 2023)
+**Current Source Version: 0.9.2** (August 21, 2023)
 
 **Current Release Version: 0.8.6** (November 20, 2022)
 
@@ -15,7 +15,7 @@ A simple macro keypad build around an AVR microcontroller and written in Free Pa
 - [2. Status](#2-status)
   - [2.1. The 0.3.4 Release](#21-the-034-release)
   - [2.2. The 0.8.6 Release](#22-the-086-release)
-  - [2.3. The 0.9.1 Source Code](#23-the-091-source-code)
+  - [2.3. The 0.9.2 Source Code](#23-the-092-source-code)
 - [3. Hardware](#3-hardware)
 - [4. Source Code and Prerequisites](#4-source-code-and-prerequisites)
   - [4.1. Linux Requirements](#41-linux-requirements)
@@ -55,9 +55,9 @@ The release contains binaries for those that want to test without compiling the 
 
 ![screenshot](images/screenshot_0_8_9.jpg)
 
-### 2.3. The 0.9.1 Source Code
+### 2.3. The 0.9.2 Source Code
 
-Version 0.9.1, currently only available as source code, is being tested in Linux Mint 21.2 MATE using the Qt5 widget set. The significant changes with the 0.8.6 version are
+Version 0.9.2, currently only available as source code, is being tested in Linux Mint 21.2 MATE using the Qt5 widget set. The significant changes with the 0.8.6 version are
 
   - some [code simplifications](https://github.com/sigmdel/lazmacropad/commit/9b92465359ca4fd64766c152c662aad5251ee0d1) to query if modified macros should be saved when closing the app
   - a [fix](https://github.com/sigmdel/lazmacropad/commit/7f25647c559735cd8b38d333059180b85a1d2e33) for a bug that made it difficult to pick `Ctrl-V` as the paste command in the macro definitions window.
@@ -66,6 +66,7 @@ Version 0.9.1, currently only available as source code, is being tested in Linux
   - a [fix](https://github.com/sigmdel/lazmacropad/commit/8db42fafb89b3744ba6d6233cd1ff7bc39e17145) for a bad bug that caused loss of kbdmacros when inserting, deleting or moving macros in the macro definitions window
   - [addition](https://github.com/sigmdel/lazmacropad/commit/eb6105e60e0896c848d929c4620c4818d3dd3519) of a serial connection alive message. The microcontroller firmware **must be updated** to version 2.
   - a [fix](https://github.com/sigmdel/lazmacropad/commit/d45a7fdd0f38625d4f419959b38726c90a47b3f8) for the clipboard timing problem in VSCodium when handling a trailing newline escape sequence.
+  - [addition](https://github.com/sigmdel/lazmacropad/commit/89291afbc5a9ea56330b2293eb184329dcd93dcc) of a user set delay before injecting VK_RETURN keyboard event in lieu of a trailing '\n` escape as per previous fix.
 
 The source code does compile in Windows 10 64-bit.
 
@@ -194,7 +195,7 @@ The strings are UTF8 and can contain 3 escape sequences
 
 If a string macro is edited with the dedicated multiline editor (reached with the context menu), the latter will take care of encoding the RETURN, TAB and backslash. This editor can be launched from the context menu available when a string macro is selected.
 
-Appending a `\n` sequence to a macro to be used in the terminal will mean that it will be executed as soon as the corresponding key is pressed. This could be used to start a program. Be careful, some programs such as the Arduino IDE can grab the serial port which will freeze *lazmacropad*. 
+Appending a `\n` sequence to a macro used in a terminal should mean that the string macro is a command to be executed as soon as the corresponding macro key is pressed. In Linux at least, this does not work. Consequently, a trailing newline escape sequence is stripped from the string pasted into the clipboard and replaced with a `VK_RETURN` key press after the string is pasted. This does work and should not change anything if such the macro is used with another application. However an empty new line is inserted but the clipboard content is not be copied beforehand in VSCodium. This unexpected behaviour does not occur in Geany and it may be related to the QT5 widget set because it did not occur with the GTK2 widget set. As a work around, a relatively long delay before injecting `VK_RETURN` provides enough time for the completion of the clipboard operation. The delay can be set with the `Paste command delay...` option in the `Macro Definitions` window; press the `[...]` button to see the option.
 
 
 **Notes**
@@ -224,12 +225,9 @@ Testing so far seems to indicate that `Ctrl-V` works well in Windows and surpris
 
 In Linux, the situation is more complex. `Ctrl-V` will work most times as will `Shift-Insert`. However, neither of these will work at the command line prompt of a terminal. In that case the custom paste command which is `Shift+Ctrl+V` could; at least it does in the MATE terminal. Because it might be worthwhile to experiment with other shortcuts, such as `Mouse_Middle` which pastes selections in X11, it is possible to redefine the custom paste command. There is one restriction here, there can be only one custom definition per macro definitions file.
 
-### 6.1. Notes
+### 6.1. Note
 
- - When *lazmacropad* copies a string macro into the clipboard, also copies it into the primary selection. This is pretty much the behaviour of many applications (Geany, VSCodium, VS Code, GNote, LibreOffice Writer and the Lazarus IDE editor,... ), which synchronize the two mechanisms so that  pasting selected text can be done with `Ctrl+V` or `Shift+Insert`. This a Linux consideration, there are no such things as selections in Windows.
-
- - Currently there is a `VK_RETURN_SPECIAL` directive in `main.pas`. If defined (`{$DEFINE VK_RETURN_SPECIAL}`) a trailing newline escape sequence is stripped from the string pasted into the clipboard and replaced with a `VK_RETURN` key press after the string is pasted. This is particularly useful for macros that are entered at a terminal prompt because they will be treated as commands to be executed. However, in VSCodium, the result is that a new line will be inserted in the text but the clipboard content will not be copied beforehand. This unexpected behaviour does not occur in Geany and it may be related to the QT5 widget set because it did not occur with the GTK2 widget set. A relatively long delay before injecting `VK_RETURN` providing enough time for the completion of the clipboard operation is the current work around.
-
+When *lazmacropad* copies a string macro into the clipboard, also copies it into the primary selection. This is pretty much the behaviour of many applications (Geany, VSCodium, VS Code, GNote, LibreOffice Writer and the Lazarus IDE editor,... ), which synchronize the two mechanisms so that  pasting selected text can be done with `Ctrl+V` or `Shift+Insert`. This a Linux consideration, there are no such things as selections in Windows.
 
 
 ## 7. Accommodating Different Keypads
@@ -240,9 +238,9 @@ The default values are 4 columns and 4 rows. There is a 36-key limit which is ar
 
 ## 8. Further Developments
 
-The project is complete in its present form meaning that new functionality is envisioned only as a consequence of an hardware enhancement such as the addition of a rotary encoder. That would be getting away from the initial goal of creating a very simple hardware project.
+The project is complete in its present form meaning that new functionality is envisioned only as a consequence of a hardware enhancement such as the addition of a rotary encoder. That would be getting away from the initial goal of creating a very simple hardware project.
 
-An upcoming version 1.0 will therefore be limited to a final handling of the `VK_RETURN_SPECIAL` code based on experience and a much needed cleanup of the code. In particular, the current implementation of macro definitions needs to be refactored and the same is true of the serial connection code. 
+An upcoming version 1.0 will therefore be limited to code improvements only. In particular, the current implementation of macro definitions needs to be refactored and the same is true of the serial connection code. There is no target date for that version.
 
 ## 9. Documentation 
 
