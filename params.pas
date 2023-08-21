@@ -12,6 +12,7 @@ CONST
   DEFAULT_COL_COUNT = 4;
   OPTIONS_FILENAME = 'options.ini';
   DEFAULT_MACROS = 'default.macros';
+  DEFAULT_VK_RETURN_DELAY = 50;     // 30 ms seems adequate, the safety margin is not noticeable
 
 type
   TLogLevel = (llDebug, llInfo, llError, llNone);
@@ -27,6 +28,9 @@ var
   StringMacros: array of string; // all macros no matter the type stored here (as string)
   KbdMacros: array of TKbdMacro; // only TKbdmacros are store here
   PasteCommands: TKbdMacro;      // pcCtrlV..pcCustom commands see InitPasteCommands below
+  VkReturnDelay: integer;        // Delay before injecting final VK_RETURN after paste
+  // above variables saved to macro definitions file
+
   macrosmodified: boolean;       // verify saving modified macro definition if true
 
 procedure SaveMacros(const filename: string);
@@ -150,6 +154,7 @@ begin
     WriteInteger('pastecmd', 'ctrl-v', PasteCommands[ord(pcCtrlV)].Delayms);
     WriteInteger('pastecmd', 'shift-insert', PasteCommands[ord(pcShiftInsert)].Delayms);
     WriteString('pastecmd', 'custom', PasteCommands[ord(pcCustom)].EventToHex);
+    WriteInteger('vk-return', 'delay', VkReturnDelay);
     MacrosModified := false;
     LogForm.log(llInfo,'Macros file %s with %d string macros and %d keyboard macros saved', [filename, smcount, kmcount]);
   finally
@@ -215,6 +220,7 @@ begin
     else
       PasteCommands[ord(pcCustom)] := ke;
 
+    VkReturnDelay := ReadInteger('vk-return', 'delay', VkReturnDelay); //DEFAULT_VK_RETURN_DELAY
     LogForm.log(llInfo,'Macros file %s contained %d string macros and %d keyboard macros', [filename, smcount, kmcount]);
 
   finally
@@ -234,6 +240,7 @@ begin
      pastes[i] := pcCtrlV;
   end;
   InitDefaultCustomPasteCommand;
+  VkReturnDelay := DEFAULT_VK_RETURN_DELAY;
 end;
 
 constructor TConfig.Create;

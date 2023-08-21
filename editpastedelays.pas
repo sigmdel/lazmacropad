@@ -15,6 +15,8 @@ type
     Button1: TButton;
     Button2: TButton;
     CtrlVDelaySpinEdit: TSpinEdit;
+    VkReturnDelaySpinEdit: TSpinEdit;
+    Label5: TLabel;
     ShiftInsertDelaySpinEdit: TSpinEdit;
     CustomDelaySpinEdit: TSpinEdit;
     Label1: TLabel;
@@ -47,6 +49,7 @@ begin
     CtrlVDelaySpinEdit.Value := PasteCommands[ord(pcCtrlV)].Delayms;
     ShiftInsertDelaySpinEdit.Value := PasteCommands[ord(pcShiftInsert)].Delayms;
     CustomDelaySpinEdit.Value := PasteCommands[ord(pcCustom)].Delayms;
+    VkReturnDelaySpinEdit.Value := VkReturnDelay;
     if ShowModal = mrOk then begin
       if PasteCommands[ord(pcCtrlV)].Delayms <> CtrlVDelaySpinEdit.Value then begin
         PasteCommands[ord(pcCtrlV)].Delayms := CtrlVDelaySpinEdit.Value;
@@ -60,6 +63,11 @@ begin
 
       if PasteCommands[ord(pcCustom)].Delayms <> CustomDelaySpinEdit.Value then begin
         PasteCommands[ord(pcCustom)].Delayms := CustomDelaySpinEdit.Value;
+        result := true;
+      end;
+
+      if VkReturnDelay <> VkReturnDelaySpinEdit.value then begin
+        VkReturnDelay := VkReturnDelaySpinEdit.value;
         result := true;
       end;
     end;
