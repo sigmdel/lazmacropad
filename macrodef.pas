@@ -69,6 +69,7 @@ type
     procedure SaveMacroFileAsMenuItemClick(Sender: TObject);
     procedure SaveMacroFileMenuItemClick(Sender: TObject);
   private
+    guiUpdated: boolean;
     function FixupMacroName(const fn: string): string;
     procedure UpdateGUI;
     procedure ProxyEditorRestoreSelection(Data: PtrInt);
@@ -350,7 +351,8 @@ end;
 procedure TMacroForm.MacrosEditorSelectEditor(Sender: TObject; aCol,
   aRow: Integer; var Editor: TWinControl);
 begin
-  if (aCol = 1) and (Pastes[ARow-1] = pcKbdEvents) then begin
+  // Grid editor must not be set before the grid has been filled by UpdateGUI
+  if (aCol = 1) and (Pastes[ARow-1] = pcKbdEvents) and guiUpdated then begin
     ProxyEditorButton.BoundsRect := Rect(10, 10, 8, 8); // make it invisible
     Editor := ProxyEditorButton;
     LogForm.Log(llDebug, 'Proxy editor set for cell[%d, %d]', [aCol, aRow]);
@@ -604,6 +606,7 @@ begin
     else
       MacrosEditor.Cells[1, i+1] := StringMacros[i];
   end;
+  guiUpdated := true;
   LayoutForm.UpdateGUI;
   LogForm.Log(llDebug, 'Updated Macro editor and keymap forms');
 end;
