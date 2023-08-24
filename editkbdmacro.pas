@@ -108,6 +108,7 @@ begin
   if ModifiersCheckGroup.Checked[0] then include(Event.Shift.State, ssShift);
   if ModifiersCheckGroup.Checked[1] then include(Event.Shift.State, ssCtrl);
   if ModifiersCheckGroup.Checked[2] then include(Event.Shift.State, ssAlt);
+  if ModifiersCheckGroup.Checked[3] then include(Event.Shift.State, ssAltGr);
   Event.Delayms := DelaySpinEdit.value;
   EventString := Event.EventToStr;
 end;
@@ -288,6 +289,7 @@ begin
     ModifiersCheckGroup.Checked[0] := ssShift In Event.Shift.State;
     ModifiersCheckGroup.Checked[1] := ssCtrl In Event.Shift.State;
     ModifiersCheckGroup.Checked[2] := ssAlt in Event.Shift.State;
+    ModifiersCheckGroup.Checked[3] := ssAltGr in Event.Shift.State;
     DelaySpinEdit.Value := Event.delayms;
   end;
 end;

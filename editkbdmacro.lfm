@@ -31,18 +31,19 @@ object EditKbdMacroForm: TEditKbdMacroForm
     ChildSizing.ShrinkHorizontal = crsScaleChilds
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
-    ChildSizing.ControlsPerLine = 3
-    ClientHeight = 36
-    ClientWidth = 310
-    Columns = 3
+    ChildSizing.ControlsPerLine = 4
+    ClientHeight = 35
+    ClientWidth = 304
+    Columns = 4
     Items.Strings = (
       'Shift'
       'Ctrl'
       'Alt'
+      'AltGr'
     )
     TabOrder = 2
     Data = {
-      03000000020202
+      0400000002020202
     }
   end
   object KeyActionRadioGroup: TRadioGroup
@@ -53,7 +54,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideRight.Side = asrBottom
     Left = 243
     Height = 49
-    Top = 140
+    Top = 137
     Width = 312
     Anchors = [akTop, akRight]
     AutoFill = True

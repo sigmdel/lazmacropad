@@ -1,7 +1,8 @@
 # Changes to the required lazmouseandkeyinput package
 
+## `xkeyinput.pas` 
 
-The file `xkeyinput.pas` contains changes to the `VirtualKeyToXKeySym` function to handle an additional 12 virtual keys.
+The file contains changes to the `VirtualKeyToXKeySym` function to handle an additional 12 virtual keys.
 
 | Virtual key | US key | FR key | 
 |   ---   | :---:  | :---: |
@@ -24,3 +25,10 @@ The file `xkeyinput.pas` contains changes to the `VirtualKeyToXKeySym` function 
 
 The modified file should replace the original file in the `$(LAZARUS)/components/mouseandkeyinput` directory. Note that the modified file also has the `Boolean32` correction for the type of the `is_press` parameter of the external `XTestFakeKeyEvent` function.
 
+## `keyinputintf.pas`
+
+The file contains changes to the `TKeyInput.Apply` and `TKeyInput.Unapply` procedures that adds a fourth shift state: `ssAltGr` that corresponds to the right Alt key (often labeled Alt Gr on 105 key ISO keyboards). 
+
+## `xmouseinput`
+
+The file has the `Boolean32` type correction of the the `is_press` parameter in the external `XTestFakeMotionEvent` function argument list. This unit is not used in this project; the correction is included here just because the same correction was needed in the `xkeyinput.pas` file.

@@ -171,6 +171,7 @@ begin
     VK_OEM_6: Result := XK_bracketright; //US kbd: ]} key, FR kbd: )° key
     VK_OEM_7: Result := XK_quotedbl;     //US kbd: '" key, FR kbd: "3 key
     VK_OEM_8: Result := XK_less;         //US kbd: <none>, FR kbd: <> key
+    VK_RMENU: Result := XK_ISO_Level3_Shift; // US kbd: right Alt key, FR kbd: Alt Gr key
   else
     Result := XK_VoidSymbol;
   end;

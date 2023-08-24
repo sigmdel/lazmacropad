@@ -10,7 +10,7 @@ uses
   Classes, SysUtils, LCLType;
 
 type
-  TKbdShiftEnum = ssShift..ssCtrl;
+  TKbdShiftEnum = ssShift..ssAltGr; // only ssShift, ssCtrl, ssAlt and ssAltGr are used
   TKbdShift = record case boolean of
      False: (State: set of TKbdShiftEnum);
      True:  (Value: byte); // avoid type casting
@@ -352,6 +352,7 @@ begin
   Result := '';
   if ssCtrl in Shift.State then AddPart(ifsCtrl, ',', result);
   if ssAlt in Shift.State then AddPart(ifsAlt, ',', result);
+  if ssAltGr in Shift.State then AddPart('AltGr', ',', result);
   if ssShift in Shift.State then AddPart(ifsVK_SHIFT, ',', result);
   if result <> '' then
     result := '[' + result + ']';
