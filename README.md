@@ -14,8 +14,7 @@ A simple macro keypad build around an AVR microcontroller and written in Free Pa
 - [2. Status](#2-status)
   - [2.1. The 0.3.4 Release](#21-the-034-release)
   - [2.2. The 0.8.6 Release](#22-the-086-release)
-  - [2.3. The 0.9.2 Release](#23-the-092-release)
-  - [2.4. The 0.9.3 Release](#24-the-093-release)
+  - [2.3. The 0.9.3 Release](#23-the-093-release)
 - [3. Hardware](#3-hardware)
 - [4. Microcontroller firmware](#4-microcontroller-firmware)
 - [5. Linux Requirements](#5-linux-requirements)
@@ -23,10 +22,10 @@ A simple macro keypad build around an AVR microcontroller and written in Free Pa
   - [5.2. Changes to the `lazmouseandkeyinput` package](#52-changes-to-the-lazmouseandkeyinput-package)
   - [5.3. Serial USB Device Problem in Mint 21 and Ubuntu 22.04](#53-serial-usb-device-problem-in-mint-21-and-ubuntu-2204)
 - [6. Windows Requirements](#6-windows-requirements)
-- [7. *lazmacropad* TrayIcon Source Code](#7-lazmacropad-trayicon-source-code)
+- [7. *lazmacropad* Source Code](#7-lazmacropad-source-code)
 - [8. Macros](#8-macros)
 - [9. Clipboards and Paste Commands](#9-clipboards-and-paste-commands)
-  - [9.1. Note](#91-note)
+  - [9.1. Notes](#91-notes)
 - [10. Accommodating Different Keypads](#10-accommodating-different-keypads)
 - [11. Further Developments](#11-further-developments)
 - [12. Documentation](#12-documentation)
@@ -53,17 +52,16 @@ The 0.8.6 [release](releases/tag/v0.8.6) of *lazmacropad* was built in Linux Min
 
 ![screenshot](images/screenshot_0_8_9.jpg)
 
-### 2.3. The 0.9.2 Release
 
-Withdrawn. Contained bug fixes, streamlined paste command handling, and more robust serial link between the key pad and the computer. Version 2 of the key pad microcontroller firmware is required.
+### 2.3. The 0.9.3 Release
 
-### 2.4. The 0.9.3 Release
+Contains bug fixes, streamlined paste command handling, and added support for the right Alt modifier key (labelled Alt Gr on some ISO keyboards) which allow for a fourth shift state. A more robust serial link between the key pad and the computer is added so version 2 of the key pad microcontroller firmware is required.
 
-Contains bug fixes, and added support for the right Alt modifier key (labelled Alt Gr on some ISO keyboards) which allow for a fourth shift state. The release contains 
+The release contains 
 
-  - a Linux binary compiled in Linux Mint 21.2 with Lazarus 2.2.7 (rev lazarus_2_2_6-1-gada7a90f86) FPC 3.2.3 x86_64-linux-qt5. There was no obvious problem using the default Pascal bindings for the QT5 widget set found in the Ubuntu repository (libqt5pas1: 2.6+2.0.8+dfsg-2 and libqt5pas-dev: 2.6+2.0.8+dfsg-2).
+  - a Linux binary compiled in Linux Mint 21.2 with Lazarus 2.2.7 and FPC 3.2.3 for the 64-bit x86 architecture and the Qt5 widget set. There was no obvious problem using the default Pascal bindings for the Qt5 widget set found in the Ubuntu repository (libqt5pas1: 2.6+2.0.8+dfsg-2 and libqt5pas-dev: 2.6+2.0.8+dfsg-2) and
 
-  - a Windows 10 64-bits binary compiled with the fixes version of Lazarus (Lazarus 2.2.7 [ada7a90f86] and FPC 3.2.3 x86_64-win64-win32/win64).
+  - a Windows 10 64-bit binary compiled with Lazarus 2.2.7 and FPC 3.2.3.
 
 ## 3. Hardware
 
