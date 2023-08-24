@@ -152,7 +152,7 @@ begin
        // A relatively long delay before injecting the VK_RETURN keyboard event
        // may be needed. Otherwise, the clipboard paste operation will not
        // be completed and only the return key will be posted. This problem
-       // has been observed to occur only in VSCodium with the QT5 widget set.
+       // has been observed to occur in VSCodium with the QT5 widget set.
        Delay(VkReturnDelay);
        KeyInput.Press(VK_RETURN);
        LogForm.Log(llDebug,'Appended VK_RETURN');

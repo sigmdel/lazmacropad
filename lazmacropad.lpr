@@ -10,8 +10,8 @@ uses
   athreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, main, about, keymap, macrolog, params, macrodef,
-  options, custompastecommand, editStringMacro, editKbdMacro, editpastedelays;
+  Forms, main, about, keymap, macrolog, params, macrodef, options,
+  custompastecommand, editStringMacro, editKbdMacro, editpastedelays;
 
 {$R *.res}
 

@@ -1,12 +1,11 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Current Source Version: 0.9.2** (August 21, 2023)
+**Current Source Version: 0.9.3** (August 24, 2023)
 
 **Current Release Version: 0.8.6** (November 20, 2022)
 
 A simple macro keypad build around an AVR microcontroller and written in Free Pascal / Lazarus. Its distinguishing feature is that it is keymap agnostic because it uses the operating system clipboard to paste strings into the currently running application. Nevertheless, macros can be injected as keystrokes if desired.
-
 
 **Table of Content**
 <!-- TOC -->
@@ -15,29 +14,30 @@ A simple macro keypad build around an AVR microcontroller and written in Free Pa
 - [2. Status](#2-status)
   - [2.1. The 0.3.4 Release](#21-the-034-release)
   - [2.2. The 0.8.6 Release](#22-the-086-release)
-  - [2.3. The 0.9.2 Source Code](#23-the-092-source-code)
+  - [2.3. The 0.9.2 Release](#23-the-092-release)
+  - [2.4. The 0.9.3 Release](#24-the-093-release)
 - [3. Hardware](#3-hardware)
-- [4. Source Code and Prerequisites](#4-source-code-and-prerequisites)
-  - [4.1. Linux Requirements](#41-linux-requirements)
-    - [4.1.1. `Xtst` Library](#411-xtst-library)
-    - [4.1.2. `xKeyInput.pas` Bug Fix](#412-xkeyinputpas-bug-fix)
-    - [4.1.3. Serial USB Device Problem in Mint 21 and Ubuntu 22.04](#413-serial-usb-device-problem-in-mint-21-and-ubuntu-2204)
-    - [4.1.4. Compiler Versions and Linux Widgetsets](#414-compiler-versions-and-linux-widgetsets)
-  - [4.2. Windows Requirements](#42-windows-requirements)
-- [5. Macros](#5-macros)
-- [6. Clipboards and Paste Commands](#6-clipboards-and-paste-commands)
-  - [6.1. Notes](#61-notes)
-- [7. Accommodating Different Keypads](#7-accommodating-different-keypads)
-- [8. Further Developments](#8-further-developments)
-- [9. Documentation](#9-documentation)
-- [10. Acknowledgment](#10-acknowledgment)
-- [11. Licence](#11-licence)
+- [4. Microcontroller firmware](#4-microcontroller-firmware)
+- [5. Linux Requirements](#5-linux-requirements)
+  - [5.1. `Xtst` Library](#51-xtst-library)
+  - [5.2. Changes to the `lazmouseandkeyinput` package](#52-changes-to-the-lazmouseandkeyinput-package)
+  - [5.3. Serial USB Device Problem in Mint 21 and Ubuntu 22.04](#53-serial-usb-device-problem-in-mint-21-and-ubuntu-2204)
+- [6. Windows Requirements](#6-windows-requirements)
+- [7. *lazmacropad* TrayIcon Source Code](#7-lazmacropad-trayicon-source-code)
+- [8. Macros](#8-macros)
+- [9. Clipboards and Paste Commands](#9-clipboards-and-paste-commands)
+  - [9.1. Note](#91-note)
+- [10. Accommodating Different Keypads](#10-accommodating-different-keypads)
+- [11. Further Developments](#11-further-developments)
+- [12. Documentation](#12-documentation)
+- [13. Acknowledgment](#13-acknowledgment)
+- [14. Licence](#14-licence)
 
 <!-- /TOC -->
 
 ## 1. Description 
 
-This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) when a key on the pad is pressed. These *messages* are translated into *macros* by Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert, or a user-defined custom key combination) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 it is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
+This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) when a key on the pad is pressed. These *messages* are translated into *macros* by *lazmacropad* Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert, or a user-defined custom key combination) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 it is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
 
 The Lazarus program also allows for editing, saving and loading macro definitions to suit any number of applications on the desktop.
 
@@ -49,26 +49,21 @@ The Lazarus program also allows for editing, saving and loading macro definition
 
 ### 2.2. The 0.8.6 Release
 
-The 0.8.6 [release](releases/tag/v0.8.6) of *lazmacropad* was built in Linux Mint 20.1 MATE using the GTK2 widget set. The program has also been compiled in Windows 10 (64 bits) and it seems to work in that environment although there are some limitations as described below. 
-
-The release contains binaries for those that want to test without compiling the program. However the Linux binary will not function unless the Xtst library is installed ([instructions below](#411-xtst-library)). There is no need to even build the macro kkeypad to test the software in Linux. Clicking on a key in the green layout window shown below simulates pressing on the corresponding key on a physical macro keypad. There's also experimental handling of trailing new line characters discussed further down.
+The 0.8.6 [release](releases/tag/v0.8.6) of *lazmacropad* was built in Linux Mint 20.1 MATE using the GTK2 widget set. The program has also been compiled in Windows 10 (64 bits). 
 
 ![screenshot](images/screenshot_0_8_9.jpg)
 
-### 2.3. The 0.9.2 Source Code
+### 2.3. The 0.9.2 Release
 
-Version 0.9.2, currently only available as source code, is being tested in Linux Mint 21.2 MATE using the Qt5 widget set. The significant changes with the 0.8.6 version are
+Withdrawn. Contained bug fixes, streamlined paste command handling, and more robust serial link between the key pad and the computer. Version 2 of the key pad microcontroller firmware is required.
 
-  - some [code simplifications](https://github.com/sigmdel/lazmacropad/commit/9b92465359ca4fd64766c152c662aad5251ee0d1) to query if modified macros should be saved when closing the app
-  - a [fix](https://github.com/sigmdel/lazmacropad/commit/7f25647c559735cd8b38d333059180b85a1d2e33) for a bug that made it difficult to pick `Ctrl-V` as the paste command in the macro definitions window.
-  - [better form properties](https://github.com/sigmdel/lazmacropad/commit/fc07c4ef73034f56ea44a0b33db9fdc4d56c7b83) to improve the auto column widths in the macros definition form
-  - [refactored](https://github.com/sigmdel/lazmacropad/commit/6feefdb28a8d5e1d2f17ff2a9a59e57478230854) handling of paste commands
-  - a [fix](https://github.com/sigmdel/lazmacropad/commit/8db42fafb89b3744ba6d6233cd1ff7bc39e17145) for a bad bug that caused loss of kbdmacros when inserting, deleting or moving macros in the macro definitions window
-  - [addition](https://github.com/sigmdel/lazmacropad/commit/eb6105e60e0896c848d929c4620c4818d3dd3519) of a serial connection alive message. The microcontroller firmware **must be updated** to version 2.
-  - a [fix](https://github.com/sigmdel/lazmacropad/commit/d45a7fdd0f38625d4f419959b38726c90a47b3f8) for the clipboard timing problem in VSCodium when handling a trailing newline escape sequence.
-  - [addition](https://github.com/sigmdel/lazmacropad/commit/89291afbc5a9ea56330b2293eb184329dcd93dcc) of a user set delay before injecting VK_RETURN keyboard event in lieu of a trailing '\n` escape as per previous fix.
+### 2.4. The 0.9.3 Release
 
-The source code does compile in Windows 10 64-bit.
+Contains bug fixes, and added support for the right Alt modifier key (labelled Alt Gr on some ISO keyboards) which allow for a fourth shift state. The release contains 
+
+  - a Linux binary compiled in Linux Mint 21.2 with Lazarus 2.2.7 (rev lazarus_2_2_6-1-gada7a90f86) FPC 3.2.3 x86_64-linux-qt5. There was no obvious problem using the default Pascal bindings for the QT5 widget set found in the Ubuntu repository (libqt5pas1: 2.6+2.0.8+dfsg-2 and libqt5pas-dev: 2.6+2.0.8+dfsg-2).
+
+  - a Windows 10 64-bits binary compiled with the fixes version of Lazarus (Lazarus 2.2.7 [ada7a90f86] and FPC 3.2.3 x86_64-win64-win32/win64).
 
 ## 3. Hardware
 
@@ -86,19 +81,14 @@ The Nano and the readily available 4x4 tactile push button matrix shown below ar
 
 Note that the Nano is upside down (microcontroller is on the hidden side of the board) so that the USB cable will go off to the right. The Nano could be connected facing in the other direction by flipping it right side up if it is more convenient to orient the cable towards the left. The character transmitted over the serial port as each key is pressed and the mapping of the Nano I/O pins in the Arduino sketch should be modified according to the number rows and columns of keys on the keypad and its desired orientation. 
 
-## 4. Source Code and Prerequisites
 
-[nanoMacroPad.ino](nanoMacroPad/nanoMacroPad.ino) contains the Arduino sketch that runs on the Nano. It requires the [Keypad library](https://playground.arduino.cc/Code/Keypad/) ([GitHub repository](https://github.com/Chris--A/Keypad)) by Mark Stanley and Alexander Brevig. It can be installed with the Arduino IDE library manager. A `platformio.ini` configuration file which takes care of this dependency in PlatformIO is now included.
+## 4. Microcontroller firmware
 
-**The microcontroller firmware must be updated to version 2 which is supplied with version 0.9.0+ of *lazmacropad***. 
+The microcontroller **must run version 2** of the firmware supplied with versions 0.9.0 and newer of *lazmacropad*. The source code is in the [nanoMacroPad](nanoMacroPad/) directory.
 
-The source code of the *lazmacropad* object pascal program is in the root directory of the repository. The [images](images/) directory contains the three images shown on this page. None are required to compile the program. 
+## 5. Linux Requirements
 
-The [`MouseAndKeyInput`](https://wiki.lazarus.freepascal.org/MouseAndKeyInput) unit is used to inject key press and release events into the operating system keyboard driver. The unit is found in the `lazmouseandkeyinput.lpk` non-visual package. That package is in the `$(LAZARUS)/components/mouseandkeyinput` directory. ~~Load the package file into the Lazarus IDE and compile it.~~ Add `lazmouseandkeyinput` to the `Required Packages` in the `Project Inspector` window (which is opened from the `Project` menu in the IDE).
-
-### 4.1. Linux Requirements
-
-#### 4.1.1. `Xtst` Library
+### 5.1. `Xtst` Library
 
 The `Xtst` library is required by the `lazmouseandkeyinput.lpk` package. In recent versions of Debian, the package containing this library is called `libxtst6` and it is probably included in most Debian-based desktop distributions. This is the case for Linux Mint 20.1 Mate and Mint 21 Mate. If the library is missing, it can be installed in the usual fashion.
 
@@ -127,11 +117,13 @@ The directory in which are stored system libraries are stored is not necessarily
 It appears some have been installing the development package `libxtst-dev` in a bid to add the missing symbolic link, but there is no need for that. 
 
 
-#### 4.1.2. `xKeyInput.pas` Bug Fix
+### 5.2. Changes to the `lazmouseandkeyinput` package
 
-Chances are the program will work, except in some *older* distributions. An unending sequence of key-down events can be generated by the injected paste key combination. Those virtual key down events will continue until a key on the physical keyboard is pressed. As it happens, Mint 20.1 released in January 2021 (an LTS version valid until 2025) and Mint 21 only recently release are among those *older* distributions. The solution to that problem is to change the type of the `is_press` argument in the `XTestFakeKeyEvent` function to `Boolean32` instead of `Boolean`. The function is in the file `$(lazarus)/components/mouseandkeyinput/xkeyinput.pas`. The problem and solution were provided by bytesbites in an August 16, 2016 [forum post](https://forum.lazarus.freepascal.org/index.php/topic,33719.msg218852.html#msg218852). The issue [27819](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/27819) was raised 8 years ago and more recently [39964](https://gitlab.com/freepascal.org/lazarus/lazarus/-/issues/39964) in the Lazarus Gitlab repository. Many still come across this [problem](https://forum.lazarus.freepascal.org/index.php/topic,62065.0.html).
+See the [mouseandkeyinput](mouseandkeyinput/) directory for needed additions and corrections to the `lazmouseandkeyinput` package.
 
-#### 4.1.3. Serial USB Device Problem in Mint 21 and Ubuntu 22.04
+**Warning**: *lazmacropad* may not run at all if the changes are not made.
+
+### 5.3. Serial USB Device Problem in Mint 21 and Ubuntu 22.04
 
 The serial device, usually `/dev/ttyUSB0` on my systems, would not be created on connection of the Nano to the desktop in Mint 21 and Ubuntu 22.04. That was unusual because the USB device was found.
 
@@ -148,46 +140,33 @@ That means that the Arduino IDE could not be used to flash the sketch on the Nan
 usbfs: interface 0 claimed by ch34x while 'brltty' sets config #1 #18 
 ```
 
-A quick search yielded a couple of **StackExchange** queries ([Unable to use [...] on USB-serial converter chip](https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip) and [On Linux Min21, unable to access tools/port...)](https://arduino.stackexchange.com/questions/90954/on-linux-min21-unable-to-access-tools-port-grayed-out) and a blog post ([Solved: brltty – USB COM Port Gets Immediately Disconnected](https://lynxbee.com/solved-brltty-usb-com-port-gets-immediately-disconnected/#.Y20o5ZCZNhE)). It seems that the screen reader [BRLTTY](https://brltty.app/) is now enabled by default and it takes over the serial port which I assume would be connected to a Braille display.
+A quick search yielded a couple of *StackExchange* queries ([Unable to use [...] on USB-serial converter chip](https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip) and [On Linux Min21, unable to access tools/port...)](https://arduino.stackexchange.com/questions/90954/on-linux-min21-unable-to-access-tools-port-grayed-out) and a blog post ([Solved: brltty – USB COM Port Gets Immediately Disconnected](https://lynxbee.com/solved-brltty-usb-com-port-gets-immediately-disconnected/#.Y20o5ZCZNhE)). It seems that the screen reader [BRLTTY](https://brltty.app/) is now enabled by default and it takes over the serial port which I assume would be connected to a Braille display.
 
 There are two ways to "resolve" the situation: disable the service as explained in the first two references or remove the `brltty` package altogether with the usual `apt remove brltty` command as explained in the last reference. Unfortunately, this is not a working solution for those that need the screen reader.  
 
-#### 4.1.4. Compiler Versions and Linux Widgetsets
+## 6. Windows Requirements
 
-Up to version 0.8.6, the program was developed in Linux Mint 20.1 Mate using Lazarus 2.3.0 / FPC 3.3.1 / x86_64-linux-gtk2. The resulting GTK2 binary runs without limitations in Linux Mint 20.1 and Mint 21. The [2022-11-26 Linux binary](https://github.com/sigmdel/lazmacropad/releases/tag/v0.8.6) was compiled with revision main-2_3-2933-g3bdcb55eb2. The no longer available 2022-11-21 Linux binary compiled with revision main-2_3-2897-gecf49109b1 introduced a bug. The problem, which would manifest itself when closing *lazmacropad* if changes had been made to the macro file, had not existed in binaries compiled with previous revisions of Lazarus.
+Only one file in the `lazmouseandkeyinput` package has to be changed in Windows. See the [mouseandkeyinput](mouseandkeyinput/) directory for details.
 
-~~The source code was also compiled in Mint 21 using the QT5 widget set instead of the "default" GTK2 widget set. This required installing `libqt5pas1_2.10xxxx` and `libqt5pas-dev_2.10xxxx` libraries by David Bannon (Davo aka dbannon on the Lazarus forum) from his [Github repository](https://github.com/davidbannon/libqt5pas) instead of the `libqt5pas` and `libqt5pas-dev` from the Debian repository. The program compiled for that widget set does work when using Ctrl+V as the paste shortcut, but pasting macros with the Shift+Insert shortcut fails. Consequently, until a solution is found, a Qt5 version of the program will not be released.~~
+Otherwise there are no other requirements in Windows.
 
-Version 0.8.9 has been compiled in Linux Mint 21.2 with Lazarus 2.2.7 (rev lazarus_2_2_6-1-gada7a90f86) FPC 3.2.3 x86_64-linux-qt5. There was no obvious problem using the default Pascal bindings for the QT5 widget set found in the Ubuntu repository (libqt5pas1: 2.6+2.0.8+dfsg-2 and libqt5pas-dev: 2.6+2.0.8+dfsg-2).
+## 7. *lazmacropad* Source Code
 
-### 4.2. Windows Requirements
+The source code of the *lazmacropad* object pascal program is in the root directory of the repository. Binaries are also available in the current release.
 
-The 0.8.6 source was compiled and tested with two versions of Lazarus in Windows 10:
-
-- stable: Lazarus 2.2.4 (rev lazarus_2_2_4) FPC 3.2.2 i386-win32-win32/win64
-- trunk: Lazarus 2.3.0 (rev main-2_3-2734-g2f18817fd8) FPC 3.3.1 i386-win32-win32/win64
-
-It is recommended to use the trunk version because cosmetic problems were encountered with the stable version in the macro definition window. **Update**: this was probably the author's error and the same problem was encountered in the 0.8.9 Qt5 version. The [true solution](commit/fc07c4ef73034f56ea44a0b33db9fdc4d56c7b83) was to properly define the column `SizePriority` property (). 
-
-Notes: 
-- The Windows version of the `Serial` unit does not have a serial connection status variable. Consequently, log messages warning of a lost connection will not appear when running in Windows.
-- No tests for the Linux bug described in the previous section have been done.
-
-The 0.9.0 source was successfully compiled with the fixes version of Lazarus (Lazarus 2.2.7 [ada7a90f86] and FPC 3.2.3 x86_64-win64-win32/win64) in Windows 10.
-
-## 5. Macros
+## 8. Macros
 
 There are two types of macros:
 
-  - Strings that are copied to the clipboard and, from there, pasted into an application with a user selectable keyboard paste command.
+  - Strings that are copied to the clipboard and, from there, pasted into an application with a user-selectable keyboard paste command.
   - Arrays of keyboard events directly injected into the operating system keyboard handler.
 
 
 ![](images/macro_defs.jpg)
 
-Macros 3 and 4, in the macro definition window shown above, both inject `été` into the currently focused application on the computer running *lazmacropad*. Macro 3 is a string macro and will work on any system that supports UTF8 encoded strings. Macro 4 is a keyboard macro that will inject `été` on computers that use the French (AZERTY) key map while `2t2` will be injected in most QWERTY type keyboard.
+Macros 3 in the macro definition window shown above, injects `été` into the currently focused application on the computer running *lazmacropad*. Macro 4 is a keyboard events macro that will inject `été` on computers that use the French (AZERTY) key map, while `2t2` will be injected in most QWERTY type keyboard. Macro 3 pastes `été` no matter which key map is used.
 
-The strings are UTF8 and can contain 3 escape sequences
+The strings are UTF8 encoded and can contain 3 escape sequences
 
   -  `\n` will be converted to #13 (RETURN)
   -  `\t` will be converted to #9  (TAB)
@@ -202,10 +181,9 @@ Appending a `\n` sequence to a macro used in a terminal should mean that the str
 
   1. Each key down event (↓) must be followed by a corresponding key up event (↑) otherwise the operating system will generate a sequence of autorepeat key down events. The same applies to the Shift, Ctrl and Alt modifier keys. Macros 2 and 3 are similar to the first two except that they insert the uppercase string `HELLO` followed by a carriage return. Note how the Shift modifier was activated with the `H` key and deactivated with the `O` key, just as most would keep the shift key depressed when entering a few uppercase characters at a keyboard.
 
-  1. The virtual keyboard events injected into the keyboard event queue will be translated according to the keyboard layout in current use. So if the layout is the ISO French AZERTY keyboard, then the sequence `(↓ 2)(↑ 2)(↓ 7)(↑ 7)` will insert `éè` in the focused application. How this is done with an ANSI US (QWERTY) keyboard is not at all clear. Because the `Alt Gr` key is not yet implemented in *lazmacropad*, it is not possible to copy `ô` or `ë` etc. into the focused application with a keyboard event macro even with an AZERTY keyboard. That may never be done as it is easy to do with a string macro which was the primary reason for creating this project.
+  1. As already stated, the virtual keyboard events injected into the keyboard event queue will be translated according to the keyboard layout in current use. So if the layout is the ISO French AZERTY keyboard, then the sequence `(↓ 2)(↑ 2)(↓ 7)(↑ 7)` will insert `éè` in the focused application. How this is done with a sequence of keyboard events with an ANSI US (QWERTY) keyboard is not at all clear.
 
-
-## 6. Clipboards and Paste Commands
+## 9. Clipboards and Paste Commands
 
 Each macro must be assigned a paste command from the following list:
 
@@ -223,34 +201,35 @@ The other three choices are true paste commands or better yet keyboard short cut
 
 Testing so far seems to indicate that `Ctrl-V` works well in Windows and surprisingly `Shift-Insert` does not. 
 
-In Linux, the situation is more complex. `Ctrl-V` will work most times as will `Shift-Insert`. However, neither of these will work at the command line prompt of a terminal. In that case the custom paste command which is `Shift+Ctrl+V` could; at least it does in the MATE terminal. Because it might be worthwhile to experiment with other shortcuts, such as `Mouse_Middle` which pastes selections in X11, it is possible to redefine the custom paste command. There is one restriction here, there can be only one custom definition per macro definitions file.
+In Linux, the situation is more complex. `Ctrl-V` will work most times as will `Shift-Insert`. However, neither of these will work at the command line prompt of a terminal. In that case the custom paste command which is `Shift+Ctrl+V` by default may work (it does in the MATE terminal). Because it might be worthwhile to experiment with other shortcuts, such as `Mouse_Middle` which pastes selections in X11, it is possible to redefine the custom paste command. There is a restriction as there can be only one custom definition per macro definitions file.
 
-### 6.1. Note
+### 9.1. Notes 
 
-When *lazmacropad* copies a string macro into the clipboard, also copies it into the primary selection. This is pretty much the behaviour of many applications (Geany, VSCodium, VS Code, GNote, LibreOffice Writer and the Lazarus IDE editor,... ), which synchronize the two mechanisms so that  pasting selected text can be done with `Ctrl+V` or `Shift+Insert`. This a Linux consideration, there are no such things as selections in Windows.
+- When running in Linux, *lazmacropad* copies a string macro into the clipboard, also copies it into the primary selection. This is the behaviour of many applications (Geany, VSCodium, VS Code, GNote, LibreOffice Writer and the Lazarus IDE editor,... ), which synchronize the two mechanisms so that pasting selected text can be done with `Ctrl+V` or `Shift+Insert`. 
 
+- When running in Windows, `Shift+Insert` does not work as a paste command even if it can be used on the physical keyboard. 
 
-## 7. Accommodating Different Keypads
+## 10. Accommodating Different Keypads
 
 With version 0.7.2, *lazmacropad* can handle keypads with up to 36 keys. Starting with version 0.8.6 it is no longer necessary to edit the configuration file manually to set the number of rows and columns. This can be done in the `Parameters` window.  Adjustments in those values will be reflected as soon as they are set.
 
 The default values are 4 columns and 4 rows. There is a 36-key limit which is arbitrary. Should one wanted to have an even bigger keypad then additional character *messages* to the SKeyLabels resource string  in `params.pas` and the `hexaKeys` array of chars in the Arduino sketch has to be adjusted as a consequence. Other values must also be adjusted in the Arduino sketch: `ROWS`, `COLS` and the byte arrays `rowPins` and `colPins`.
 
-## 8. Further Developments
+## 11. Further Developments
 
 The project is complete in its present form meaning that new functionality is envisioned only as a consequence of a hardware enhancement such as the addition of a rotary encoder. That would be getting away from the initial goal of creating a very simple hardware project.
 
 An upcoming version 1.0 will therefore be limited to code improvements only. In particular, the current implementation of macro definitions needs to be refactored and the same is true of the serial connection code. There is no target date for that version.
 
-## 9. Documentation 
+## 12. Documentation 
 
 There is a [post about this project](https://sigmdel.ca/michel/program/fpl/macrokeypad/basic_macrokeypad_fr.html) which contains a draft *user manual*. It is an incomplete, does not cover changes made after release 0.8.6 and currently available in French only.
 
-## 10. Acknowledgment
+## 13. Acknowledgment
 
 There is no shortage of information on all sorts of more or less sophisticated macro key pads. The Brian Lough video, [The Simplest DIY Macro Keypad with Arduino](https://www.youtube.com/watch?v=ORujXGDqG_I&ab_channel=BrianLough) and corresponding [GitHub repository, arduino-switcheroonie,](https://github.com/witnessmenow/arduino-switcheroonie) stands out for its simplicity, but that project is based on an Arduino Pro Micro. The Cristian Bastidas (crixodia) [arduino-nano-macro-keypad](https://github.com/crixodia/arduino-nano-macro-keypad) GitHub repository showed how to achieve something very similar  with a Nano and a Python script on the desktop. This later project is clearly the model for *lazmacropad*.
 
-## 11. Licence
+## 14. Licence
 
 Copyright 2022, 2023 Michel Deslierres, no rights reserved.
 
