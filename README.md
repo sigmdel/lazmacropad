@@ -1,9 +1,7 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Current Source Version: 0.9.3** (August 24, 2023)
-
-**Current Release Version: 0.8.6** (November 20, 2022)
+**Current Release Version: 0.9.3** (August 24, 2023)
 
 A simple macro keypad build around an AVR microcontroller and written in Free Pascal / Lazarus. Its distinguishing feature is that it is keymap agnostic because it uses the operating system clipboard to paste strings into the currently running application. Nevertheless, macros can be injected as keystrokes if desired.
 
