@@ -24,5 +24,3 @@ The file `xkeyinput.pas` contains changes to the `VirtualKeyToXKeySym` function 
 
 The modified file should replace the original file in the `$(LAZARUS)/components/mouseandkeyinput` directory. Note that the modified file also has the `Boolean32` correction for the type of the `is_press` parameter of the external `XTestFakeKeyEvent` function.
 
-
-6zjkF9=vRV+z
