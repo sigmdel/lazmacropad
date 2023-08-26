@@ -96,6 +96,15 @@ var
   WantsVK_RETURN: boolean;
   ndx: integer;
   macro: TKbdMacro;
+  ShiftState: TShiftState;
+
+  function KbdShiftToShiftState(kbdShift: TKbdShift): TShiftState;
+  begin
+    result := TShiftState(kbdShift * [ksShift, ksAlt, ksCtrl]);
+    if ksAltGr in kbdShift then
+      include(result, ssAltGr);
+  end;
+
 begin
   PasteCommand := pastes[index];
   LogForm.Log(llDebug, 'Inject macro %d with pasteCmd %s', [index, sPasteCommands[PasteCommand]]);
@@ -108,10 +117,11 @@ begin
       exit;
     end;
     for ndx := 0 to length(macro)-1 do begin
+      ShiftState := KbdShiftToShiftState(macro[ndx].Shift);
       if macro[ndx].Press then begin
-        if macro[ndx].Shift.state <> [] then begin
+        if ShiftState <> [] then begin
           LogForm.Log(llDebug,'keyboard event %d, applying shift keys %s', [ndx, macro[ndx].ShiftStateToStr]);
-          KeyInput.Apply(macro[ndx].Shift.State);
+          KeyInput.Apply(ShiftState);
         end;
         LogForm.Log(llDebug,'keyboard event %d, key: %x down', [ndx, macro[ndx].code]);
         KeyInput.Down(macro[ndx].Code);
@@ -119,9 +129,9 @@ begin
       else begin
         LogForm.Log(llDebug,'keyboard event %d, key: %x up', [ndx, macro[ndx].code]);
         KeyInput.Up(macro[ndx].code);
-        if macro[ndx].Shift.state <> [] then begin
+        if ShiftState <> [] then begin
           LogForm.Log(llDebug,'keyboard event %d, unapplying shift keys %s', [ndx, macro[ndx].ShiftStateToStr]);
-          KeyInput.UnApply(macro[ndx].Shift.state);
+          KeyInput.UnApply(ShiftState);
         end;
       end;
     end;
@@ -143,10 +153,11 @@ begin
   PrimarySelection.Astext := convertedMacro; // always sychronize
 
   if PasteCommand <= pcCustom then with pasteCommands[ord(PasteCommand)] do begin
+    ShiftState := KbdShiftToShiftState(Shift);
     Delay(Delayms);
-    KeyInput.Apply(Shift.State);
+    KeyInput.Apply(ShiftState);
     KeyInput.Press(Code);
-    KeyInput.Unapply(Shift.State);
+    KeyInput.Unapply(ShiftState);
     LogForm.Log(llDebug,'Paste with %s', [sPasteCommands[PasteCommand]]);
     if WantsVK_RETURN then begin
        // A relatively long delay before injecting the VK_RETURN keyboard event

@@ -104,11 +104,11 @@ procedure TEditKbdMacroForm.BuildEventString;
 begin
   Event.Code := byte(ptrInt(KeyNameComboBox.Items.Objects[KeyNameCombobox.ItemIndex]));
   Event.Press := KeyActionRadioGroup.ItemIndex = 0;
-  Event.Shift.State := [];
-  if ModifiersCheckGroup.Checked[0] then include(Event.Shift.State, ssShift);
-  if ModifiersCheckGroup.Checked[1] then include(Event.Shift.State, ssCtrl);
-  if ModifiersCheckGroup.Checked[2] then include(Event.Shift.State, ssAlt);
-  if ModifiersCheckGroup.Checked[3] then include(Event.Shift.State, ssAltGr);
+  Event.Shift := [];
+  if ModifiersCheckGroup.Checked[0] then include(Event.Shift, ksShift);
+  if ModifiersCheckGroup.Checked[1] then include(Event.Shift, ksCtrl);
+  if ModifiersCheckGroup.Checked[2] then include(Event.Shift, ksAlt);
+  if ModifiersCheckGroup.Checked[3] then include(Event.Shift, ksAltGr);
   Event.Delayms := DelaySpinEdit.value;
   EventString := Event.EventToStr;
 end;
@@ -185,7 +185,7 @@ begin
     with Event do begin
       Code := $7C; // VK_F13;
       Press := true;
-      Shift.state := [];
+      Shift := [];
       DelayMS := 0;
     end;
     SetEvent(Event);
@@ -266,7 +266,7 @@ begin
   ndx := MacroListBox.ItemIndex;
   if (ndx < 0) or (ndx >= length(macro)) then exit;
   hasrelease := (ndx < length(macro)-1) and (macro[ndx].Code = macro[ndx+1].Code)
-   and (macro[ndx].shift.state = macro[ndx+1].shift.state);
+   and (macro[ndx].shift = macro[ndx+1].shift);
   BuildEventString;
   MacroListBox.Items[ndx] := EventString;
   macro[ndx] := Event;
@@ -286,10 +286,10 @@ begin
     Event := anEvent;
     KeyNameComboBox.ItemIndex := i;
     if Event.Press then KeyActionRadioGroup.ItemIndex := 0 else KeyActionRadioGroup.ItemIndex := 1;
-    ModifiersCheckGroup.Checked[0] := ssShift In Event.Shift.State;
-    ModifiersCheckGroup.Checked[1] := ssCtrl In Event.Shift.State;
-    ModifiersCheckGroup.Checked[2] := ssAlt in Event.Shift.State;
-    ModifiersCheckGroup.Checked[3] := ssAltGr in Event.Shift.State;
+    ModifiersCheckGroup.Checked[0] := ksShift In Event.Shift;
+    ModifiersCheckGroup.Checked[1] := ksCtrl In Event.Shift;
+    ModifiersCheckGroup.Checked[2] := ksAlt in Event.Shift;
+    ModifiersCheckGroup.Checked[3] := ksAltGr in Event.Shift;
     DelaySpinEdit.Value := Event.delayms;
   end;
 end;

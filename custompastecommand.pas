@@ -12,10 +12,12 @@ type
   { TCustomPasteForm }
 
   TCustomPasteForm = class(TForm)
+    AltGrCheckBox: TCheckBox;
     Button1: TButton;
     Button2: TButton;
     DelaySpinEdit: TSpinEdit;
     KeyNameComboBox: TComboBox;
+    Label1: TLabel;
     Label2: TLabel;
     ShiftCheckBox: TCheckBox;
     CtrlCheckBox: TCheckBox;
@@ -42,18 +44,20 @@ begin
     i := 0;
   with CustomPasteForm do begin
     KeyNameComboBox.ItemIndex := i;
-    ShiftCheckBox.Checked := ssShift In ke.Shift.State;
-    CtrlCheckBox.Checked := ssCtrl In ke.Shift.State;
-    AltCheckBox.Checked := ssAlt In ke.Shift.state;
+    ShiftCheckBox.Checked := ksShift In ke.Shift;
+    CtrlCheckBox.Checked := ksCtrl In ke.Shift;
+    AltCheckBox.Checked := ksAlt In ke.Shift;
+    AltGrCheckBox.Checked := ksAltGr In ke.Shift;
     DelaySpinEdit.Value := ke.Delayms;
     result := ShowModal = mrOk;
-    ke.shift.state := [];
+    ke.Shift := [];
     ke.Code := 0;
     if result then begin
       ke.Code := byte(PtrUInt(KeyNameComboBox.Items.Objects[KeyNameComboBox.ItemIndex]));
-      if ShiftCheckBox.Checked then include(ke.Shift.state, ssShift);
-      if CtrlCheckBox.Checked then include(ke.Shift.state, ssCtrl);
-      if AltCheckBox.Checked then include(ke.Shift.state, ssAlt);
+      if ShiftCheckBox.Checked then include(ke.Shift, ksShift);
+      if CtrlCheckBox.Checked then include(ke.Shift, ksCtrl);
+      if AltCheckBox.Checked then include(ke.Shift, ksAlt);
+      if AltGrCheckBox.Checked then include(ke.Shift, ksAltGr);
       ke.Delayms := DelaySpinEdit.Value;
     end
   end;
