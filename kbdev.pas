@@ -10,11 +10,9 @@ uses
   Classes, SysUtils, LCLType;
 
 type
-  TKbdShiftEnum = ssShift..ssAltGr; // only ssShift, ssCtrl, ssAlt and ssAltGr are used
-  TKbdShift = record case boolean of
-     False: (State: set of TKbdShiftEnum);
-     True:  (Value: byte); // avoid type casting
-  end;
+  TKbdShiftEnum = (ksShift, ksAlt, ksCtrl, ksAltGr);
+  // ksShift..ksCtrl must be in the same order as ssShift..ssCtrl
+  TKbdShift = set of TKbdShiftEnum;
 
   { TKbdEvent }
 
@@ -43,7 +41,6 @@ type
     // Parses the value string starting at position index to
     // set the kbd event fields.
     procedure HexToEvent(const value: string; var index: integer);
-
   end;
 
   TKbdMacro = array of TKbdEvent;
@@ -77,7 +74,7 @@ uses
 operator = (const ke1, ke2: TKbdEvent): boolean;
 begin
   result := (ke1.Code = ke2.Code)
-     and (ke1.Shift.Value = ke2.Shift.Value)
+     and (ke1.Shift = ke2.Shift)
      and (ke1.Delayms = ke2.Delayms)
      and (ke1.Press = ke2.Press);
 end;
@@ -332,7 +329,7 @@ end;
 function TKbdEvent.EventToHex: string;
 begin
  result := inttohex(Code, 2);
- result := result + inttohex(Shift.Value, 1);
+ result := result + inttohex(byte(Shift), 1);
  result := result + inttohex(delayms, 4);
  result := result + inttohex(ord(Press),1);
 end;
@@ -350,10 +347,10 @@ end;
 function TKbdEvent.ShiftStateToStr: string;
 begin
   Result := '';
-  if ssCtrl in Shift.State then AddPart(ifsCtrl, ',', result);
-  if ssAlt in Shift.State then AddPart(ifsAlt, ',', result);
-  if ssAltGr in Shift.State then AddPart('AltGr', ',', result);
-  if ssShift in Shift.State then AddPart(ifsVK_SHIFT, ',', result);
+  if ksCtrl in Shift then AddPart(ifsCtrl, ',', result);
+  if ksAlt in Shift then AddPart(ifsAlt, ',', result);
+  if ksAltGr in Shift then AddPart('AltGr', ',', result);
+  if ksShift in Shift then AddPart(ifsVK_SHIFT, ',', result);
   if result <> '' then
     result := '[' + result + ']';
 end;
@@ -361,7 +358,7 @@ end;
 procedure TKbdEvent.HexToEvent(const value: string; var index: integer);
 begin
   Code := 0;
-  Shift.State := [];
+  Shift := [];
   Press := false;
   DelayMs := 0;
   if index < 1 then
@@ -372,7 +369,7 @@ begin
   end;
   Code := strToInt('$' + copy(value, index, 2));
   inc(index, 2);
-  Shift.Value := strToInt('$' + copy(value, index, 1));
+  Shift := TKbdShift( byte( strToInt('$' + copy(value, index, 1)) ));
   inc(index);
   DelayMs := strToInt('$' + copy(value, index, 4));
   inc(index, 4);
@@ -386,22 +383,22 @@ var
   shiftstate: set of TKbdShiftEnum;
   aResult, i: integer;
 
-function adjustShift(ss: TKbdShiftEnum; press: boolean): boolean;
-begin
-  if press then begin
-    if (ss in shiftstate) then
-      aResult := -4 // already low
-    else
-      include(shiftstate, ss);
-  end
-  else begin // not press
-    if (ss in shiftstate) then
-      exclude(shiftstate, ss)
-    else
-      aResult := -5;
+  function adjustShift(ss: TKbdShiftEnum; press: boolean): boolean;
+  begin
+    if press then begin
+      if (ss in shiftstate) then
+        aResult := -4 // already low
+      else
+        include(shiftstate, ss);
+    end
+    else begin // not press
+      if (ss in shiftstate) then
+        exclude(shiftstate, ss)
+      else
+        aResult := -5;
+    end;
+    result := aResult = 0;
   end;
-  result := aResult = 0;
-end;
 
 begin
   fillchar(keydown, 256, 0);
@@ -429,9 +426,10 @@ begin
           exit;
         end;
       end;
-      if (ssShift in value[index].Shift.State) and not adjustShift(ssShift, value[index].Press) then exit;
-      if (ssCtrl in value[index].Shift.State) and not adjustShift(ssCtrl, value[index].Press) then exit;
-      if (ssAlt in value[index].Shift.State) and not adjustShift(ssAlt, value[index].Press) then exit;
+      if (ksShift in value[index].Shift) and not adjustShift(ksShift, value[index].Press) then exit;
+      if (ksCtrl in value[index].Shift) and not adjustShift(ksCtrl, value[index].Press) then exit;
+      if (ksAlt in value[index].Shift) and not adjustShift(ksAlt, value[index].Press) then exit;
+      if (ksAltGr in value[index].Shift) and not adjustShift(ksAltGr, value[index].Press) then exit;
       inc(index);
     end;
   finally
@@ -450,8 +448,8 @@ end;
 
 {$ifdef DEBUG}
 initialization
-  if sizeof(TKbdEvent.Shift.State) <> sizeof(TKbdEvent.Shift.Value) then
-    Raise Exception.Create('Size mismatch between Shift.State and Shift.Value in TKbdEvent');
+  if sizeof(TKbdShift) > sizeof(byte) then
+    Raise Exception.Create('Size of TkbdShift > size of byte, adjust TKbdEvent.EventToHex and TKbdEvent.HexToEvent');
 {$ENDIF}
 end.
 

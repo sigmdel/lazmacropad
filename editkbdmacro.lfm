@@ -10,6 +10,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poOwnerFormCenter
+  LCLVersion = '2.2.7.0'
   object ModifiersCheckGroup: TCheckGroup
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = KeyNameComboBox
@@ -33,7 +34,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 4
     ClientHeight = 35
-    ClientWidth = 304
+    ClientWidth = 294
     Columns = 4
     Items.Strings = (
       'Shift'
@@ -68,8 +69,8 @@ object EditKbdMacroForm: TEditKbdMacroForm
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 32
-    ClientWidth = 310
+    ClientHeight = 31
+    ClientWidth = 294
     Columns = 2
     ItemIndex = 0
     Items.Strings = (
@@ -105,6 +106,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     Width = 44
     BorderSpacing.Top = 6
     Caption = 'Macro: '
+    ParentColor = False
   end
   object MacroListBox: TListBox
     AnchorSideLeft.Control = UpSpeedButton
@@ -256,6 +258,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     Top = 40
     Width = 22
     Caption = 'Key'
+    ParentColor = False
   end
   object CheckBox1: TCheckBox
     AnchorSideTop.Control = InsertButton
@@ -306,6 +309,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     Top = 6
     Width = 98
     Caption = 'Keyboard event '
+    ParentColor = False
   end
   object Bevel1: TBevel
     AnchorSideLeft.Control = MacroListBox
@@ -348,6 +352,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     Width = 120
     BorderSpacing.Top = 12
     Caption = 'Delay (milliseconds)'
+    ParentColor = False
   end
   object DelaySpinEdit: TSpinEdit
     AnchorSideLeft.Control = Label2

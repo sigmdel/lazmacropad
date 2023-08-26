@@ -97,7 +97,7 @@ procedure InitDefaultCtrlVPasteCommand;
 begin
   with PasteCommands[ord(pcCtrlV)] do begin
     Code := VK_V;             // read only
-    Shift.State := [ssCtrl];  // read only
+    Shift := [ksCtrl];  // read only
     Delayms := 0;             // read, write
     Press := true;            // ignored
   end;
@@ -107,7 +107,7 @@ procedure InitDefaultShiftInsertPasteCommand;
 begin
   with PasteCommands[ord(pcShiftInsert)] do begin
     Code := VK_INSERT;         // read only
-    Shift.State := [ssShift];  // read only
+    Shift := [ksShift];  // read only
     Delayms := 0;              // read, write
     Press := true;             // ignored
   end;
@@ -117,7 +117,7 @@ procedure InitDefaultCustomPasteCommand;
 begin
   with PasteCommands[ord(pcCustom)] do begin
     Code := VK_V;                      // read, write
-    Shift.State := [ssShift, ssCtrl];  // read, write
+    Shift := [ksShift, ksCtrl];  // read, write
     Delayms := 0;                      // read, write
     Press := true;                     // ignored
   end;
