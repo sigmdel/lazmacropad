@@ -1,7 +1,7 @@
 
 # *lazmacropad* - a Macro Keypad
 
-**Current Release Version: 0.9.3** (August 24, 2023)
+**Current Release Version: 0.9.4** (August 26, 2023)
 
 A simple macro keypad build around an AVR microcontroller and written in Free Pascal / Lazarus. Its distinguishing feature is that it is keymap agnostic because it uses the operating system clipboard to paste strings into the currently running application. Nevertheless, macros can be injected as keystrokes if desired.
 
@@ -12,7 +12,7 @@ A simple macro keypad build around an AVR microcontroller and written in Free Pa
 - [2. Status](#2-status)
   - [2.1. The 0.3.4 Release](#21-the-034-release)
   - [2.2. The 0.8.6 Release](#22-the-086-release)
-  - [2.3. The 0.9.3 Release](#23-the-093-release)
+  - [2.3. The 0.9.4 Release](#23-the-094-release)
 - [3. Hardware](#3-hardware)
 - [4. Microcontroller firmware](#4-microcontroller-firmware)
 - [5. Linux Requirements](#5-linux-requirements)
@@ -51,9 +51,9 @@ The 0.8.6 [release](releases/tag/v0.8.6) of *lazmacropad* was built in Linux Min
 ![screenshot](images/screenshot_0_8_9.jpg)
 
 
-### 2.3. The 0.9.3 Release
+### 2.3. The 0.9.4 Release
 
-Contains bug fixes, streamlined paste command handling, and added support for the right Alt modifier key (labelled Alt Gr on some ISO keyboards) which allow for a fourth shift state. A more robust serial link between the key pad and the computer is added so version 2 of the key pad microcontroller firmware is required.
+Contains bug fixes (up to and including issue #4), streamlined paste command handling, and added support for the right Alt modifier key (labelled Alt Gr on some ISO keyboards) which allow for a fourth shift state. A more robust serial link between the key pad and the computer is added so version 2 of the key pad microcontroller firmware is required.
 
 The release contains 
 
