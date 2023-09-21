@@ -3,7 +3,14 @@
 
 **Current Release Version: 0.9.4** (August 26, 2023)
 
-A simple macro keypad build around an AVR microcontroller and written in Free Pascal / Lazarus. Its distinguishing feature is that it is keymap agnostic because it uses the operating system clipboard to paste strings into the currently running application. Nevertheless, macros can be injected as keystrokes if desired.
+A simple macro keypad build around a microcontroller and written in Free Pascal / Lazarus. Its distinguishing feature is that it is keymap agnostic because it uses the operating system clipboard to paste strings into the currently running application. Nevertheless, macros can be injected as keystrokes if desired.
+
+Currently two microcontroller solutions are proposed.
+
+- A very low cost version based on an Arduino Nano AVR microcontroller and a cheap ubiquitous keypad made of tactile switches
+
+- A *soft* keypad based on TFT display with a resistive touch screen.
+
 
 **Table of Content**
 <!-- TOC -->
@@ -14,6 +21,8 @@ A simple macro keypad build around an AVR microcontroller and written in Free Pa
   - [2.2. The 0.8.6 Release](#22-the-086-release)
   - [2.3. The 0.9.4 Release](#23-the-094-release)
 - [3. Hardware](#3-hardware)
+  - [3.1. AVR Macro Keypad](#31-avr-macro-keypad)
+  - [3.2. CYD Macro Keypad](#32-cyd-macro-keypad)
 - [4. Microcontroller firmware](#4-microcontroller-firmware)
 - [5. Linux Requirements](#5-linux-requirements)
   - [5.1. `Xtst` Library](#51-xtst-library)
@@ -34,7 +43,7 @@ A simple macro keypad build around an AVR microcontroller and written in Free Pa
 
 ## 1. Description 
 
-This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller (an Arduino Nano) which transmits a single letter string or *message* ('0', '1', ...) when a key on the pad is pressed. These *messages* are translated into *macros* by *lazmacropad* Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert, or a user-defined custom key combination) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 it is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
+This project describes a simple macro keypad serially connected to a computer. The keypad is continuously scanned by a microcontroller which transmits a single letter string or *message* ('0', '1', ...) when a key on the pad is pressed. These *messages* are translated into *macros* by *lazmacropad* Lazarus/Free Pascal program running in the background. When the macro is a string it is copied to the system clipboard and then an emulated key combination (Ctrl+V, Shift+Insert, or a user-defined custom key combination) is injected into the keyboard event queue of the active application to paste the content of the clipboard. Starting with version 0.8.0 it is possible to bypass the clipboard altogether and to inject a macro consisting of an array of keyboard events.
 
 The Lazarus program also allows for editing, saving and loading macro definitions to suit any number of applications on the desktop.
 
@@ -63,6 +72,8 @@ The release contains
 
 ## 3. Hardware
 
+### 3.1. AVR Macro Keypad
+
 Only three items are needed to build a basic macro keypad:
 
   1. An Arduino Nano R3. This is an older, smaller, Arduino board based on the ATmega328P microcontroller. It has a Mini-B USB socket, but some clones come with a Micro or Type-C USB connector.
@@ -73,14 +84,22 @@ Only three items are needed to build a basic macro keypad:
 
 The Nano and the readily available 4x4 tactile push button matrix shown below are very easily connected to each other.
 
-![hardware](images/macrokeypad.jpg)
+![](images/macrokeypad.jpg)
 
 Note that the Nano is upside down (microcontroller is on the hidden side of the board) so that the USB cable will go off to the right. The Nano could be connected facing in the other direction by flipping it right side up if it is more convenient to orient the cable towards the left. The character transmitted over the serial port as each key is pressed and the mapping of the Nano I/O pins in the Arduino sketch should be modified according to the number rows and columns of keys on the keypad and its desired orientation. 
 
+### 3.2. CYD Macro Keypad
+
+An ESP32-2432S028R (aka CYD - [Cheap Yellow Display](https://github.com/witnessmenow/)) development board which contains an ESP32 microcontroller with 4MB flash memory, a 
+2.8 inch (320x240 pixels) TFT display and a resistive touch screen. Beside the firmware, the only other required hardware component is an appropriate USB cable to connect the display to a desktop or portable computer.
+
+![](images/cydmacropad.jpg)
 
 ## 4. Microcontroller firmware
 
 The microcontroller **must run version 2** of the firmware supplied with versions 0.9.0 and newer of *lazmacropad*. The source code is in the [nanoMacroPad](nanoMacroPad/) directory.
+
+The source code for the ESP32+TFT display soft macro key pad is in the [cydMacroPad](cydMacroPad/) directory.
 
 ## 5. Linux Requirements
 
