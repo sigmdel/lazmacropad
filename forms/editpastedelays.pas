@@ -39,35 +39,35 @@ implementation
 {$R *.lfm}
 
 uses
-  params;
+  umacros;
 
 // returns true if at least one delay was modified
 function doEditPasteDelays: boolean;
 begin
   result := false;
   with PasteDelaysForm do begin
-    CtrlVDelaySpinEdit.Value := PasteCommands[ord(pcCtrlV)].Delayms;
-    ShiftInsertDelaySpinEdit.Value := PasteCommands[ord(pcShiftInsert)].Delayms;
-    CustomDelaySpinEdit.Value := PasteCommands[ord(pcCustom)].Delayms;
-    VkReturnDelaySpinEdit.Value := VkReturnDelay;
+    CtrlVDelaySpinEdit.Value := macros.PasteDelay[pcCtrlV];
+    ShiftInsertDelaySpinEdit.Value := macros.PasteDelay[pcShiftInsert];
+    CustomDelaySpinEdit.Value := macros.PasteDelay[pcCustom];
+    VkReturnDelaySpinEdit.Value := macros.ReturnDelay;
     if ShowModal = mrOk then begin
-      if PasteCommands[ord(pcCtrlV)].Delayms <> CtrlVDelaySpinEdit.Value then begin
-        PasteCommands[ord(pcCtrlV)].Delayms := CtrlVDelaySpinEdit.Value;
+      if macros.PasteDelay[pcCtrlV] <> CtrlVDelaySpinEdit.Value then begin
+        macros.PasteDelay[pcCtrlV] := CtrlVDelaySpinEdit.Value;
         result := true;
       end;
 
-      if PasteCommands[ord(pcShiftInsert)].Delayms <> ShiftInsertDelaySpinEdit.Value then begin
-        PasteCommands[ord(pcShiftInsert)].Delayms := ShiftInsertDelaySpinEdit.Value;
+      if macros.PasteDelay[pcShiftInsert] <> ShiftInsertDelaySpinEdit.Value then begin
+        macros.PasteDelay[pcShiftInsert] := ShiftInsertDelaySpinEdit.Value;
         result := true;
       end;
 
-      if PasteCommands[ord(pcCustom)].Delayms <> CustomDelaySpinEdit.Value then begin
-        PasteCommands[ord(pcCustom)].Delayms := CustomDelaySpinEdit.Value;
+      if macros.PasteDelay[pcCustom] <> CustomDelaySpinEdit.Value then begin
+        macros.PasteDelay[pcCustom] := CustomDelaySpinEdit.Value;
         result := true;
       end;
 
-      if VkReturnDelay <> VkReturnDelaySpinEdit.value then begin
-        VkReturnDelay := VkReturnDelaySpinEdit.value;
+      if macros.ReturnDelay <> VkReturnDelaySpinEdit.value then begin
+        macros.ReturnDelay := VkReturnDelaySpinEdit.value;
         result := true;
       end;
     end;

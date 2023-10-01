@@ -33,13 +33,6 @@ implementation
 
 uses StrUtils;
 
-function RemoveEscSequences(const ins: string): string;
-begin
-  result := replaceStr(ins, '\n', #13);
-  result := replaceStr(result, '\t', #9);
-  result := replacestr(result, '\\', '\');
-end;
-
 function InsertEscSequences(const ins: string): string;
 begin
   result := replacestr(ins, '\', '\\'); // must be first!
@@ -51,17 +44,23 @@ begin
   result := replaceStr(result, #10, '\n');
 end;
 
+function RemoveEscSequences(const ins: string): string;
+begin
+  result := replaceStr(ins, '\n', #13);
+  result := replaceStr(result, '\t', #9);
+  result := replacestr(result, '\\', '\');
+end;
 
 { TEditStringForm }
-
-procedure TEditStringForm.SetEditText(const s: string);
-begin
-  Memo1.Text := RemoveEscSequences(s);
-end;
 
 function TEditStringForm.GetEditText: string;
 begin
   result := InsertEscSequences(Memo1.Text);
+end;
+
+procedure TEditStringForm.SetEditText(const s: string);
+begin
+  Memo1.Text := RemoveEscSequences(s);
 end;
 
 end.

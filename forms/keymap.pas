@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
-  Params;
+  uConfig;
 
 type
 
@@ -36,7 +36,7 @@ implementation
 
 uses
   {$ifdef Windows}Windows,{$endif}
-  main;
+  main, umacros, ulog;
 
 resourcestring
   SEmpty = 'not defined';
@@ -48,7 +48,22 @@ end;
 
 { TLayoutForm }
 
-// BAD! this is hard coded for 4x4 keypad!
+{ #todo 5 -oMichel -cAppearance : This flashes LayoutForm; any way of avoiding this? }
+{ #todo 2 -oMichel -cFunctionality : This does not work in Windows }
+procedure TLayoutForm.ButtonClick(Sender: TObject);
+begin
+  {$ifndef Windows}
+  if Sender is TLabel then with Sender as TLabel do begin
+    if macros[Tag].isEmpty then
+      exit;
+    self.Hide;  // return to previous focused window
+    MainForm.Inject(tag);
+    self.Show;  // show this form again
+    MainForm.KeyLayoutItem.Checked := false;
+  end;
+  {$endif}
+end;
+
 procedure TLayoutForm.FormCreate(Sender: TObject);
 const
   SZ = 33;      // width & height of buttons
@@ -108,8 +123,8 @@ begin
   //top := screen.Height - height;
   //left := screen.Width - width;
   // above won't work with Windows taskbar
-
   //aPt := screen.WorkareaRect.bottomRight;
+
   aPt := screen.PrimaryMonitor.WorkareaRect.bottomRight;
   top := aPt.y - height
   {$ifdef Windows}
@@ -125,32 +140,22 @@ begin
     WindowState := wsNormal;
 end;
 
-{ #todo 5 -oMichel -cAppearance : This flashes LayoutForm; any way of avoiding this? }
-{ #todo 2 -oMichel -cFunctionality : This does not work in Windows }
-procedure TLayoutForm.ButtonClick(Sender: TObject);
-begin
-  {$ifndef Windows}
-  if Sender is TLabel then with Sender as TLabel do begin
-    if StringMacros[Tag] <> '' then begin
-      self.Hide;  // return to previous focused window
-      MainForm.Inject(tag);
-      self.Show;  // show this form again
-      MainForm.KeyLayoutItem.Checked := false;
-    end;
-  end;
-  {$endif}
-end;
-
 procedure TLayoutForm.UpdateGUI;
 var
   i: integer;
 begin
   for i := 0 to  config.ButtonCount-1 do
-    if StringMacros[i] = '' then
+    if macros[i].isEmpty then
       LayoutForm.keys[i].Hint := SEmpty
     else
-      LayoutForm.keys[i].Hint := StringMacros[i];
+      LayoutForm.keys[i].Hint := macros[i].content;
 end;
 
+initialization
+  LogOut(llDebug, 'keymap initialization');
+
+finalization
+  LogOut(llDebug, 'keymap finalization');
 end.
+
 

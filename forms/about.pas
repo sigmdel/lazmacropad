@@ -32,6 +32,7 @@ type
     Label9: TLabel;
     lazVersionLabel: TLabel;
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure Label4Click(Sender: TObject);
   private
 
@@ -89,6 +90,17 @@ begin
                          + '-' + LCLPlatformDisplayNames[GetDefaultLCLWidgetType];
 end;
 
+procedure TAboutForm.FormShow(Sender: TObject);
+var
+  aPt: TPoint;
+begin
+  aPt := screen.PrimaryMonitor.WorkareaRect.bottomRight;
+  top := aPt.y - height
+  {$ifdef Windows}
+    - GetSystemMetrics(SM_CYSIZE) - GetSystemMetrics(SM_CYSIZEFRAME);
+  {$endif};
+  left := aPt.x - width;
+end;
 
 procedure TAboutForm.Label4Click(Sender: TObject);
 begin

@@ -1,13 +1,25 @@
-unit kbdev;
+unit ukbdev;
 
 {$mode ObjFPC}{$H+}
+{$modeswitch advancedrecords}
+
+// If the following directive is defined then the only keys supported are
+// 'graphical' keys meaning alphabetic keys, digit keys and punctuation keys.
+// That means that the code field in TKbEvent cannot be set to F1 and other
+// function keys, the Enter key, the ESC key and so on.
+//
+{$define ONLY_GRAPH_KEYS}
+
+// Define this tok check that TKbdShift is exactly byte sized
+//
+{$define DEBUG_KBDSHIFT_SIZE}
 
 interface
 
 {$PACKSET 1}
 
 uses
-  Classes, SysUtils, LCLType;
+  Classes, SysUtils;
 
 type
   TKbdShiftEnum = (ksShift, ksAlt, ksCtrl, ksAltGr);
@@ -16,51 +28,61 @@ type
 
   { TKbdEvent }
 
-  TKbdEvent = object
+  TKbdEvent = record  // extended record
   public
     Code: byte;
     Shift: TKbdShift;
-    Delayms: word;
-    Press: boolean;
-
-    // Convert the key code to a key name or 2 digit hex value if the
-    // name is not known.
-    function CodetoStr: string;
-
-    // Convert Shift.State to string representation.
-    // If the no modifier keys specified returns empty string.
-    function ShiftStateToStr: string;
+    Delayms: word;   // millisecond delay before injecting kbd event
+    Press: boolean;  // True = key press, False = key release
+    //procedure Clear;
 
     // Convert the complete event to a hex string used for
     // storage/retrieval in a text ini file
     function EventToHex: string;
 
-    // Convert the complete event to a string.
-    function EventToStr: string;
-
     // Parses the value string starting at position index to
     // set the kbd event fields.
     procedure HexToEvent(const value: string; var index: integer);
+
+    // Convert the complete event to a string (used in macrodef.pas)
+    function EventToStr: string;
+
+    // Convert Shift.State to string representation.
+    // If the no modifier keys specified returns empty string. (used in main.pas)
+    function ShiftStateToStr: string;
+
+  private
+    // Convert the key code to a key name or 2 digit hex value if the
+    // name is not known.
+    function CodetoStr: string;
   end;
 
   TKbdMacro = array of TKbdEvent;
 
-  // String representation of shortcuts macro
-  // This can be modified at will, the string representation is
-  // never converted back to a TKbdMacro
-  function KbdMacroToStr(value: TKbdMacro): string;
+// String representation of shortcuts macro
+// This can be modified at will, the string representation is
+// never converted back to a TKbdMacro
+function KbdMacroToStr(value: TKbdMacro): string;
 
-  // Hex representation of shortcuts macro used
-  // for saving/loading from macro definition file
-  function KbdMacroToHex(value: TKbdMacro): string;
-  function HexToKbdMacro(const value: string): TKbdMacro;
+// KbdMacro to a hex representation used for saving it to
+// a macro definition file
+function KbdMacroToHex(value: TKbdMacro): string;
 
-  // test of validity
-  function TestKbdMacro(value: TKbdMacro; var index: integer): integer;
+// Hex representation read from a macro definition file
+// to a TKbdMacro array of TKbdEvents
+function HexToKbdMacro(const value: string): TKbdMacro;
 
+// test of validity
+function TestKbdMacro(value: TKbdMacro; var index: integer): integer;
+
+// Assign key names to a string list and places the corresponding
+// code in the string objects
 procedure AssignKeyNamesCodes(strings: TStrings);
 
-function KeyCodeFind(key: integer; var index: integer): boolean;
+// Finds the index of the key name with the given code in the
+// internal list of key names and codes. Returns false if the
+// code is not found.
+function KeyCodeFind(code: integer; var index: integer): boolean;
 
 // equality operator for TKbdEvent
 operator = (const ke1, ke2: TKbdEvent): boolean;
@@ -68,7 +90,7 @@ operator = (const ke1, ke2: TKbdEvent): boolean;
 implementation
 
 uses
-  LCLProc, LCLStrConsts;
+  LCLProc, LCLStrConsts, LCLType, ulog;
 
 // TKbdEvent operator
 operator = (const ke1, ke2: TKbdEvent): boolean;
@@ -87,8 +109,9 @@ const
   // MS documentation:
   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
   // keys ordered by code, so a binary search can be used on the code
-  KEYCOUNT = 129;
+  KEYCOUNT = {$IFDEF ONLY_GRAPH_KEYS} 49 {$ELSE} 129 {$ENDIF};
   KeyCodesAndStrings: array[0..KEYCOUNT-1] of record name: string; code: byte end = (
+    {$IFNDEF ONLY_GRAPH_KEYS}
     (name: 'Mouse_Left'; code: $1),  // VK_LBUTTON
     (name: 'Mouse_Right'; code: $2),  // VK_RBUTTON
     (name: 'Cancel'; code: $3),  // VK_CANCEL
@@ -110,7 +133,9 @@ const
     (name: 'IME_nonconvert'; code: $1d),  // VK_NONCONVERT
     (name: 'IME_accept'; code: $1e),  // VK_ACCEPT
     (name: 'IME_mode_change'; code: $1f),  // VK_MODECHANGE
+    {$ENDIF}
     (name: 'Space'; code: $20),  // VK_SPACE
+    {$IFNDEF ONLY_GRAPH_KEYS}
     (name: 'PgUp'; code: $21),  // VK_PRIOR
     (name: 'PgDown'; code: $22),  // VK_NEXT
     (name: 'End'; code: $23),  // VK_END
@@ -126,6 +151,7 @@ const
     (name: 'Ins'; code: $2d),  // VK_INSERT
     (name: 'Del'; code: $2e),  // VK_DELETE
     (name: 'Help'; code: $2f),  // VK_HELP
+    {$ENDIF}
     (name: '0'; code: $30),  // VK_0
     (name: '1'; code: $31),  // VK_1 ...
     (name: '2'; code: $32),
@@ -162,6 +188,7 @@ const
     (name: 'X'; code: $58),  // ...
     (name: 'Y'; code: $59),  // VK_Y
     (name: 'Z'; code: $5A),  // VK_Z
+    {$IFNDEF ONLY_GRAPH_KEYS}
     (name: 'PopUp'; code: $5d),  // VK_APPS
     (name: 'Sleep'; code: $5f),  // VK_SLEEP
     (name: 'Num0'; code: $60),  // VK_NUMPAD0
@@ -206,6 +233,7 @@ const
     (name: 'F24'; code: $87),  // VK_F24
     (name: 'NumLock'; code: $90),  // VK_NUMLOCK
     (name: 'ScrollLock'; code: $91),  // VK_SCROLL
+    {$ENDIF}
     (name: ';'; code: $ba), // VK_OEM_1 - Can vary by keyboard, US keyboard, the ';:' key
     (name: '='; code: $bb), // VK_OEM_PLUS - For any country/region, the '=+' key
     (name: ','; code: $bc), // VK_OEM_COMMA - Can vary by keyboard, US keyboard, the ',<' key
@@ -219,23 +247,22 @@ const
     (name: '"'; code: $de), // VK_OEM_7 - Can vary by keyboard, US keyboard, the ''"}' key
     (name: '<'; code: $df)  // VK_OEM_8 - Can vary by keyboard, 105th key not on US keyboard
   );
-  { #todo -oMichel -cRefactoring : Use Classes TIdentMapEntry, IntToIdent etc. instead }
 
 procedure AssignKeyNamesCodes(strings: TStrings);
 var
  i: integer;
 begin
-  Strings.BeginUpdate;
+  strings.BeginUpdate;
   try
     strings.Clear;
     for i := 0 to KEYCOUNT-1 do
       strings.AddObject(KeyCodesAndStrings[i].name, TObject(PtrUint(KeyCodesAndStrings[i].code)));
   finally
-    Strings.EndUpdate;
+    strings.EndUpdate;
   end;
 end;
 
-function KeyCodeFind(key: integer; var index: integer): boolean;
+function KeyCodeFind(code: integer; var index: integer): boolean;
 var
   lo, hi: integer;
 begin
@@ -244,18 +271,19 @@ begin
   hi := KEYCOUNT-1;
   while hi <> lo do begin
     index := (lo + hi) div 2;
-    if KeyCodesAndStrings[index].Code < key then { first half }
+    if KeyCodesAndStrings[index].Code < code then { first half }
       lo := index+1
     else
       hi := index
   end;
-  result := (key = KeyCodesAndStrings[lo].Code);
+  result := (code = KeyCodesAndStrings[lo].Code);
   if result then
     index := lo
   else
     index := -1;
 end;
 
+(*
 function KeyNameIndex(const name: string; var index: integer): boolean;
 begin
   result := true;
@@ -267,6 +295,7 @@ begin
   until index < 0;
   result := false;
 end;
+*)
 
 procedure addPart(const apart, separator: string; var value: string);
 begin
@@ -278,6 +307,8 @@ end;
 
 
 function HexToKbdMacro(const value: string): TKbdMacro;
+const
+  _log_name_ = 'HexToKbdMacro';
 var
   i, n, count: integer;
 begin
@@ -291,7 +322,7 @@ begin
     inc(n);
   end;
   if n-1 <> count then
-    Raise Exception.CreateFmt('Expected %d events, found %d', [count, n-1]);
+    LogOut(llError, _log_name_+': '+'Value = %s, expected %d events, found %d', [value, count, n-1]);
 end;
 
 function KbdMacroToStr(value: TKbdMacro): string;
@@ -313,6 +344,16 @@ begin
 end;
 
 { TKbdEvent}
+
+(*
+procedure TKbdEvent.Clear;
+begin
+  Code := 0;
+  Shift.Value := 0;
+  Delayms := 0;
+  Press := false;
+end;
+*)
 
 function TKbdEvent.CodetoStr: string;
 var
@@ -446,10 +487,14 @@ begin
 end;
 
 
-{$ifdef DEBUG}
 initialization
+  LogOut(llDebug, 'ukbdev initialization');
+  {$ifdef DEBUG_KBDSHIFT_SIZE}
   if sizeof(TKbdShift) > sizeof(byte) then
     Raise Exception.Create('Size of TkbdShift > size of byte, adjust TKbdEvent.EventToHex and TKbdEvent.HexToEvent');
-{$ENDIF}
+  {$endif}
+
+finalization
+  LogOut(llDebug, 'ukbdev finalization');
 end.
 

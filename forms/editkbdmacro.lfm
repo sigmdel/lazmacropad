@@ -19,7 +19,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideRight.Side = asrBottom
     Left = 243
     Height = 53
-    Top = 75
+    Top = 70
     Width = 312
     Anchors = [akTop, akLeft, akRight]
     AutoFill = True
@@ -42,6 +42,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
       'Alt'
       'AltGr'
     )
+    OnItemClick = ModifiersCheckGroupItemClick
     TabOrder = 2
     Data = {
       0400000002020202
@@ -55,7 +56,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideRight.Side = asrBottom
     Left = 243
     Height = 49
-    Top = 137
+    Top = 135
     Width = 312
     Anchors = [akTop, akRight]
     AutoFill = True
@@ -77,6 +78,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
       '↓ (key press )'
       '↑ (key release)'
     )
+    OnClick = KeyActionRadioGroupClick
     TabOrder = 3
   end
   object KeyNameComboBox: TComboBox
@@ -86,14 +88,15 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = KeyActionRadioGroup
     AnchorSideRight.Side = asrBottom
-    Left = 276
-    Height = 29
+    Left = 277
+    Height = 24
     Top = 34
-    Width = 279
+    Width = 278
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 11
     BorderSpacing.Top = 12
-    ItemHeight = 0
+    ItemHeight = 24
+    OnChange = KeyNameComboBoxChange
     Style = csDropDownList
     TabOrder = 1
   end
@@ -103,7 +106,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     Left = 37
     Height = 16
     Top = 6
-    Width = 44
+    Width = 43
     BorderSpacing.Top = 6
     Caption = 'Macro: '
     ParentColor = False
@@ -129,7 +132,6 @@ object EditKbdMacroForm: TEditKbdMacroForm
     OnSelectionChange = MacroListBoxSelectionChange
     TabOrder = 0
     TabStop = False
-    TopIndex = -1
   end
   object AddButton: TButton
     AnchorSideLeft.Control = InsertButton
@@ -137,7 +139,8 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideTop.Side = asrBottom
     Left = 243
     Height = 25
-    Top = 302
+    Hint = 'Add the keyboard event to the macro'
+    Top = 296
     Width = 99
     BorderSpacing.Top = 6
     Caption = 'Add '
@@ -255,20 +258,20 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideTop.Side = asrCenter
     Left = 243
     Height = 16
-    Top = 40
-    Width = 22
+    Top = 38
+    Width = 23
     Caption = 'Key'
     ParentColor = False
   end
-  object CheckBox1: TCheckBox
+  object AutoRelaseCheckBox: TCheckBox
     AnchorSideTop.Control = InsertButton
     AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = ModifiersCheckGroup
     AnchorSideRight.Side = asrBottom
-    Left = 413
-    Height = 23
-    Top = 272
-    Width = 142
+    Left = 411
+    Height = 21
+    Top = 267
+    Width = 144
     Anchors = [akTop, akRight]
     Caption = 'Auto  release event'
     Checked = True
@@ -281,7 +284,8 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideTop.Side = asrBottom
     Left = 243
     Height = 25
-    Top = 271
+    Hint = 'Insert the keyboard event to the macro'
+    Top = 265
     Width = 99
     BorderSpacing.Top = 6
     Caption = 'Insert'
@@ -294,7 +298,8 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideTop.Side = asrBottom
     Left = 243
     Height = 25
-    Top = 240
+    Hint = 'Replace the selected keyboard event in the macro'
+    Top = 234
     Width = 98
     BorderSpacing.Top = 12
     Caption = 'Modify'
@@ -307,7 +312,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     Left = 243
     Height = 16
     Top = 6
-    Width = 98
+    Width = 96
     Caption = 'Keyboard event '
     ParentColor = False
   end
@@ -319,7 +324,7 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideBottom.Control = AddButton
     AnchorSideBottom.Side = asrBottom
     Left = 231
-    Height = 321
+    Height = 315
     Top = 6
     Width = 4
     Anchors = [akTop, akRight, akBottom]
@@ -348,8 +353,8 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideTop.Side = asrCenter
     Left = 243
     Height = 16
-    Top = 206
-    Width = 120
+    Top = 201
+    Width = 117
     BorderSpacing.Top = 12
     Caption = 'Delay (milliseconds)'
     ParentColor = False
@@ -359,12 +364,13 @@ object EditKbdMacroForm: TEditKbdMacroForm
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = KeyActionRadioGroup
     AnchorSideTop.Side = asrBottom
-    Left = 375
-    Height = 27
-    Top = 201
+    Left = 372
+    Height = 26
+    Top = 196
     Width = 95
     BorderSpacing.Left = 12
     BorderSpacing.Top = 12
+    OnChange = DelaySpinEditChange
     TabOrder = 4
   end
   object ImageList1: TImageList

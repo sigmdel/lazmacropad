@@ -33,9 +33,9 @@ object MacroForm: TMacroForm
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 2
-    Height = 228
+    Height = 226
     Top = 38
-    Width = 475
+    Width = 471
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFillColumns = True
     BorderSpacing.Left = 2
@@ -56,17 +56,13 @@ object MacroForm: TMacroForm
       item
         MaxSize = 1800
         Title.Caption = 'Macro'
-        Width = 305
+        Width = 301
       end    
       item
         ButtonStyle = cbsPickList
         MaxSize = 115
         PickList.Strings = (
-          'Ctrl+V'
-          'Shift+Insert'
-          'Custom'
-          'None'
-          'Kbd Events'
+          ''
         )
         SizePriority = 0
         Title.Caption = 'Paste'
@@ -82,7 +78,7 @@ object MacroForm: TMacroForm
     OnSelectCell = MacrosEditorSelectCell
     ColWidths = (
       40
-      305
+      301
       115
     )
   end

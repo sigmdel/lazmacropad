@@ -9,6 +9,7 @@ object AboutForm: TAboutForm
   ClientWidth = 400
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
+  OnShow = FormShow
   Position = poMainFormCenter
   object Image1: TImage
     Left = 15

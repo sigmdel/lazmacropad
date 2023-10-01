@@ -1,6 +1,7 @@
 unit main;
 
 {$mode objfpc}{$H+}
+{$WARN 5024 off : Parameter "$1" not used}
 
 interface
 
@@ -54,28 +55,31 @@ implementation
 {$R *.lfm}
 
 uses
-  about, macrolog, macrodef, editstringmacro, options, keymap, serialreader, params, kbdev;
+  about, macrodef, options, keymap, macrolog, editstringmacro,
+  userial, ukbdev, umacros, uconfig, ulog;
 
 { TMainForm }
 
 procedure TMainForm.Callback(const src: string);
+const
+  _log_name_ = 'TMainForm.Callback';
 var
   i: integer;
 begin
   if length(src) < 1 then begin
-    LogForm.Log(llError, 'callback with empty message');
+    LogOut(llError, _log_name_+': '+'Param src is empty');
     exit;
   end;
   if (src[1] < ' ') then begin
-    LogForm.log(llDebug, 'keypad syn message received');
+    LogOut(llDebug, _log_name_+': '+'Keypad syn message received');
     exit;
   end;
   i := KeyLabelToInt(src[1]);
   if (i < 0) or (i >= config.ButtonCount) then begin
-    LogForm.log(llError, 'invalid keypad message "%s" received', [src]);
+    LogOut(llError, _log_name_+': '+'Invalid keypad message "%s" received', [src]);
     exit;
   end;
-  LogForm.log(llDebug, 'keypad message %d received', [i]);
+  LogOut(llDebug, _log_name_+': '+'Keypad message %d received', [i]);
   inject(i);
 end;
 
@@ -90,9 +94,11 @@ end;
 
 
 procedure TMainForm.Inject(index: integer);
+const
+  _log_name_ = 'TMainForm.Inject';
 var
   convertedMacro: string;
-  PasteCommand: TPasteCommand;
+  PasteCommand: TMacroKind;
   WantsVK_RETURN: boolean;
   ndx: integer;
   macro: TKbdMacro;
@@ -106,45 +112,40 @@ var
   end;
 
 begin
-  PasteCommand := pastes[index];
-  LogForm.Log(llDebug, 'Inject macro %d with pasteCmd %s', [index, sPasteCommands[PasteCommand]]);
+  PasteCommand := macros[index].Kind;
+  LogOut(llDebug, _log_name_+': '+'Macro %d', [index]);
+  if macros[index].isEmpty then begin
+    LogOut(llInfo, _log_name_+': '+'Macro %d is not defined', [index]);
+    exit;
+  end;
 
-  if PasteCommand = pcKbdEvents then begin
-     // no clipboard operations here
-    macro := KbdMacros[index];
-    if length(macro) < 1 then begin
-      LogForm.Log(llInfo, 'Macro %d is not defined', [index]);
-      exit;
-    end;
+  if PasteCommand = mkKbdMacro then begin
+    macro := macros[index].events;
     for ndx := 0 to length(macro)-1 do begin
       ShiftState := KbdShiftToShiftState(macro[ndx].Shift);
       if macro[ndx].Press then begin
         if ShiftState <> [] then begin
-          LogForm.Log(llDebug,'keyboard event %d, applying shift keys %s', [ndx, macro[ndx].ShiftStateToStr]);
+          LogOut(llDebug, _log_name_+': '+'Keyboard event %d, applying shift keys %s', [ndx, macro[ndx].ShiftStateToStr]);
           KeyInput.Apply(ShiftState);
         end;
-        LogForm.Log(llDebug,'keyboard event %d, key: %x down', [ndx, macro[ndx].code]);
+        LogOut(llDebug,_log_name_+': '+'Keyboard event %d, key: %x down', [ndx, macro[ndx].code]);
         KeyInput.Down(macro[ndx].Code);
       end
       else begin
-        LogForm.Log(llDebug,'keyboard event %d, key: %x up', [ndx, macro[ndx].code]);
+        LogOut(llDebug, _log_name_+': '+'Keyboard event %d, key: %x up', [ndx, macro[ndx].code]);
         KeyInput.Up(macro[ndx].code);
         if ShiftState <> [] then begin
-          LogForm.Log(llDebug,'keyboard event %d, unapplying shift keys %s', [ndx, macro[ndx].ShiftStateToStr]);
+          LogOut(llDebug,_log_name_+': '+'Keyboard event %d, unapplying shift keys %s', [ndx, macro[ndx].ShiftStateToStr]);
           KeyInput.UnApply(ShiftState);
         end;
       end;
     end;
-    LogForm.Log(llInfo,'%d keyboard events injected', [length(macro)]);
+    LogOut(llInfo,_log_name_+': '+'KbdMacro %d with %d keyboard events injected', [index, length(macro)]);
     exit;
   end;
 
-  convertedMacro := RemoveEscSequences(StringMacros[index]);
-  if convertedMacro = '' then begin
-    LogForm.Log(llInfo, 'Macro %d is not defined', [index]);
-    exit;
-  end;
-  if PasteCommand <> pcNone then begin
+  convertedMacro := RemoveEscSequences(macros[index].content);
+  if PasteCommand <> mkNone then begin
     WantsVK_RETURN := convertedMacro[length(ConvertedMacro)] = #13;
     if WantsVK_RETURN then
       setlength(convertedMacro, length(convertedMacro)-1);
@@ -152,21 +153,21 @@ begin
   clipboard.AsText := convertedMacro;
   PrimarySelection.Astext := convertedMacro; // always sychronize
 
-  if PasteCommand <= pcCustom then with pasteCommands[ord(PasteCommand)] do begin
+  if PasteCommand <= pcCustom then with macros.PasteShortcut[PasteCommand] do begin
     ShiftState := KbdShiftToShiftState(Shift);
     Delay(Delayms);
     KeyInput.Apply(ShiftState);
     KeyInput.Press(Code);
     KeyInput.Unapply(ShiftState);
-    LogForm.Log(llDebug,'Paste with %s', [sPasteCommands[PasteCommand]]);
+    LogOut(llDebug, _log_name_+': '+'String macro %d pasted with %s', [index, sMacroKind[PasteCommand]]);
     if WantsVK_RETURN then begin
        // A relatively long delay before injecting the VK_RETURN keyboard event
        // may be needed. Otherwise, the clipboard paste operation will not
        // be completed and only the return key will be posted. This problem
        // has been observed to occur in VSCodium with the QT5 widget set.
-       Delay(VkReturnDelay);
+       Delay(macros.ReturnDelay);
        KeyInput.Press(VK_RETURN);
-       LogForm.Log(llDebug,'Appended VK_RETURN');
+       LogOut(llDebug, _log_name_+': '+'Appended VK_RETURN');
     end;
   end;
 end;
@@ -182,7 +183,7 @@ begin
   x := left + 100;
   y := top + 100;
   CanClose := false;  // check if the
-  if macrosmodified then begin
+  if macros.modified then begin
     mr := MessageDlgPos('Save the modified macro definitions before closing.',
       mtConfirmation, [mbYes, mbNo, mbCancel], 0, x, y);
     if (mr = mrYes) then
@@ -203,11 +204,14 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+  Width := 4;
+  Height := 4;
   FIconON := TIcon.Create;
   FIconON.LoadFromResourceName(Hinstance,  'LAZMACROPAD_ON');
   FIconOFF := TIcon.Create;
   FIconOFF.LoadFromResourceName(Hinstance,  'LAZMACROPAD_OFF');
   //SetTrayIcon(false); // don't do this to get a fighting chance at showing the correct icon!
+  TrayIcon.Icon.Assign(FIconOFF);
 end;
 
 procedure TMainForm.FormActivate(Sender: TObject);
@@ -216,13 +220,9 @@ begin
          // the clipboard will not work in GTK2
   // https://forum.lazarus.freepascal.org/index.php/topic,61044.0.html
   // [SOLVED] Non functioning clipboard in Linux TrayIcon  (Read 27 times)
-  paramsInit;
+  //LoadConfig;
   // need config.KeyCols and config.KeyRows to create the
   // key map
-  Application.CreateForm(TLayoutForm, LayoutForm);
-
-  if Config.loglevel >= llError then
-    LogForm.log(Config.loglevel, 'Change the log level in parameters to see more information.');
   MacroForm.SetMacrosFilename(Config.DefaultMacrosFile);
   MacroForm.SaveDialog1.InitialDir := configdir;
   Timer1.Enabled := OpenSerial;
@@ -306,4 +306,5 @@ end;
 // </tray menu>
 
 end.
+
 

@@ -7,6 +7,7 @@ object EditStringForm: TEditStringForm
   ClientHeight = 325
   ClientWidth = 352
   Position = poOwnerFormCenter
+  LCLVersion = '2.2.7.0'
   object Memo1: TMemo
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -70,5 +71,6 @@ object EditStringForm: TEditStringForm
     Top = 296
     Width = 155
     Caption = 'Ctrl+Tab to focus buttons'
+    ParentColor = False
   end
 end

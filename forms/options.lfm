@@ -1,0 +1,615 @@
+object OptionsForm: TOptionsForm
+  Left = 546
+  Height = 447
+  Top = 250
+  Width = 516
+  BorderIcons = [biSystemMenu]
+  Caption = 'Parameters - Macro Keypad '
+  ClientHeight = 447
+  ClientWidth = 516
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  OnHide = FormHide
+  Position = poScreenCenter
+  ShowInTaskBar = stNever
+  LCLVersion = '2.2.7.0'
+  object Bevel3: TBevel
+    AnchorSideLeft.Control = Bevel1
+    AnchorSideTop.Control = Panel3
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Bevel1
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Side = asrCenter
+    Left = 3
+    Height = 62
+    Top = 339
+    Width = 507
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 6
+    Shape = bsFrame
+  end
+  object Bevel1: TBevel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = BaudComboBox
+    AnchorSideBottom.Side = asrCenter
+    Left = 3
+    Height = 107
+    Top = 6
+    Width = 507
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 6
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 6
+    Shape = bsFrame
+  end
+  object RestoreConfigButton: TButton
+    AnchorSideTop.Control = SaveConfigButton
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = SaveConfigButton
+    Left = 227
+    Height = 26
+    Top = 409
+    Width = 145
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 12
+    BorderSpacing.Bottom = 8
+    Caption = 'Restore Configuration'
+    OnClick = RestoreConfigButtonClick
+    TabOrder = 0
+  end
+  object SaveConfigButton: TButton
+    AnchorSideLeft.Control = RestoreConfigButton
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Bevel3
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Side = asrBottom
+    Left = 384
+    Height = 26
+    Top = 409
+    Width = 126
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 4
+    Caption = 'Save Configuration'
+    OnClick = SaveConfigButtonClick
+    TabOrder = 1
+  end
+  object Label4: TLabel
+    AnchorSideLeft.Control = Bevel1
+    AnchorSideTop.Control = DeviceEdit
+    AnchorSideTop.Side = asrCenter
+    Left = 23
+    Height = 16
+    Top = 36
+    Width = 74
+    BorderSpacing.Left = 20
+    BorderSpacing.Top = 12
+    Caption = 'Serial device'
+    ParentColor = False
+  end
+  object DeviceEdit: TEdit
+    AnchorSideLeft.Control = Label4
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label2
+    AnchorSideTop.Side = asrBottom
+    Left = 109
+    Height = 28
+    Top = 30
+    Width = 163
+    BorderSpacing.Left = 12
+    BorderSpacing.Top = 6
+    OnEditingDone = DeviceEditEditingDone
+    TabOrder = 2
+    Text = '/dev/ttyUSB0'
+  end
+  object Label5: TLabel
+    AnchorSideLeft.Control = Label4
+    AnchorSideTop.Control = BaudComboBox
+    AnchorSideTop.Side = asrCenter
+    Left = 23
+    Height = 16
+    Top = 74
+    Width = 31
+    Caption = 'Baud'
+    ParentColor = False
+  end
+  object BaudComboBox: TComboBox
+    AnchorSideLeft.Control = DeviceEdit
+    AnchorSideTop.Control = DeviceEdit
+    AnchorSideTop.Side = asrBottom
+    Left = 109
+    Height = 24
+    Top = 70
+    Width = 163
+    BorderSpacing.Top = 12
+    ItemHeight = 18
+    ItemIndex = 1
+    Items.Strings = (
+      '4800'
+      '9600'
+      '19200'
+      '38400'
+      '76800'
+    )
+    OnChange = BaudComboBoxChange
+    TabOrder = 3
+    Text = '9600'
+  end
+  object ConnectButton: TButton
+    AnchorSideLeft.Control = BaudComboBox
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = BaudComboBox
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = DisconnectButton
+    AnchorSideRight.Side = asrBottom
+    Left = 288
+    Height = 26
+    Top = 69
+    Width = 100
+    BorderSpacing.Left = 16
+    BorderSpacing.Top = 30
+    Caption = 'Connect'
+    OnClick = ConnectButtonClick
+    TabOrder = 4
+  end
+  object DisconnectButton: TButton
+    AnchorSideLeft.Control = ConnectButton
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = BaudComboBox
+    AnchorSideTop.Side = asrCenter
+    Left = 404
+    Height = 26
+    Top = 69
+    Width = 100
+    BorderSpacing.Left = 16
+    BorderSpacing.Right = 6
+    Caption = '  Disconnect  '
+    OnClick = DisconnectButtonClick
+    TabOrder = 5
+  end
+  object Label2: TLabel
+    AnchorSideLeft.Control = Bevel1
+    AnchorSideTop.Control = Bevel1
+    Left = 9
+    Height = 16
+    Top = 8
+    Width = 147
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 2
+    Caption = 'Serial Device Parameters'
+    ParentColor = False
+  end
+  object ColCountSpinEdit: TSpinEdit
+    AnchorSideLeft.Control = Label3
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = SetButton
+    AnchorSideTop.Side = asrCenter
+    Left = 147
+    Height = 26
+    Top = 363
+    Width = 55
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 6
+    MaxValue = 36
+    MinValue = 1
+    OnEditingDone = RowCountSpinEditEditingDone
+    TabOrder = 6
+    Value = 1
+  end
+  object RowCountSpinEdit: TSpinEdit
+    AnchorSideLeft.Control = Label7
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = ColCountSpinEdit
+    AnchorSideTop.Side = asrCenter
+    Left = 270
+    Height = 26
+    Top = 363
+    Width = 55
+    BorderSpacing.Left = 8
+    MaxValue = 36
+    MinValue = 1
+    OnEditingDone = RowCountSpinEditEditingDone
+    TabOrder = 7
+    Value = 1
+  end
+  object Label1: TLabel
+    AnchorSideLeft.Control = Bevel3
+    AnchorSideTop.Control = Bevel3
+    Left = 9
+    Height = 16
+    Top = 341
+    Width = 100
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 2
+    Caption = 'Keyboard Layout'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    AnchorSideLeft.Control = Label4
+    AnchorSideTop.Control = ColCountSpinEdit
+    AnchorSideTop.Side = asrCenter
+    Left = 23
+    Height = 16
+    Top = 368
+    Width = 116
+    Caption = 'Number of columns'
+    ParentColor = False
+  end
+  object Label7: TLabel
+    AnchorSideLeft.Control = ColCountSpinEdit
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = ColCountSpinEdit
+    AnchorSideTop.Side = asrCenter
+    Left = 208
+    Height = 16
+    Top = 368
+    Width = 54
+    BorderSpacing.Left = 6
+    Caption = 'and rows'
+    ParentColor = False
+  end
+  object SetButton: TButton
+    AnchorSideLeft.Control = RowCountSpinEdit
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    Left = 333
+    Height = 26
+    Top = 363
+    Width = 33
+    AutoSize = True
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 6
+    Caption = 'Set'
+    OnClick = SetButtonClick
+    TabOrder = 8
+  end
+  object ResetButton: TButton
+    AnchorSideLeft.Control = SetButton
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = SetButton
+    AnchorSideTop.Side = asrCenter
+    Left = 372
+    Height = 26
+    Top = 363
+    Width = 48
+    AutoSize = True
+    BorderSpacing.Left = 6
+    Caption = 'Reset'
+    OnClick = ResetButtonClick
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 9
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Bevel1
+    AnchorSideTop.Control = Bevel1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Bevel1
+    AnchorSideRight.Side = asrBottom
+    Left = 3
+    Height = 66
+    Top = 119
+    Width = 507
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 6
+    BevelInner = bvRaised
+    BevelOuter = bvLowered
+    ClientHeight = 66
+    ClientWidth = 507
+    TabOrder = 10
+    object Label6: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 8
+      Height = 16
+      Top = 8
+      Width = 189
+      BorderSpacing.Left = 6
+      BorderSpacing.Top = 6
+      Caption = 'Application Log Threshold Level'
+      ParentColor = False
+    end
+    object RadioButton1: TRadioButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = LogSizeSpinEdit
+      AnchorSideTop.Side = asrCenter
+      Left = 18
+      Height = 21
+      Top = 33
+      Width = 69
+      BorderSpacing.Left = 16
+      BorderSpacing.Top = 6
+      Caption = 'Debug'
+      Checked = True
+      OnChange = ApplogThresholdButtonChange
+      TabOrder = 0
+      TabStop = True
+    end
+    object RadioButton2: TRadioButton
+      Tag = 1
+      AnchorSideLeft.Control = RadioButton1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = RadioButton1
+      AnchorSideTop.Side = asrCenter
+      Left = 95
+      Height = 21
+      Top = 33
+      Width = 100
+      BorderSpacing.Left = 8
+      Caption = 'Information'
+      OnChange = ApplogThresholdButtonChange
+      TabOrder = 1
+    end
+    object RadioButton3: TRadioButton
+      Tag = 2
+      AnchorSideLeft.Control = RadioButton2
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = RadioButton2
+      AnchorSideTop.Side = asrCenter
+      Left = 203
+      Height = 21
+      Top = 33
+      Width = 65
+      BorderSpacing.Left = 8
+      Caption = 'Errors'
+      OnChange = ApplogThresholdButtonChange
+      TabOrder = 2
+    end
+    object RadioButton4: TRadioButton
+      Tag = 3
+      AnchorSideLeft.Control = RadioButton3
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = RadioButton3
+      AnchorSideTop.Side = asrCenter
+      Left = 276
+      Height = 21
+      Top = 33
+      Width = 61
+      BorderSpacing.Left = 8
+      Caption = 'None'
+      OnChange = ApplogThresholdButtonChange
+      TabOrder = 3
+    end
+    object Label8: TLabel
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Label6
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = LogSizeSpinEdit
+      AnchorSideRight.Side = asrBottom
+      Left = 380
+      Height = 16
+      Top = 8
+      Width = 119
+      Anchors = [akTop, akRight]
+      Caption = 'Application Log Size'
+      ParentColor = False
+    end
+    object LogSizeSpinEdit: TSpinEdit
+      AnchorSideTop.Control = Label8
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 378
+      Height = 26
+      Top = 30
+      Width = 121
+      Anchors = [akTop, akRight]
+      BorderSpacing.Top = 6
+      BorderSpacing.Right = 6
+      MaxValue = 32000
+      MinValue = 32
+      OnEditingDone = LogSizeSpinEditEditingDone
+      TabOrder = 4
+      Value = 32
+    end
+  end
+  object Panel2: TPanel
+    AnchorSideLeft.Control = Bevel1
+    AnchorSideTop.Control = Panel1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Bevel1
+    AnchorSideRight.Side = asrBottom
+    Left = 3
+    Height = 67
+    Top = 191
+    Width = 507
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 6
+    BevelInner = bvRaised
+    BevelOuter = bvLowered
+    ClientHeight = 67
+    ClientWidth = 507
+    TabOrder = 11
+    object Label9: TLabel
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Panel2
+      Left = 8
+      Height = 16
+      Top = 8
+      Width = 169
+      BorderSpacing.Left = 6
+      BorderSpacing.Top = 6
+      Caption = 'Console Log Threshold Level'
+      ParentColor = False
+    end
+    object RadioButton8: TRadioButton
+      Tag = 3
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrCenter
+      Left = 276
+      Height = 21
+      Top = 36
+      Width = 61
+      BorderSpacing.Left = 8
+      Caption = 'None'
+      OnChange = ConsoleLogLevelButtonsChange
+      TabOrder = 0
+    end
+    object RadioButton7: TRadioButton
+      Tag = 2
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrCenter
+      Left = 203
+      Height = 21
+      Top = 36
+      Width = 65
+      BorderSpacing.Left = 8
+      Caption = 'Errors'
+      OnChange = ConsoleLogLevelButtonsChange
+      TabOrder = 1
+    end
+    object RadioButton6: TRadioButton
+      Tag = 1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrCenter
+      Left = 95
+      Height = 21
+      Top = 36
+      Width = 100
+      BorderSpacing.Left = 8
+      Caption = 'Information'
+      OnChange = ConsoleLogLevelButtonsChange
+      TabOrder = 2
+    end
+    object RadioButton5: TRadioButton
+      AnchorSideLeft.Control = Panel2
+      AnchorSideTop.Control = Label9
+      AnchorSideTop.Side = asrBottom
+      Left = 18
+      Height = 21
+      Top = 36
+      Width = 69
+      BorderSpacing.Left = 16
+      BorderSpacing.Top = 12
+      Caption = 'Debug'
+      Checked = True
+      OnChange = ConsoleLogLevelButtonsChange
+      TabOrder = 3
+      TabStop = True
+    end
+  end
+  object Panel3: TPanel
+    AnchorSideLeft.Control = Bevel1
+    AnchorSideTop.Control = Panel2
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Bevel1
+    AnchorSideRight.Side = asrBottom
+    Left = 3
+    Height = 67
+    Top = 264
+    Width = 507
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 6
+    BevelInner = bvRaised
+    BevelOuter = bvLowered
+    ClientHeight = 67
+    ClientWidth = 507
+    TabOrder = 12
+    object Label10: TLabel
+      AnchorSideLeft.Control = Panel3
+      AnchorSideTop.Control = Panel3
+      Left = 8
+      Height = 16
+      Top = 8
+      Width = 164
+      BorderSpacing.Left = 6
+      BorderSpacing.Top = 6
+      Caption = 'System Log Threshold Level'
+      ParentColor = False
+    end
+    object RadioButton12: TRadioButton
+      Tag = 3
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrCenter
+      Left = 276
+      Height = 21
+      Top = 36
+      Width = 61
+      BorderSpacing.Left = 8
+      Caption = 'None'
+      OnChange = SyslogThresholdButtonChange
+      TabOrder = 0
+    end
+    object RadioButton11: TRadioButton
+      Tag = 2
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrCenter
+      Left = 203
+      Height = 21
+      Top = 36
+      Width = 65
+      BorderSpacing.Left = 8
+      Caption = 'Errors'
+      OnChange = SyslogThresholdButtonChange
+      TabOrder = 1
+    end
+    object RadioButton10: TRadioButton
+      Tag = 1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Side = asrCenter
+      Left = 95
+      Height = 21
+      Top = 36
+      Width = 100
+      BorderSpacing.Left = 8
+      Caption = 'Information'
+      OnChange = SyslogThresholdButtonChange
+      TabOrder = 2
+    end
+    object RadioButton9: TRadioButton
+      AnchorSideLeft.Control = Panel3
+      AnchorSideTop.Control = Label10
+      AnchorSideTop.Side = asrBottom
+      Left = 18
+      Height = 21
+      Top = 36
+      Width = 69
+      BorderSpacing.Left = 16
+      BorderSpacing.Top = 12
+      Caption = 'Debug'
+      Checked = True
+      OnChange = SyslogThresholdButtonChange
+      TabOrder = 3
+      TabStop = True
+    end
+  end
+  object Label11: TLabel
+    AnchorSideLeft.Control = DeviceEdit
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label4
+    AnchorSideTop.Side = asrCenter
+    Left = 289
+    Height = 16
+    Top = 36
+    Width = 135
+    BorderSpacing.Left = 17
+    Caption = 'Seconds since last SYM'
+    ParentColor = False
+  end
+  object Label12: TLabel
+    AnchorSideLeft.Control = Label11
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Label11
+    AnchorSideTop.Side = asrCenter
+    Left = 432
+    Height = 16
+    Top = 36
+    Width = 48
+    BorderSpacing.Left = 8
+    Caption = '<never>'
+    ParentColor = False
+  end
+end

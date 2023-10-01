@@ -8,6 +8,7 @@ object PasteDelaysForm: TPasteDelaysForm
   Caption = 'Paste Command Delays'
   ClientHeight = 228
   ClientWidth = 224
+  LCLVersion = '2.2.7.0'
   object Label2: TLabel
     AnchorSideTop.Control = CtrlVDelaySpinEdit
     AnchorSideTop.Side = asrCenter

@@ -15,9 +15,29 @@ type
   TOptionsForm = class(TForm)
     BaudComboBox: TComboBox;
     Bevel1: TBevel;
-    Bevel2: TBevel;
     Bevel3: TBevel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label12: TLabel;
+    Label6: TLabel;
     Label8: TLabel;
+    Label9: TLabel;
+    LogSizeSpinEdit: TSpinEdit;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    RadioButton1: TRadioButton;
+    RadioButton10: TRadioButton;
+    RadioButton11: TRadioButton;
+    RadioButton12: TRadioButton;
+    RadioButton2: TRadioButton;
+    RadioButton3: TRadioButton;
+    RadioButton4: TRadioButton;
+    RadioButton5: TRadioButton;
+    RadioButton6: TRadioButton;
+    RadioButton7: TRadioButton;
+    RadioButton8: TRadioButton;
+    RadioButton9: TRadioButton;
     SetButton: TButton;
     ResetButton: TButton;
     ConnectButton: TButton;
@@ -28,17 +48,14 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
-    Label6: TLabel;
     Label7: TLabel;
-    RadioButton1: TRadioButton;
-    RadioButton2: TRadioButton;
-    RadioButton3: TRadioButton;
     RestoreConfigButton: TButton;
     SaveConfigButton: TButton;
     ColCountSpinEdit: TSpinEdit;
     RowCountSpinEdit: TSpinEdit;
-    LogSizeSpinEdit: TSpinEdit;
+    procedure ApplogThresholdButtonChange(Sender: TObject);
     procedure BaudComboBoxChange(Sender: TObject);
+    procedure ConsoleLogLevelButtonsChange(Sender: TObject);
     procedure LogSizeSpinEditEditingDone(Sender: TObject);
     procedure SetButtonClick(Sender: TObject);
     procedure ResetButtonClick(Sender: TObject);
@@ -48,7 +65,7 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
-    procedure LogLevelButtonsChange(Sender: TObject);
+    procedure SyslogThresholdButtonChange(Sender: TObject);
     procedure RestoreConfigButtonClick(Sender: TObject);
     procedure RowCountSpinEditEditingDone(Sender: TObject);
     procedure SaveConfigButtonClick(Sender: TObject);
@@ -69,9 +86,18 @@ implementation
 {$R *.lfm}
 
 uses
-  main, macrolog, serialreader, params, keymap;
+  main, ulog, uconfig, userial (*, serialreader, keymap;*);
 
 { TOptionsForm }
+
+procedure TOptionsForm.ApplogThresholdButtonChange(Sender: TObject);
+begin
+  if Sender is TRadioButton then
+    with Sender as TRadioButton do begin
+      if checked then
+        Config.AppLogThreshold := TLogLevel(tag);
+    end;
+end;
 
 procedure TOptionsForm.BaudComboBoxChange(Sender: TObject);
 var
@@ -83,28 +109,6 @@ begin
      CloseSerial;
      MainForm.SetTrayIcon(false);
      Config.Baud := newbaud;
-     //Log(llInfo, 'New baud, %d. Connection to %s closed. Press [Connect] button to establish connection.', [Baud, DeviceName]);
-     LogForm.Log(llInfo, 'New baud, %d. Press [Connect] button to establish connection with this new value.', [Config.Baud]);
-  end;
-end;
-
-procedure TOptionsForm.LogSizeSpinEditEditingDone(Sender: TObject);
-begin
-  Config.LogSize := LogSizeSpinEdit.value;
-  LogSizeSpinEdit.value := Config.LogSize; // just in case out of bounds
-end;
-
-procedure TOptionsForm.SetButtonClick(Sender: TObject);
-begin
-  SetButtonCount;
-end;
-
-procedure TOptionsForm.ResetButtonClick(Sender: TObject);
-begin
-  if (FOldCol > 0) and (FOldRow > 0) then begin
-    ColCountSpinEdit.Value := FOldCol;
-    RowCountSpinEdit.Value := FOldRow;
-    SetButtonCount;
   end;
 end;
 
@@ -114,14 +118,25 @@ begin
   MainForm.SetTrayIcon(MainForm.Timer1.Enabled);
 end;
 
-procedure TOptionsForm.DeviceEditEditingDone(Sender: TObject);
+procedure TOptionsForm.ConsoleLogLevelButtonsChange(Sender: TObject);
 begin
-  if DeviceEdit.text <> Config.DeviceName then begin
+  if Sender is TRadioButton then
+    with Sender as TRadioButton do begin
+      if checked then
+        Config.ConsoleLogThreshold := TLogLevel(tag);
+    end;
+end;
+
+procedure TOptionsForm.DeviceEditEditingDone(Sender: TObject);
+const
+  _log_name_ = 'TOptionsForm.DeviceEditEditingDone';
+begin
+  if DeviceEdit.text <> Config.SerialDeviceName then begin
     CloseSerial;
     MainForm.SetTrayIcon(false);
     MainForm.Timer1.Enabled := false;
-    Config.DeviceName := DeviceEdit.text;
-    LogForm.Log(llInfo, 'New serial device: %s. Press [Connect] button to establish connection', [Config.DeviceName]);
+    Config.SerialDeviceName := DeviceEdit.text;
+    LogOut(llInfo, _log_name_+': '+'New serial device: %s. Press [Connect] button to establish connection', [Config.SerialDeviceName]);
   end;
 end;
 
@@ -148,12 +163,18 @@ begin
   MainForm.OptionsItem.Checked := false;
 end;
 
-procedure TOptionsForm.LogLevelButtonsChange(Sender: TObject);
+procedure TOptionsForm.LogSizeSpinEditEditingDone(Sender: TObject);
 begin
-  if Sender is TRadioButton then with Sender as TRadioButton do begin
-    if (checked and (Config.loglevel <> TLogLevel(tag)) ) then begin
-      Config.loglevel := TLogLevel(tag);
-    end;
+  Config.AppLogSize := LogSizeSpinEdit.value;
+  LogSizeSpinEdit.value := Config.AppLogSize; // just in case out of bounds
+end;
+
+procedure TOptionsForm.ResetButtonClick(Sender: TObject);
+begin
+  if (FOldCol > 0) and (FOldRow > 0) then begin
+    ColCountSpinEdit.Value := FOldCol;
+    RowCountSpinEdit.Value := FOldRow;
+    SetButtonCount;
   end;
 end;
 
@@ -177,7 +198,14 @@ begin
   Config.Save;
 end;
 
+procedure TOptionsForm.SetButtonClick(Sender: TObject);
+begin
+  SetButtonCount;
+end;
+
 function TOptionsForm.SetButtonCount: boolean;
+const
+  _log_name_ = 'TOptionsForm.SetButtonCount';
 var
   r, c: integer;
   vis: boolean;
@@ -195,29 +223,54 @@ begin
     result := false;
     FCountsChanged := true;
     if (c < 1) or (r < 1) then
-      LogForm.Log(llError, 'Must have at least one row and one column of buttons')
+      LogOut(llError, _log_name_+': '+'Must have at least one row and one column of buttons')
     else
-      LogForm.Log(llError, 'The maximum number of buttons is %d', [length(KeyLabels)]);
+      LogOut(llError, _log_name_+': '+'The maximum number of buttons is %d', [length(KeyLabels)]);
   end
   else begin
     FCountsChanged := false;
+    (**************
     vis := LayoutForm.visible;
     freeandnil(LayoutForm);
     Application.CreateForm(TLayoutForm, LayoutForm);
     LayoutForm.visible := vis;
     mainForm.KeyLayoutItem.Checked := vis;
+    *****)
     result := true;
+    LogOut(llError, _log_name_+': '+'%d x %d button matrix defined', [Config.KeyRows, Config.KeyCols]);
   end;
+end;
+
+procedure TOptionsForm.SyslogThresholdButtonChange(Sender: TObject);
+begin
+  if Sender is TRadioButton then
+    with Sender as TRadioButton do begin
+      if checked then
+        Config.SystemLogThreshold := TLogLevel(tag);
+    end;
 end;
 
 procedure TOptionsForm.UpdateGUI;
 begin
-  DeviceEdit.Text := Config.DeviceName;
+  DeviceEdit.Text := Config.SerialDeviceName;
   BaudComboBox.Text := inttostr(Config.Baud);
-  RadioButton1.checked := Config.logLevel = llDebug;
-  RadioButton2.checked := Config.logLevel = llInfo;
-  RadioButton3.checked := Config.logLevel = llError;
-  LogSizeSpinEdit.value := Config.LogSize;
+
+  RadioButton1.checked := Config.AppLogThreshold = llDebug;
+  RadioButton2.checked := Config.AppLogThreshold = llInfo;
+  RadioButton3.checked := Config.AppLogThreshold = llError;
+  RadioButton4.checked := Config.AppLogThreshold = llNone;
+  LogSizeSpinEdit.value := Config.AppLogSize;
+
+  RadioButton5.checked := Config.ConsoleLogThreshold = llDebug;
+  RadioButton6.checked := Config.ConsoleLogThreshold = llInfo;
+  RadioButton7.checked := Config.ConsoleLogThreshold = llError;
+  RadioButton8.checked := Config.ConsoleLogThreshold = llNone;
+
+  RadioButton9.checked := Config.SystemLogThreshold = llDebug;
+  RadioButton10.checked := Config.SystemLogThreshold = llInfo;
+  RadioButton11.checked := Config.SystemLogThreshold = llError;
+  RadioButton12.checked := Config.SystemLogThreshold = llNone;
+
   ColCountSpinEdit.value := Config.KeyCols;
   RowCountSpinEdit.value := Config.KeyRows;
 end;

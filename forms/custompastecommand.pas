@@ -5,7 +5,7 @@ unit custompastecommand;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, Spin, kbdev;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, Spin, ukbdev;
 
 type
 
@@ -36,6 +36,13 @@ implementation
 
 {$R *.lfm}
 
+{ TCustomPasteForm }
+
+procedure TCustomPasteForm.FormCreate(Sender: TObject);
+begin
+  AssignKeyNamesCodes(KeyNameComboBox.Items)
+end;
+
 function EditCustomPasteCommand(var ke: TKbdEvent): boolean;
 var
   i: integer;
@@ -62,14 +69,6 @@ begin
     end
   end;
 end;
-
-{ TCustomPasteForm }
-
-procedure TCustomPasteForm.FormCreate(Sender: TObject);
-begin
-  AssignKeyNamesCodes(KeyNameComboBox.Items)
-end;
-
 
 end.
 
