@@ -131,13 +131,14 @@ The source code for the ESP32+TFT display soft macro key pad is in the [cydMacro
 
 ### 5.1. `Xtst` Library
 
-The `Xtst` library is required by the `lazmouseandkeyinput.lpk` package. In recent versions of Debian, the package containing this library is called `libxtst6` and it is probably included in most Debian-based desktop distributions. This is the case for Linux Mint 20.1 Mate and Mint 21 Mate. If the library is missing, it can be installed in the usual fashion.
+The `Xtst` library is required by the `lazmouseandkeyinput.lpk` package. In recent versions of Debian, the package containing this library is called `libxtst6` and it is probably included in most Debian-based desktop distributions. Even then the following error can be encountered when compiling the code.
 
-```bash
-$ apt install libxtst6
 ```
-
-Although the library was installed in Mint 20.1, it could not be found because of a missing symbolic link to `libXtst.so`. 
+Verbose: Linking /home/michel/Documents/Lazarus_projects/lazmacropad/lazmacropad
+Warning: linker: /usr/bin/ld.bfd : ne peut pas trouver -lXtst : Aucun fichier ou dossier de ce nom
+lazmacropad.lpr(35,1) Error: Error while linking
+```
+This is the case for Linux Mint 20.1, 21 and 22 (and presumably the corresponding Ubuntu 20.10, 22.04 and 24.04 releases) event though the library is installed. 
 
 ```bash
 $ locate libXtst
@@ -145,24 +146,29 @@ $ locate libXtst
 /usr/lib/x86_64-linux-gnu/libXtst.so.6.1.10
 ```
 
-In that case, add the symbolic link and update the library database.
+It appears some have been installing the development package `libxtst-dev` as a solution, but adding the symbolic link and updating the library database will suffice.
 
 ```bash
 $ cd /usr/lib/x86_64-linux-gnu
 $ sudo ln -s libXtst.so.6.1.0 libXtst.so
 $ sudo updatedb
 ```
+To be pedantic, `updatedb` is for the benefit of `locate` and is not strictly needed. The directory containing the system libraries is not necessarily called `/usr/lib/x85_64-linux-gnu` so adust the above in accordance with the output obtained from the `locate` command.
 
-The directory in which are stored system libraries are stored is not necessarily called `/usr/lib/x85_64-linux-gnu` so adust the above in accordance with the output obtained from the `locate` command.
+If the `Xtst` library is missing, it can be installed in the usual fashion.
 
-It appears some have been installing the development package `libxtst-dev` in a bid to add the missing symbolic link, but there is no need for that. 
+```bash
+$ apt install libxtst6
+```
+
+In distributions not based on Debian, such as [Arch](https://archlinux.org/packages/extra/x86_64/libxtst/), the library may have another name.
 
 
 ### 5.2. Changes to the `lazmouseandkeyinput` package
 
 See the [mouseandkeyinput](mouseandkeyinput/) directory for needed additions and corrections to the `lazmouseandkeyinput` package.
 
-**Warning**: *lazmacropad* may not run at all if the changes are not made.
+**Warning**: *lazmacropad* may not run at all in older versions of Lazarus if the changes are not made.
 
 ### 5.3. Serial USB Device Problem in Mint 21 and Ubuntu 22.04
 
@@ -184,6 +190,8 @@ usbfs: interface 0 claimed by ch34x while 'brltty' sets config #1 #18
 A quick search yielded a couple of *StackExchange* queries ([Unable to use [...] on USB-serial converter chip](https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip) and [On Linux Min21, unable to access tools/port...)](https://arduino.stackexchange.com/questions/90954/on-linux-min21-unable-to-access-tools-port-grayed-out) and a blog post ([Solved: brltty – USB COM Port Gets Immediately Disconnected](https://lynxbee.com/solved-brltty-usb-com-port-gets-immediately-disconnected/#.Y20o5ZCZNhE)). It seems that the screen reader [BRLTTY](https://brltty.app/) is now enabled by default and it takes over the serial port which I assume would be connected to a Braille display.
 
 There are two ways to "resolve" the situation: disable the service as explained in the first two references or remove the `brltty` package altogether with the usual `apt remove brltty` command as explained in the last reference. Unfortunately, this is not a working solution for those that need the screen reader.  
+
+** This problem is not present in Mint 22 (Ubuntu 24.04).** The `blrtty` package is included, but the `brltty-udev.service` is not enabled by default. 
 
 ## 6. Windows Requirements
 
@@ -264,10 +272,10 @@ There is a [post about this project](https://sigmdel.ca/michel/program/fpl/macro
 
 ## 12. Acknowledgment
 
-There is no shortage of information on all sorts of more or less sophisticated macro key pads. The Brian Lough video, [The Simplest DIY Macro Keypad with Arduino](https://www.youtube.com/watch?v=ORujXGDqG_I&ab_channel=BrianLough) and corresponding [GitHub repository, arduino-switcheroonie,](https://github.com/witnessmenow/arduino-switcheroonie) stands out for its simplicity, but that project is based on an Arduino Pro Micro. The Cristian Bastidas (crixodia) [arduino-nano-macro-keypad](https://github.com/crixodia/arduino-nano-macro-keypad) GitHub repository showed how to achieve something very similar  with a Nano and a Python script on the desktop. This later project is clearly the model for *lazmacropad*.
+There is no shortage of informIn nontps://github.com/crixodia/arduino-nano-macro-keypad) GitHub repository showed how to achieve something very similar  with a Nano and a Python script on the desktop. This later project is clearly the model for *lazmacropad*.
 
 ## 13. Licence
 
-Copyright 2022, 2023 Michel Deslierres, no rights reserved.
+Copyright 2022, 2024 Michel Deslierres, no rights reserved.
 
 In those jurisdictions where releasing a work into the public domain may be a problem, the **BSD Zero Clause Licence** ([SPDX](https://spdx.dev/): [0BSD](https://spdx.org/licenses/0BSD.html)) applies.
