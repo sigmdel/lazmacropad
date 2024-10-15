@@ -44,7 +44,6 @@ type
     MacrosPopupMenu: TPopupMenu;
     SaveDialog1: TSaveDialog;
     procedure EditMacroMenuItemClick(Sender: TObject);
-    procedure MacrosEditorDblClick(Sender: TObject);
     procedure MacrosEditorSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
     procedure CustomPasteMenuItemClick(Sender: TObject);
@@ -167,29 +166,6 @@ begin
     if EditStringForm.ShowModal = mrOk then
       MacrosEditor.Cells[c, r] := EditStringForm.GetEditText;
   end;
-end;
-
-procedure TMacroForm.MacrosEditorDblClick(Sender: TObject);
-var
-  i: integer;
-begin
-  (*
-
-  if (MacrosEditor.Col = 0) and (MacrosEditor.Row > 0) then
-    Caption := Format('Macro %d', [MacrosEditor.Row-1])
-  else
-    Caption := '';
-  *)
-  if (MacrosEditor.Col = 0) and (MacrosEditor.Row > 0) then begin
-    i := MacrosEditor.Row-1;
-    if macros[Tag].isEmpty then
-      exit;
-    //self.Hide;  // return to previous focused window
-    MainForm.Inject(i);
-    //self.Show;  // show this form again
-    //MainForm.KeyLayoutItem.Checked := false;
-  end;
-
 end;
 
 procedure TMacroForm.EditorPopMenuPopup(Sender: TObject);
@@ -337,8 +313,7 @@ end;
 procedure TMacroForm.MacrosEditorSelectCell(Sender: TObject; aCol,
   aRow: Integer; var CanSelect: Boolean);
 begin
-  //CanSelect := aCol > 0;
-  CanSelect := true;
+  CanSelect := aCol > 0;
   EditorPopMenu.AutoPopup := aCol = 1;
 end;
 

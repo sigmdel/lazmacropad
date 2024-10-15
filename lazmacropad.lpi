@@ -11,6 +11,7 @@
       <XPManifest>
         <DpiAware Value="True"/>
       </XPManifest>
+      <Icon Value="0"/>
       <Resources Count="2">
         <Resource_0 FileName="lazmacropad_off.ico" Type="ICON" ResourceName="LAZMACROPAD_OFF"/>
         <Resource_1 FileName="lazmacropad_on.ico" Type="ICON" ResourceName="LAZMACROPAD_ON"/>
@@ -69,18 +70,15 @@
         </CompilerOptions>
       </Item>
       <Item Name="Release">
-        <MacroValues Count="1">
-          <Macro2 Name="LCLWidgetType" Value="qt5"/>
-        </MacroValues>
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="lazmacropad-$(LCLWidgetType)"/>
+            <Filename Value="lazmacropad"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
             <OtherUnitFiles Value="units;forms"/>
-            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)-$(LCLWidgetType)"/>
+            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
@@ -101,10 +99,6 @@
           </Linking>
         </CompilerOptions>
       </Item>
-      <SharedMatrixOptions Count="2">
-        <Item1 ID="042648653694" Type="IDEMacro" MacroName="LCLWidgetType" Value="gtk2"/>
-        <Item2 ID="768320134401" Modes="Release" Type="IDEMacro" MacroName="LCLWidgetType" Value="qt5"/>
-      </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -254,6 +248,10 @@
         <ComponentName Value="MainForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="log.txt"/>
+        <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
   </ProjectOptions>
