@@ -7,19 +7,19 @@ object MacroForm: TMacroForm
   Caption = 'Definitions - Macro Keypad '
   ClientHeight = 270
   ClientWidth = 475
+  Position = poScreenCenter
+  ShowInTaskBar = stNever
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnHide = FormHide
-  Position = poScreenCenter
-  ShowInTaskBar = stNever
   object MacrosLabel: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = PopMacroMenuButton
     AnchorSideTop.Side = asrCenter
     Left = 6
     Height = 16
-    Top = 11
-    Width = 110
+    Top = 10
+    Width = 111
     BorderSpacing.Left = 6
     Caption = 'Macro definitions: '
     ParentColor = False
@@ -33,8 +33,8 @@ object MacroForm: TMacroForm
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 2
-    Height = 226
-    Top = 38
+    Height = 228
+    Top = 36
     Width = 471
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFillColumns = True
@@ -46,6 +46,7 @@ object MacroForm: TMacroForm
     Columns = <    
       item
         Alignment = taCenter
+        ButtonStyle = cbsButton
         Color = clBtnFace
         MaxSize = 40
         ReadOnly = True
@@ -73,6 +74,7 @@ object MacroForm: TMacroForm
     PopupMenu = EditorPopMenu
     RowCount = 17
     TabOrder = 1
+    OnDblClick = MacrosEditorDblClick
     OnEditingDone = MacrosEditorEditingDone
     OnSelectEditor = MacrosEditorSelectEditor
     OnSelectCell = MacrosEditorSelectCell
@@ -86,17 +88,17 @@ object MacroForm: TMacroForm
     AnchorSideLeft.Control = MacrosFilenameLabel
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Owner
-    Left = 169
-    Height = 26
+    Left = 171
+    Height = 24
     Top = 6
-    Width = 24
+    Width = 17
     AutoSize = True
     BorderSpacing.Left = 6
     BorderSpacing.Top = 6
     Caption = '...'
-    OnClick = PopMacroMenuButtonClick
     PopupMenu = MacrosPopupMenu
     TabOrder = 0
+    OnClick = PopMacroMenuButtonClick
   end
   object MacrosFilenameLabel: TLabel
     AnchorSideLeft.Control = ModifiedLabel
@@ -104,10 +106,10 @@ object MacroForm: TMacroForm
     AnchorSideTop.Control = PopMacroMenuButton
     AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = PopMacroMenuButton
-    Left = 123
+    Left = 124
     Height = 16
-    Top = 11
-    Width = 40
+    Top = 10
+    Width = 41
     Caption = '<new>'
     ParentColor = False
     ParentShowHint = False
@@ -120,9 +122,9 @@ object MacroForm: TMacroForm
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = PopMacroMenuButton
     AnchorSideTop.Side = asrCenter
-    Left = 122
+    Left = 123
     Height = 1
-    Top = 19
+    Top = 18
     Width = 1
     BorderSpacing.Left = 6
     ParentColor = False
@@ -132,9 +134,9 @@ object MacroForm: TMacroForm
     Height = 17
     Top = 13
     Width = 96
-    OnEnter = ProxyEditorButtonEnter
     TabOrder = 2
     Visible = False
+    OnEnter = ProxyEditorButtonEnter
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.macros'

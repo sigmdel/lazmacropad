@@ -8,9 +8,9 @@ unit ukbdev;
 // That means that the code field in TKbEvent cannot be set to F1 and other
 // function keys, the Enter key, the ESC key and so on.
 //
-{$define ONLY_GRAPH_KEYS}
+{ //$define ONLY_GRAPH_KEYS}
 
-// Define this tok check that TKbdShift is exactly byte sized
+// Define this to check that TKbdShift is exactly byte sized
 //
 {$define DEBUG_KBDSHIFT_SIZE}
 
