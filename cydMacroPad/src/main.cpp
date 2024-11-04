@@ -225,7 +225,7 @@ void loop(void) {
   // Check if any key has changed state
   for (uint8_t b = 0; b < KEYCOUNT; b++) {
     if (key[b].justReleased()) {
-+      tft.setFreeFont(LABEL2_FONT);
+      tft.setFreeFont(LABEL2_FONT);
       key[b].drawButton();     // draw normal
       //Serial.printf("button %s released\n", keyLabel[b]);
       Serial.println(keyLabel[b]);
